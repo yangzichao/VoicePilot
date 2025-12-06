@@ -136,7 +136,7 @@ struct ContentView: View {
                     selectedView = .history
                 case "Permissions":
                     selectedView = .permissions
-                case "Agent Mode":
+                case "AI Agents":
                     selectedView = .agentMode
                 case "Transcribe Audio":
                     selectedView = .transcribeAudio

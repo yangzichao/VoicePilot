@@ -275,7 +275,7 @@ class ImportExportService {
         DispatchQueue.main.async {
             let alert = NSAlert()
             alert.messageText = "Import Successful"
-            alert.informativeText = message + "\n\nIMPORTANT: If you were using Agent Mode features, please make sure to reconfigure your API keys in the Agent Mode section.\n\nIt is recommended to restart VoicePilot for all changes to take full effect."
+            alert.informativeText = message + "\n\nIMPORTANT: If you were using AI Agents features, please make sure to reconfigure your API keys in the AI Agents section.\n\nIt is recommended to restart VoicePilot for all changes to take full effect."
             alert.alertStyle = .informational
             alert.addButton(withTitle: "OK")
             alert.addButton(withTitle: "Configure API Keys")
@@ -285,7 +285,7 @@ class ImportExportService {
                 NotificationCenter.default.post(
                     name: .navigateToDestination,
                     object: nil,
-                    userInfo: ["destination": "Agent Mode"]
+                    userInfo: ["destination": "AI Agents"]
                 )
             }
         }
