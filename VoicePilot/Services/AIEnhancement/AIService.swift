@@ -159,7 +159,7 @@ enum AIProvider: String, CaseIterable {
 }
 
 class AIService: ObservableObject {
-    @Published var apiKey: String = ""
+    @Published private(set) var apiKey: String = ""
     @Published var isAPIKeyValid: Bool = false
     
     // AWS Bedrock credentials/config
@@ -185,27 +185,7 @@ class AIService: ObservableObject {
     @Published var selectedProvider: AIProvider {
         didSet {
             userDefaults.set(selectedProvider.rawValue, forKey: "selectedAIProvider")
-            if selectedProvider.requiresAPIKey {
-                if selectedProvider == .awsBedrock {
-                    self.apiKey = ""
-                    self.isAPIKeyValid = !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
-                } else if let savedKey = userDefaults.string(forKey: "\(selectedProvider.rawValue)APIKey") {
-                    self.apiKey = savedKey
-                    self.isAPIKeyValid = true
-                } else {
-                    self.apiKey = ""
-                    self.isAPIKeyValid = false
-                }
-            } else {
-                self.apiKey = ""
-                self.isAPIKeyValid = true
-                if selectedProvider == .ollama {
-                    Task {
-                        await ollamaService.checkConnection()
-                        await ollamaService.refreshModels()
-                    }
-                }
-            }
+            refreshAPIKeyState()
             NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
         }
     }
@@ -213,6 +193,7 @@ class AIService: ObservableObject {
     @Published private var selectedModels: [AIProvider: String] = [:]
     private let userDefaults = UserDefaults.standard
     private lazy var ollamaService = OllamaService()
+    private let keyManager = CloudAPIKeyManager.shared
     
     @Published private var openRouterModels: [String] = []
     
@@ -259,16 +240,7 @@ class AIService: ObservableObject {
             self.selectedProvider = .gemini
         }
         
-        if selectedProvider.requiresAPIKey {
-            if selectedProvider == .awsBedrock {
-                self.isAPIKeyValid = !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
-            } else if let savedKey = userDefaults.string(forKey: "\(selectedProvider.rawValue)APIKey") {
-                self.apiKey = savedKey
-                self.isAPIKeyValid = true
-            }
-        } else {
-            self.isAPIKeyValid = true
-        }
+        refreshAPIKeyState()
         
         loadSavedModelSelections()
         loadSavedOpenRouterModels()
@@ -286,6 +258,38 @@ class AIService: ObservableObject {
     private func loadSavedOpenRouterModels() {
         if let savedModels = userDefaults.array(forKey: "openRouterModels") as? [String] {
             openRouterModels = savedModels
+        }
+    }
+    
+    private func refreshAPIKeyState() {
+        if selectedProvider.requiresAPIKey {
+            if selectedProvider == .awsBedrock {
+                self.apiKey = ""
+                self.isAPIKeyValid = !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
+            } else {
+                if let active = keyManager.activeKey(for: selectedProvider.rawValue) {
+                    self.apiKey = active.value
+                    self.isAPIKeyValid = true
+                } else if let legacy = userDefaults.string(forKey: "\(selectedProvider.rawValue)APIKey"), !legacy.isEmpty {
+                    // migrate legacy single key into manager
+                    let entry = keyManager.addKey(legacy, for: selectedProvider.rawValue)
+                    keyManager.selectKey(id: entry.id, for: selectedProvider.rawValue)
+                    self.apiKey = entry.value
+                    self.isAPIKeyValid = true
+                } else {
+                    self.apiKey = ""
+                    self.isAPIKeyValid = false
+                }
+            }
+        } else {
+            self.apiKey = ""
+            self.isAPIKeyValid = true
+            if selectedProvider == .ollama {
+                Task {
+                    await ollamaService.checkConnection()
+                    await ollamaService.refreshModels()
+                }
+            }
         }
     }
     
@@ -328,9 +332,10 @@ class AIService: ObservableObject {
             guard let self = self else { return }
             DispatchQueue.main.async {
                 if isValid {
-                    self.apiKey = key
+                    let entry = self.keyManager.addKey(key, for: self.selectedProvider.rawValue)
+                    self.apiKey = entry.value
                     self.isAPIKeyValid = true
-                    self.userDefaults.set(key, forKey: "\(self.selectedProvider.rawValue)APIKey")
+                    self.keyManager.selectKey(id: entry.id, for: self.selectedProvider.rawValue)
                     NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
                 } else {
                     self.isAPIKeyValid = false
@@ -373,6 +378,34 @@ class AIService: ObservableObject {
         bedrockModelId = modelId.trimmingCharacters(in: .whitespacesAndNewlines)
         isAPIKeyValid = !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
         NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
+    }
+    
+    func clearAPIKey() {
+        if selectedProvider == .awsBedrock {
+            bedrockApiKey = ""
+            bedrockRegion = ""
+            bedrockModelId = ""
+        } else {
+            keyManager.removeAllKeys(for: selectedProvider.rawValue)
+            apiKey = ""
+        }
+        isAPIKeyValid = false
+        NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
+    }
+    
+    func rotateAPIKey() -> Bool {
+        let didRotate = keyManager.rotateKey(for: selectedProvider.rawValue)
+        refreshAPIKeyState()
+        return didRotate
+    }
+    
+    func selectAPIKey(id: UUID) {
+        keyManager.selectKey(id: id, for: selectedProvider.rawValue)
+        refreshAPIKeyState()
+    }
+    
+    func currentKeyEntries() -> [CloudAPIKeyEntry] {
+        keyManager.keys(for: selectedProvider.rawValue)
     }
     
     private func verifyOpenAICompatibleAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
@@ -564,22 +597,6 @@ class AIService: ObservableObject {
                 completion(false, nil)
             }
         }.resume()
-    }
-    
-    func clearAPIKey() {
-        guard selectedProvider.requiresAPIKey else { return }
-        
-        if selectedProvider == .awsBedrock {
-            bedrockApiKey = ""
-            bedrockRegion = "us-east-1"
-            bedrockModelId = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-            isAPIKeyValid = false
-        } else {
-            apiKey = ""
-            isAPIKeyValid = false
-            userDefaults.removeObject(forKey: "\(selectedProvider.rawValue)APIKey")
-        }
-        NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
     
     func checkOllamaConnection(completion: @escaping (Bool) -> Void) {

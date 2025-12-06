@@ -217,6 +217,47 @@ class AIEnhancementService: ObservableObject {
 
         try await waitForRateLimit()
 
+        let providerKey = aiService.selectedProvider.rawValue
+        let keyManager = CloudAPIKeyManager.shared
+        let usesManagedKeys = aiService.selectedProvider.requiresAPIKey &&
+            aiService.selectedProvider != .awsBedrock &&
+            aiService.selectedProvider != .ollama &&
+            aiService.selectedProvider != .custom
+        var triedKeyIds = Set<UUID>()
+
+        while true {
+            if usesManagedKeys {
+                guard let active = keyManager.activeKey(for: providerKey) else {
+                    throw EnhancementError.notConfigured
+                }
+                if triedKeyIds.contains(active.id) {
+                    throw EnhancementError.apiKeyInvalid
+                }
+                triedKeyIds.insert(active.id)
+                aiService.selectAPIKey(id: active.id)
+            }
+
+            do {
+                let result = try await performRequest(systemMessage: systemMessage, formattedText: formattedText)
+                if usesManagedKeys {
+                    keyManager.markCurrentKeyUsed(for: providerKey)
+                }
+                return result
+            } catch let error as EnhancementError {
+                switch error {
+                case .apiKeyInvalid, .rateLimitExceeded:
+                    if usesManagedKeys, keyManager.rotateKey(for: providerKey) {
+                        continue
+                    }
+                    throw error
+                default:
+                    throw error
+                }
+            }
+        }
+    }
+
+    private func performRequest(systemMessage: String, formattedText: String) async throws -> String {
         switch aiService.selectedProvider {
         case .anthropic:
             let requestBody: [String: Any] = [
@@ -255,6 +296,8 @@ class AIEnhancementService: ObservableObject {
                     return filteredText
                 } else if httpResponse.statusCode == 429 {
                     throw EnhancementError.rateLimitExceeded
+                } else if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                    throw EnhancementError.apiKeyInvalid
                 } else if (500...599).contains(httpResponse.statusCode) {
                     throw EnhancementError.serverError
                 } else {
@@ -320,6 +363,8 @@ class AIEnhancementService: ObservableObject {
                     return filteredText
                 } else if httpResponse.statusCode == 429 {
                     throw EnhancementError.rateLimitExceeded
+                } else if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                    throw EnhancementError.apiKeyInvalid
                 } else if (500...599).contains(httpResponse.statusCode) {
                     throw EnhancementError.serverError
                 } else {

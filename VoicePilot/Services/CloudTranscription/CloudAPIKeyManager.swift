@@ -92,7 +92,7 @@ final class CloudAPIKeyManager {
     
     @discardableResult
     func rotateKey(for providerKey: String) -> Bool {
-        guard var keys = keysByProvider[providerKey], !keys.isEmpty else { return false }
+        guard let keys = keysByProvider[providerKey], !keys.isEmpty else { return false }
         
         if keys.count == 1 {
             // Only one key, nothing to rotate but treat as success so caller does not fail prematurely
@@ -172,7 +172,19 @@ final class CloudAPIKeyManager {
     }
     
     private func migrateLegacySingleKeysIfNeeded() {
-        let legacyProviders = ["GROQ", "ElevenLabs", "Deepgram", "Mistral", "Gemini", "Soniox"]
+        let legacyProviders = [
+            "GROQ",
+            "ElevenLabs",
+            "Deepgram",
+            "Mistral",
+            "Gemini",
+            "Soniox",
+            "Anthropic",
+            "OpenAI",
+            "OpenRouter",
+            "Cerebras",
+            "AWS Bedrock"
+        ]
         var didMigrate = false
         
         for providerKey in legacyProviders {

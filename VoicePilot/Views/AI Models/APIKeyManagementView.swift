@@ -11,6 +11,8 @@ struct APIKeyManagementView: View {
     @State private var selectedOllamaModel: String = UserDefaults.standard.string(forKey: "ollamaSelectedModel") ?? "mistral"
     @State private var isCheckingOllama = false
     @State private var isEditingURL = false
+    @State private var keyEntries: [CloudAPIKeyEntry] = []
+    @State private var activeKeyId: UUID?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -46,6 +48,7 @@ struct APIKeyManagementView: View {
                 if aiService.selectedProvider == .ollama {
                     checkOllamaConnection()
                 }
+                reloadKeys()
             }
             
             // Model Selection
@@ -345,32 +348,77 @@ struct APIKeyManagementView: View {
                 .background(Color.secondary.opacity(0.03))
                 .cornerRadius(12)
             } else {
-                // API Key Display for other providers if valid
-                if aiService.isAPIKeyValid {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("API Key")
-                            .font(.subheadline)
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("API Keys")
+                            .font(.headline)
+                        Spacer()
+                        Button {
+                            aiService.rotateAPIKey()
+                            reloadKeys()
+                        } label: {
+                            Label("Next Key", systemImage: "arrow.triangle.2.circlepath")
+                        }
+                        .disabled(keyEntries.count <= 1)
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                    
+                    if keyEntries.isEmpty {
+                        Text("No keys added yet for \(aiService.selectedProvider.rawValue). Add one below.")
+                            .font(.caption)
                             .foregroundColor(.secondary)
-                        
-                        HStack {
-                            Text(String(repeating: "•", count: 40))
-                                .font(.system(.body, design: .monospaced))
-                            
-                            Spacer()
-                            
-                            Button(action: {
-                                aiService.clearAPIKey()
-                            }) {
-                                Label("Remove Key", systemImage: "trash")
+                    } else {
+                        VStack(spacing: 8) {
+                            ForEach(keyEntries) { entry in
+                                let isActive = entry.id == activeKeyId
+                                HStack {
+                                    Text(maskKey(entry.value))
+                                        .font(.system(.body, design: .monospaced))
+                                        .foregroundColor(isActive ? .primary : .secondary)
+                                    
+                                    if let lastUsed = entry.lastUsedAt {
+                                        Text("Last used \(relativeDate(lastUsed))")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    if isActive {
+                                        Label("Active", systemImage: "checkmark.circle.fill")
+                                            .font(.caption)
+                                            .foregroundColor(.green)
+                                    } else {
+                                        Button("Use") {
+                                            aiService.selectAPIKey(id: entry.id)
+                                            reloadKeys()
+                                        }
+                                        .buttonStyle(.borderless)
+                                    }
+                                    
+                                    Button(role: .destructive) {
+                                        CloudAPIKeyManager.shared.removeKey(id: entry.id, for: aiService.selectedProvider.rawValue)
+                                        reloadKeys()
+                                    } label: {
+                                        Image(systemName: "trash")
+                                    }
+                                    .buttonStyle(.borderless)
                                     .foregroundColor(.red)
+                                }
+                                .padding(8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(isActive ? Color.accentColor.opacity(0.08) : Color.secondary.opacity(0.05))
+                                )
                             }
-                            .buttonStyle(.borderless)
                         }
                     }
-                } else {
-                    // API Key Input for other providers
+                    
+                    Divider()
+                    
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Enter your API Key")
+                        Text("Add New API Key")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
@@ -388,6 +436,7 @@ struct APIKeyManagementView: View {
                                         showAlert = true
                                     }
                                     apiKey = ""
+                                    reloadKeys()
                                 }
                             }) {
                                 HStack {
@@ -401,59 +450,70 @@ struct APIKeyManagementView: View {
                                     Text("Verify and Save")
                                 }
                             }
+                            .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                             
                             Spacer()
                             
-                            HStack(spacing: 8) {
-                                Text((aiService.selectedProvider == .groq || aiService.selectedProvider == .gemini || aiService.selectedProvider == .cerebras) ? "Free" : "Paid")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.secondary.opacity(0.1))
-                                    .cornerRadius(4)
-                                
-                                if aiService.selectedProvider != .ollama && aiService.selectedProvider != .custom {
-                                    Button {
-                                        let url = switch aiService.selectedProvider {
-                                        case .groq:
-                                            URL(string: "https://console.groq.com/keys")!
-                                        case .openAI:
-                                            URL(string: "https://platform.openai.com/api-keys")!
-                                        case .gemini:
-                                            URL(string: "https://makersuite.google.com/app/apikey")!
-                                        case .anthropic:
-                                            URL(string: "https://console.anthropic.com/settings/keys")!
-                                        case .mistral:
-                                            URL(string: "https://console.mistral.ai/api-keys")!
-                                        case .elevenLabs:
-                                            URL(string: "https://elevenlabs.io/speech-synthesis")!
-                                        case .deepgram:
-                                            URL(string: "https://console.deepgram.com/api-keys")!
-                                        case .soniox:
-                                            URL(string: "https://console.soniox.com/")!
-                                        case .ollama, .custom:
-                                            URL(string: "")! // This case should never be reached
-                                        case .openRouter:
-                                            URL(string: "https://openrouter.ai/keys")!
-                                        case .cerebras:
-                                            URL(string: "https://cloud.cerebras.ai/")!
-                                        case .awsBedrock:
-                                            URL(string: "https://console.aws.amazon.com/iam/home#/security_credentials")!
-                                        }
-                                        NSWorkspace.shared.open(url)
-                                    } label: {
-                                        HStack(spacing: 4) {
-                                            Text("Get API Key")
-                                                .foregroundColor(.accentColor)
-                                            Image(systemName: "arrow.up.right")
-                                                .font(.caption)
-                                                .foregroundColor(.accentColor)
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
+                            Button(role: .destructive) {
+                                aiService.clearAPIKey()
+                                reloadKeys()
+                            } label: {
+                                Label("Remove All", systemImage: "trash")
+                            }
+                            .buttonStyle(.borderless)
+                            .foregroundColor(.red)
+                            .disabled(keyEntries.isEmpty)
+                        }
+                    }
+                    
+                    HStack(spacing: 8) {
+                        Text((aiService.selectedProvider == .groq || aiService.selectedProvider == .gemini || aiService.selectedProvider == .cerebras) ? "Free" : "Paid")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(4)
+                        
+                        if aiService.selectedProvider != .ollama && aiService.selectedProvider != .custom {
+                            Button {
+                                let url = switch aiService.selectedProvider {
+                                case .groq:
+                                    URL(string: "https://console.groq.com/keys")!
+                                case .openAI:
+                                    URL(string: "https://platform.openai.com/api-keys")!
+                                case .gemini:
+                                    URL(string: "https://makersuite.google.com/app/apikey")!
+                                case .anthropic:
+                                    URL(string: "https://console.anthropic.com/settings/keys")!
+                                case .mistral:
+                                    URL(string: "https://console.mistral.ai/api-keys")!
+                                case .elevenLabs:
+                                    URL(string: "https://elevenlabs.io/speech-synthesis")!
+                                case .deepgram:
+                                    URL(string: "https://console.deepgram.com/api-keys")!
+                                case .soniox:
+                                    URL(string: "https://console.soniox.com/")!
+                                case .ollama, .custom:
+                                    URL(string: "")! // not used
+                                case .openRouter:
+                                    URL(string: "https://openrouter.ai/keys")!
+                                case .cerebras:
+                                    URL(string: "https://cloud.cerebras.ai/")!
+                                case .awsBedrock:
+                                    URL(string: "https://console.aws.amazon.com/iam/home#/security_credentials")!
+                                }
+                                NSWorkspace.shared.open(url)
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Text("Get API Key")
+                                        .foregroundColor(.accentColor)
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.caption)
+                                        .foregroundColor(.accentColor)
                                 }
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -468,6 +528,7 @@ struct APIKeyManagementView: View {
             if aiService.selectedProvider == .ollama {
                 checkOllamaConnection()
             }
+            reloadKeys()
         }
     }
     
@@ -491,5 +552,24 @@ struct APIKeyManagementView: View {
     private func formatSize(_ bytes: Int64) -> String {
         let gigabytes = Double(bytes) / 1_000_000_000
         return String(format: "%.1f GB", gigabytes)
+    }
+    
+    private func reloadKeys() {
+        keyEntries = aiService.currentKeyEntries()
+        activeKeyId = CloudAPIKeyManager.shared.activeKey(for: aiService.selectedProvider.rawValue)?.id
+    }
+    
+    private func maskKey(_ key: String) -> String {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count <= 8 { return String(repeating: "•", count: trimmed.count) }
+        let start = trimmed.prefix(4)
+        let end = trimmed.suffix(4)
+        return "\(start)\(String(repeating: "•", count: max(0, trimmed.count - 8)))\(end)"
+    }
+    
+    private func relativeDate(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 }
