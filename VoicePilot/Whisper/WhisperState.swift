@@ -115,6 +115,11 @@ class WhisperState: NSObject, ObservableObject {
         self.enhancementService = enhancementService
         
         super.init()
+
+        // Normalize persisted value: default to mini if missing or unknown
+        if recorderType != "mini" && recorderType != "notch" {
+            recorderType = "mini"
+        }
         
         // Configure the session manager
         if let enhancementService = enhancementService {

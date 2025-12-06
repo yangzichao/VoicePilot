@@ -198,7 +198,7 @@ class SystemInfoService {
     }
 
     private func getCurrentLanguage() -> String {
-        return UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "en"
+        return UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
     }
 
 }
