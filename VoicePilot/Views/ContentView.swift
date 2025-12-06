@@ -5,13 +5,13 @@ import KeyboardShortcuts
 // ViewType enum with all cases
 enum ViewType: String, CaseIterable, Identifiable {
     case metrics = "Dashboard"
-    case transcribeAudio = "Transcribe Audio"
     case history = "History"
     case models = "AI Models"
-    case agentMode = "Agent Mode"
-    case powerMode = "Power Mode"
+    case agentMode = "AI Agents"
     case permissions = "Permissions"
     case audioInput = "Audio Input"
+    case transcribeAudio = "Transcribe Audio"
+    case powerMode = "Power Mode"
     case settings = "Settings"
 
     var id: String { rawValue }
