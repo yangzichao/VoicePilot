@@ -1,11 +1,13 @@
 :root {
-  --bg-color: #0d1117;
-  --text-color: #c9d1d9;
-  --accent-color: #58a6ff;
-  --secondary-bg: #161b22;
-  --border-color: #30363d;
-  --hero-gradient: linear-gradient(135deg, #1f6feb 0%, #a40e26 100%);
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --bg-color: #050505;
+  --text-main: #ffffff;
+  --text-muted: #8b949e;
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --hero-glow: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+  --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 * {
@@ -15,131 +17,275 @@
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-main);
   background-color: var(--bg-color);
-  color: var(--text-color);
+  color: var(--text-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
+/* --- Animations --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* --- Header & Nav --- */
 header {
-  padding: 2rem 1rem;
-  text-align: center;
-  border-bottom: 1px solid var(--border-color);
-  background-color: rgba(13, 17, 23, 0.8);
-  backdrop-filter: blur(10px);
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 10;
+  width: 100%;
+  z-index: 100;
+  padding: 1rem;
 }
 
-nav h1 {
-  font-size: 1.5rem;
+.glass-nav {
+  max-width: 960px;
+  margin: 0 auto;
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 100px;
+  padding: 0.75rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.logo {
+  font-size: 1.25rem;
   font-weight: 700;
-  color: white;
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
 }
 
 nav ul {
   list-style: none;
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-top: 1rem;
+  gap: 2rem;
 }
 
 nav a {
-  color: var(--text-color);
+  color: var(--text-muted);
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s;
+  font-size: 0.95rem;
+  transition: color 0.3s;
 }
 
 nav a:hover {
-  color: var(--accent-color);
+  color: #fff;
 }
 
+/* --- Hero Section --- */
 .hero {
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 5rem 1rem;
-  background: radial-gradient(circle at top, #161b22 0%, var(--bg-color) 100%);
+  position: relative;
+  overflow: hidden;
+  padding-top: 5rem;
+  /* Space for fixed header */
 }
 
-.hero h2 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  background: var(--hero-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
-}
-
-.hero p {
-  font-size: 1.25rem;
-  color: #8b949e;
-  max-width: 600px;
-  margin: 0 auto 2rem;
-}
-
-.cta-button {
-  display: inline-block;
-  background: var(--accent-color);
-  color: white;
-  padding: 0.75rem 2rem;
-  border-radius: 6px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: transform 0.2s, background-color 0.2s;
-}
-
-.cta-button:hover {
-  transform: translateY(-2px);
-  background-color: #409eff;
-}
-
-.features {
-  padding: 4rem 1rem;
-  background-color: var(--secondary-bg);
+/* Ambient Background Glower */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80vw;
+  height: 80vh;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 30%, transparent 70%);
+  filter: blur(80px);
+  z-index: -1;
+  pointer-events: none;
+  animation: float 8s ease-in-out infinite;
 }
 
 .container {
   max-width: 960px;
   margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.hero h2 {
+  font-size: 4rem;
+  line-height: 1.1;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.03em;
+  background: linear-gradient(to right, #ffffff 20%, #a5b4fc 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fadeInUp 0.8s ease-out 0.2s backwards;
+}
+
+.hero p {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  max-width: 540px;
+  margin: 0 auto 3rem;
+  animation: fadeInUp 0.8s ease-out 0.4s backwards;
+}
+
+/* --- Usage of Multi-Replace Tool Note ---
+   I am replacing the entire file content here because the changes are pervasive 
+   and affect almost every selector. A full rewrite is cleaner than patching. 
+*/
+
+.cta-button {
+  display: inline-block;
+  background: white;
+  /* Clean white style often looks premium on dark */
+  color: black;
+  padding: 1rem 2.5rem;
+  border-radius: 100px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  animation: fadeInUp 0.8s ease-out 0.6s backwards;
+}
+
+.cta-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+}
+
+/* --- Features Grid --- */
+.features {
+  padding: 6rem 1rem;
+  position: relative;
 }
 
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
-  margin-top: 3rem;
 }
 
 .feature-card {
-  background: var(--bg-color);
-  padding: 2rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  transition: border-color 0.2s;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s, border-color 0.3s, background 0.3s;
+  animation: fadeInUp 0.8s ease-out 0.8s backwards;
+  /* Staggered could be nice, but simple for now */
+}
+
+/* Stagger delay for cards if possible, or just group animate */
+.feature-card:nth-child(1) {
+  animation-delay: 0.6s;
+}
+
+.feature-card:nth-child(2) {
+  animation-delay: 0.7s;
+}
+
+.feature-card:nth-child(3) {
+  animation-delay: 0.8s;
+}
+
+.feature-card:nth-child(4) {
+  animation-delay: 0.9s;
+}
+
+.feature-card:nth-child(5) {
+  animation-delay: 1.0s;
 }
 
 .feature-card:hover {
-  border-color: var(--accent-color);
+  transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .feature-card h3 {
-  color: white;
-  margin-bottom: 0.5rem;
+  color: #fff;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
+.feature-card p {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+/* --- Footer --- */
 footer {
   text-align: center;
-  padding: 2rem;
-  font-size: 0.875rem;
-  color: #8b949e;
-  border-top: 1px solid var(--border-color);
+  padding: 4rem 1rem;
+  font-size: 0.9rem;
+  color: var(--glass-border);
+  border-top: 1px solid var(--glass-border);
+  background: #000;
 }
 
 footer a {
-    color: var(--accent-color);
-    text-decoration: none;
+  color: var(--text-muted);
+  transition: 0.3s;
+}
+
+footer a:hover {
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .hero h2 {
+    font-size: 2.5rem;
+  }
 }
