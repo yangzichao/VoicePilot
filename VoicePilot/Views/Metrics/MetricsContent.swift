@@ -13,7 +13,6 @@ struct MetricsContent: View {
                     ScrollView {
                         VStack(spacing: 24) {
                             metricsSection
-                            HelpAndResourcesSection()
 
                             Spacer(minLength: 20)
 
