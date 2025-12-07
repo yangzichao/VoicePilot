@@ -1,7 +1,7 @@
 <div align="center">
   <img src="VoicePilot/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
   <h1>VoicePilot</h1>
-  <p>Voice-to-text for macOS, focused on fast local/LLM transcription and lightweight UI.</p>
+  <p>Speech-to-text for macOS. Capture audio locally, then let AI Agents structure it.</p>
 
   [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
   ![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-brightgreen)
@@ -9,16 +9,20 @@
 
 ---
 
-VoicePilot is a macOS voice input app: speak, get text, then optionally run it through AI agents (default, polish, or custom) to clean or act on the transcript. It supports multilingual Whisper and can run fully local (cloud is opt-in). This fork stays fully open—no paywall, no external download links.
+**VoicePilot** is a refined speech-to-text tool for macOS. The workflow is simple but powerful:
+1.  **Speech**: Record your voice.
+2.  **Text**: Fast, local transcription via Whisper.
+3.  **Structure**: **AI Agents** (LLMs) instantly process that raw text into formatted emails, meeting notes, code snippets, or polished prose.
+
+It supports multiple languages, custom agent prompts, and runs fully local by default. No subscriptions, just your voice and your key.
 
 
 ## Features
 
-- 🎙️ **Voice in → multi-language transcript out**: Fast capture and transcription with auto language detection.
-- 🛠️ **Customizable agents**: Default/Polish or your own agents with safe trigger phrases; optional per use.
-- 🔒 **Local-first path**: Use local AI models for transcription and local prompts/agents for post-process; cloud providers are opt-in.
-- ⚡ **Lightweight focus**: Trimmed extras; core flow is voice → transcript (+ optional AI).
-- 💸 **No subscriptions/paywalls**: Fully open-source; no unlocks required.
+- **Adaptive Agents**: Lock in a **Primary Role**, or use **App Triggers** to auto-switch based on your active window.
+- **Local & Cloud Intelligence**: Run local Whisper models or connect to cloud providers.
+- **Lightweight Focus**: Trimmed extras; core flow is voice → transcript (+ optional AI).
+- **Forever Free**: Fully open-source. No subscriptions, no paywalls.
 
 ## Requirements
 

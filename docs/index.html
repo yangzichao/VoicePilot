@@ -16,27 +16,57 @@
 </head>
 
 <body>
-    <header>
-        <nav class="glass-nav">
-            <h1 class="logo">VoicePilot</h1>
-            <ul>
-                <li><a href="#features">Features</a></li>
-                <li><a href="https://github.com/yangzichao/VoicePilot" target="_blank">GitHub</a></li>
-            </ul>
-        </nav>
-    </header>
-
+    <button id="lang-toggle" class="lang-toggle">EN /
+        中</button>
     <main>
         <section class="hero">
             <div class="container">
-                <h2>Speak freely.</h2>
-                <p>Voice-to-text for macOS, focused on fast local/LLM transcription and lightweight UI.</p>
+                <h1 class="hero-logo">VoicePilot</h1>
+                <h2 data-i18n="hero.subtitle">Speech-to-Text, Refined.</h2>
+                <p data-i18n="hero.desc">Capture raw speech locally, then let <strong>AI Agents</strong> transform it
+                    into perfect emails,
+                    code, or notes.</p>
+
+                <div class="workflow-cards">
+                    <div class="glass-card">
+                        <h3 data-i18n="step1.title">Speak</h3>
+                        <p data-i18n="step1.desc">Activate via global hotkey. Capture thoughts instantly.</p>
+                    </div>
+
+                    <div class="arrow-divider">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="rgba(255,255,255,0.3)" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3 data-i18n="step2.title">Transcribe</h3>
+                        <p data-i18n="step2.desc">Powered by local Whisper models or cloud LLMs for distinct clarity.
+                        </p>
+                    </div>
+
+                    <div class="arrow-divider">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="rgba(255,255,255,0.3)" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+
+                    <div class="glass-card highlight">
+                        <h3 data-i18n="step3.title">Transform</h3>
+                        <p data-i18n="step3.desc">AI Agents structure, polish, and format your text automatically.</p>
+                    </div>
+                </div>
+
                 <!-- NOTE: The dmg file is automatically fetched from GitHub Releases -->
-                <a href="https://github.com/yangzichao/VoicePilot/releases" id="download-btn"
-                    class="cta-button">Download for macOS</a>
-                <p id="version-text"
-                    style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted); opacity: 0.8;">Latest
-                    Release</p>
+                <div class="download-area">
+                    <a href="https://github.com/yangzichao/VoicePilot/releases" id="download-btn" class="cta-button"
+                        data-i18n="cta.download">Download for macOS</a>
+                    <p id="version-text"
+                        style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); opacity: 0.8;">Latest
+                        Release</p>
+                </div>
             </div>
         </section>
 
@@ -44,24 +74,22 @@
             <div class="container">
                 <div class="feature-grid">
                     <div class="feature-card">
-                        <h3>🎙️ Multi-language Transcription</h3>
-                        <p>Fast capture and transcription with auto language detection, powered by Whisper.</p>
+                        <h3 data-i18n="feat1.title">Adaptive Agents</h3>
+                        <p data-i18n="feat1.desc">Lock in a <strong>Primary Role</strong> to define your main intent, or
+                            enable <strong>App Triggers</strong> to auto-switch assistants as you navigate.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>🛠️ Customizable Agents</h3>
-                        <p>Define your own agents with safe trigger phrases to process your text.</p>
+                        <h3 data-i18n="feat2.title">Local & Cloud Intelligence</h3>
+                        <p data-i18n="feat2.desc">Run state-of-the-art Whisper models globally on your Mac, or
+                            seamlessly connect to cloud providers when you need extra power.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>🔒 Local-First</h3>
-                        <p>Use local AI models for transcription and post-processing. Cloud is opt-in.</p>
+                        <h3 data-i18n="feat3.title">Lightweight</h3>
+                        <p data-i18n="feat3.desc">Trimmed extras. The core flow is simply Voice → Transcript.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>⚡ Lightweight</h3>
-                        <p>Trimmed extras. The core flow is simply Voice → Transcript.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>💸 Open Source</h3>
-                        <p>Fully open-source with no subscriptions or paywalls.</p>
+                        <h3 data-i18n="feat4.title">Forever Free</h3>
+                        <p data-i18n="feat4.desc">Fully open-source. No subscriptions, no paywalls, no limits.</p>
                     </div>
                 </div>
             </div>
@@ -69,12 +97,82 @@
     </main>
 
     <footer>
-        <p>&copy; 2024 VoicePilot. Licensed under GPL v3. <br> <a href="https://github.com/yangzichao/VoicePilot">View
-                on GitHub</a></p>
+        <div class="footer-links">
+            <a href="#features">Features</a>
+            <span class="divider">/</span>
+            <a href="https://github.com/yangzichao/VoicePilot">GitHub</a>
+        </div>
+        <p>&copy; 2024 VoicePilot. Licensed under GPL v3.</p>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Language Toggle Logic
+            const translations = {
+                en: {
+                    "hero.subtitle": "Speech-to-Text, Refined.",
+                    "hero.desc": "Capture raw speech locally, then let <strong>AI Agents</strong> transform it into perfect emails, code, or notes.",
+                    "step1.title": "Speak",
+                    "step1.desc": "Activate via global hotkey. Capture thoughts instantly.",
+                    "step2.title": "Transcribe",
+                    "step2.desc": "Powered by local Whisper models or cloud LLMs for distinct clarity.",
+                    "step3.title": "Transform",
+                    "step3.desc": "AI Agents structure, polish, and format your text automatically.",
+                    "feat1.title": "Adaptive Agents",
+                    "feat1.desc": "Lock in a <strong>Primary Role</strong> to define your main intent, or enable <strong>App Triggers</strong> to auto-switch assistants as you navigate.",
+                    "feat2.title": "Local & Cloud Intelligence",
+                    "feat2.desc": "Run state-of-the-art Whisper models globally on your Mac, or seamlessly connect to cloud providers when you need extra power.",
+                    "feat3.title": "Lightweight",
+                    "feat3.desc": "Trimmed extras. The core flow is simply Voice → Transcript.",
+                    "feat4.title": "Forever Free",
+                    "feat4.desc": "Fully open-source. No subscriptions, no paywalls, no limits.",
+                    "cta.download": "Download for macOS"
+                },
+                zh: {
+                    "hero.subtitle": "语音转文字，精雕细琢。",
+                    "hero.desc": "本地捕捉原始语音，让 <strong>AI 智能体</strong> 将其转化为完美的邮件、代码或笔记。",
+                    "step1.title": "说话",
+                    "step1.desc": "全局快捷键唤醒，即刻捕捉灵感。",
+                    "step2.title": "转写",
+                    "step2.desc": "由本地 Whisper 模型或云端 LLM 强力驱动，清晰识别。",
+                    "step3.title": "转化",
+                    "step3.desc": "AI 智能体自动整理、润色、排版您的文本。",
+                    "feat1.title": "适应性智能体",
+                    "feat1.desc": "锁定<strong>主要角色</strong>定义主要意图，或开启<strong>应用触发器</strong>根据当前窗口自动切换助手。",
+                    "feat2.title": "本地与云端智能",
+                    "feat2.desc": "在 Mac 上本地运行顶尖 Whisper 模型，或在需要更强算力时无缝连接云端。",
+                    "feat3.title": "轻量极简",
+                    "feat3.desc": "剔除冗余。核心流程仅为：语音 → 文本。",
+                    "feat4.title": "永久免费",
+                    "feat4.desc": "完全开源。无订阅，无付费墙，无限制。",
+                    "cta.download": "下载 macOS 版本"
+                }
+            };
+
+            const toggleBtn = document.getElementById('lang-toggle');
+            let currentLang = localStorage.getItem('vp_lang') || 'en';
+
+            function updateLanguage(lang) {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (translations[lang][key]) {
+                        el.innerHTML = translations[lang][key];
+                    }
+                });
+                toggleBtn.textContent = lang === 'en' ? 'EN / 中' : '中 / EN';
+                localStorage.setItem('vp_lang', lang);
+                currentLang = lang;
+            }
+
+            // Init
+            updateLanguage(currentLang);
+
+            toggleBtn.addEventListener('click', () => {
+                const newLang = currentLang === 'en' ? 'zh' : 'en';
+                updateLanguage(newLang);
+            });
+
+            // Download Logic
             const repo = 'yangzichao/VoicePilot';
             const btn = document.getElementById('download-btn');
             const versionText = document.getElementById('version-text');
@@ -85,8 +183,15 @@
                     const dmgAsset = data.assets.find(asset => asset.name.endsWith('.dmg'));
                     if (dmgAsset) {
                         btn.href = dmgAsset.browser_download_url;
-                        btn.innerText = `Download ${data.tag_name}`;
-                        versionText.innerText = `Latest: ${data.tag_name} (${(dmgAsset.size / 1024 / 1024).toFixed(1)} MB)`;
+                        // Keep current lang text but append version if possible, or simple override logic
+                        // specific for download
+                        const langText = currentLang === 'en' ? "Download" : "下载";
+                        btn.innerText = `${langText} ${data.tag_name}`;
+
+                        // Update dynamic button text on lang switch as well (simple version)
+                        // Ideally we'd store the version to re-render, but for now let's just let the fetch set it once
+                        // or make the updateLanguage aware of version. 
+                        // Simplified: Let static text handle it until fetch updates.
                     }
                 })
                 .catch(err => console.error('Error fetching release:', err));
