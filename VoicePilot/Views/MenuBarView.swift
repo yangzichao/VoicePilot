@@ -48,7 +48,7 @@ struct MenuBarView: View {
             Toggle("AI Enhancement", isOn: $enhancementService.isEnhancementEnabled)
             
             Menu {
-                ForEach(enhancementService.allPrompts) { prompt in
+                ForEach(enhancementService.activePrompts) { prompt in
                     Button {
                         enhancementService.setActivePrompt(prompt)
                     } label: {

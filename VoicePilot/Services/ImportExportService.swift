@@ -65,7 +65,7 @@ class ImportExportService {
         let powerModeManager = PowerModeManager.shared
         let emojiManager = EmojiManager.shared
 
-        let exportablePrompts = enhancementService.customPrompts.filter { !$0.isPredefined }
+        let exportablePrompts = enhancementService.allPrompts.filter { !$0.isPredefined }
 
         let powerConfigs = powerModeManager.configurations
         
@@ -160,8 +160,14 @@ class ImportExportService {
                         self.showAlert(title: "Version Mismatch", message: "The imported settings file (version \(importedSettings.version)) is from a different version than your application (version \(self.currentSettingsVersion)). Proceeding with import, but be aware of potential incompatibilities.")
                     }
 
-                    let predefinedPrompts = enhancementService.customPrompts.filter { $0.isPredefined }
-                    enhancementService.customPrompts = predefinedPrompts + importedSettings.customPrompts
+                    let predefinedActives = enhancementService.activePrompts.filter { $0.isPredefined }
+                    let predefinedTriggers = enhancementService.triggerPrompts.filter { $0.isPredefined }
+                    let (importedActives, importedTriggers) = importedSettings.customPrompts.partitionedByTriggerWords()
+                    enhancementService.activePrompts = predefinedActives + importedActives
+                    enhancementService.triggerPrompts = predefinedTriggers + importedTriggers
+                    if enhancementService.selectedPromptId == nil {
+                        enhancementService.selectedPromptId = enhancementService.activePrompts.first?.id
+                    }
                     
                     let powerModeManager = PowerModeManager.shared
                     powerModeManager.configurations = importedSettings.powerModeConfigs

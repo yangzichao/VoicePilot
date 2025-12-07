@@ -6,14 +6,10 @@ struct EnhancementSettingsView: View {
     @State private var isEditingPrompt = false
     @State private var isSettingsExpanded = true
     @State private var selectedPromptForEdit: CustomPrompt?
+    @State private var pendingPromptKind: PromptKind = .active
 
-    private var autoPrompts: [CustomPrompt] {
-        enhancementService.customPrompts.filter { $0.triggerWords.isEmpty }
-    }
-
-    private var triggerPrompts: [CustomPrompt] {
-        enhancementService.customPrompts.filter { !$0.triggerWords.isEmpty }
-    }
+    private var autoPrompts: [CustomPrompt] { enhancementService.activePrompts }
+    private var triggerPrompts: [CustomPrompt] { enhancementService.triggerPrompts }
 
     private var activeAutoPromptTitle: String {
         if let title = autoPrompts.first(where: { $0.id == enhancementService.selectedPromptId })?.title {
@@ -109,7 +105,7 @@ struct EnhancementSettingsView: View {
                         }
                         
                         ReorderablePromptGrid(
-                            prompts: autoPrompts,
+                            boundPrompts: $enhancementService.activePrompts,
                             selectedPromptId: enhancementService.selectedPromptId,
                             onPromptSelected: { prompt in
                                 enhancementService.setActivePrompt(prompt)
@@ -121,6 +117,7 @@ struct EnhancementSettingsView: View {
                                 enhancementService.deletePrompt(prompt)
                             },
                             onAddNewPrompt: {
+                                pendingPromptKind = .active
                                 isEditingPrompt = true
                             }
                         )
@@ -135,6 +132,7 @@ struct EnhancementSettingsView: View {
                                 Spacer()
                                 Toggle("Enable Prompt Triggers", isOn: $enhancementService.arePromptTriggersEnabled)
                                     .toggleStyle(.switch)
+                                    .disabled(!enhancementService.isEnhancementEnabled)
                             }
                             
                             Text("When enabled, these prompts auto-activate if their trigger words are present in your text.")
@@ -143,11 +141,9 @@ struct EnhancementSettingsView: View {
                         }
                         
                         ReorderablePromptGrid(
-                            prompts: triggerPrompts,
-                            selectedPromptId: enhancementService.selectedPromptId,
-                            onPromptSelected: { prompt in
-                                enhancementService.setActivePrompt(prompt)
-                            },
+                            boundPrompts: $enhancementService.triggerPrompts,
+                            selectedPromptId: nil,
+                            onPromptSelected: { _ in },
                             onEditPrompt: { prompt in
                                 selectedPromptForEdit = prompt
                             },
@@ -155,9 +151,10 @@ struct EnhancementSettingsView: View {
                                 enhancementService.deletePrompt(prompt)
                             },
                             onAddNewPrompt: {
+                                pendingPromptKind = .trigger
                                 isEditingPrompt = true
                             },
-                            isEnabled: enhancementService.arePromptTriggersEnabled
+                            isEnabled: enhancementService.isEnhancementEnabled && enhancementService.arePromptTriggersEnabled
                         )
                     }
                     .padding()
@@ -171,7 +168,7 @@ struct EnhancementSettingsView: View {
         .frame(minWidth: 600, minHeight: 500)
         .background(Color(NSColor.controlBackgroundColor))
         .sheet(isPresented: $isEditingPrompt) {
-            PromptEditorView(mode: .add)
+            PromptEditorView(mode: .add(kind: pendingPromptKind))
         }
         .sheet(item: $selectedPromptForEdit) { prompt in
             PromptEditorView(mode: .edit(prompt))
@@ -183,7 +180,7 @@ struct EnhancementSettingsView: View {
 private struct ReorderablePromptGrid: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
     
-    let prompts: [CustomPrompt]
+    @Binding var boundPrompts: [CustomPrompt]
     let selectedPromptId: UUID?
     let onPromptSelected: (CustomPrompt) -> Void
     let onEditPrompt: ((CustomPrompt) -> Void)?
@@ -195,7 +192,7 @@ private struct ReorderablePromptGrid: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if prompts.isEmpty {
+            if boundPrompts.isEmpty {
                 Text("No prompts available")
                     .foregroundColor(.secondary)
                     .font(.caption)
@@ -205,7 +202,7 @@ private struct ReorderablePromptGrid: View {
                 ]
                 
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(prompts) { prompt in
+                    ForEach(boundPrompts) { prompt in
                         prompt.promptIcon(
                             isSelected: selectedPromptId == prompt.id,
                             onTap: {
@@ -236,7 +233,7 @@ private struct ReorderablePromptGrid: View {
                             of: [UTType.text],
                             delegate: PromptDropDelegate(
                                 item: prompt,
-                                prompts: $enhancementService.customPrompts,
+                                prompts: $boundPrompts,
                                 draggingItem: $draggingItem
                             )
                         )
@@ -250,7 +247,7 @@ private struct ReorderablePromptGrid: View {
                         .onDrop(
                             of: [UTType.text],
                             delegate: PromptEndDropDelegate(
-                                prompts: $enhancementService.customPrompts,
+                                prompts: $boundPrompts,
                                 draggingItem: $draggingItem
                             )
                         )

@@ -265,7 +265,7 @@ class MiniRecorderShortcutManager: ObservableObject {
                 
                 guard let enhancementService = await self.whisperState.getEnhancementService() else { return }
                 
-                let availablePrompts = enhancementService.allPrompts
+                let availablePrompts = enhancementService.activePrompts
                 if index < availablePrompts.count {
                     if !enhancementService.isEnhancementEnabled {
                         enhancementService.isEnhancementEnabled = true

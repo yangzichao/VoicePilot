@@ -578,7 +578,7 @@ struct ConfigurationView: View {
                                     .foregroundColor(.primary)
                                 
                                 PromptSelectionGrid(
-                                    prompts: enhancementService.allPrompts,
+                                    prompts: enhancementService.activePrompts,
                                     selectedPromptId: selectedPromptId,
                                     onPromptSelected: { prompt in
                                         selectedPromptId = prompt.id
@@ -656,7 +656,7 @@ struct ConfigurationView: View {
             )
         }
         .sheet(isPresented: $isEditingPrompt) {
-            PromptEditorView(mode: .add)
+            PromptEditorView(mode: .add(kind: .active))
         }
         .sheet(item: $selectedPromptForEdit) { prompt in
             PromptEditorView(mode: .edit(prompt))
@@ -677,7 +677,7 @@ struct ConfigurationView: View {
             
             // Select first prompt if AI enhancement is enabled and no prompt is selected
             if isAIEnhancementEnabled && selectedPromptId == nil {
-                selectedPromptId = enhancementService.allPrompts.first?.id
+                selectedPromptId = enhancementService.activePrompts.first?.id
             }
         }
     }

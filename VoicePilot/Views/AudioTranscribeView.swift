@@ -85,7 +85,7 @@ struct AudioTranscribeView: View {
                                         Text("Prompt:")
                                             .font(.subheadline)
                                         
-                                        if enhancementService.allPrompts.isEmpty {
+                                        if enhancementService.activePrompts.isEmpty {
                                             Text("No prompts available")
                                                 .foregroundColor(.secondary)
                                                 .italic()
@@ -93,7 +93,7 @@ struct AudioTranscribeView: View {
                                         } else {
                                             let promptBinding = Binding<UUID>(
                                                 get: {
-                                                    selectedPromptId ?? enhancementService.allPrompts.first?.id ?? UUID()
+                                                    selectedPromptId ?? enhancementService.activePrompts.first?.id ?? UUID()
                                                 },
                                                 set: { newValue in
                                                     selectedPromptId = newValue
@@ -102,7 +102,7 @@ struct AudioTranscribeView: View {
                                             )
                                             
                                             Picker("", selection: promptBinding) {
-                                                ForEach(enhancementService.allPrompts) { prompt in
+                                                ForEach(enhancementService.activePrompts) { prompt in
                                                     Text(prompt.title).tag(prompt.id)
                                                 }
                                             }

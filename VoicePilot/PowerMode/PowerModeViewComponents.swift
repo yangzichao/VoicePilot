@@ -83,7 +83,7 @@ struct ConfigurationRow: View {
     private var selectedPrompt: CustomPrompt? {
         guard let promptId = config.selectedPrompt,
               let uuid = UUID(uuidString: promptId) else { return nil }
-        return enhancementService.allPrompts.first { $0.id == uuid }
+        return enhancementService.activePrompts.first { $0.id == uuid }
     }
     
     private var selectedModel: String? {

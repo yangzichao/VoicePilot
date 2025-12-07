@@ -18,6 +18,17 @@ class PromptDetectionService {
     
     @MainActor
     func analyzeText(_ text: String, with enhancementService: AIEnhancementService) -> PromptDetectionResult {
+        guard enhancementService.isEnhancementEnabled else {
+            return PromptDetectionResult(
+                shouldEnableAI: false,
+                selectedPromptId: nil,
+                processedText: text,
+                detectedTriggerWord: nil,
+                originalEnhancementState: enhancementService.isEnhancementEnabled,
+                originalPromptId: enhancementService.selectedPromptId
+            )
+        }
+        
         guard enhancementService.arePromptTriggersEnabled else {
             return PromptDetectionResult(
                 shouldEnableAI: false,
@@ -32,7 +43,7 @@ class PromptDetectionService {
         let originalEnhancementState = enhancementService.isEnhancementEnabled
         let originalPromptId = enhancementService.selectedPromptId
 
-		for prompt in enhancementService.allPrompts {
+		for prompt in enhancementService.triggerPrompts {
             if !prompt.triggerWords.isEmpty {
 				if let (detectedWord, processedText) = detectAndStripTriggerWord(from: text, triggerWords: prompt.triggerWords) {
                     return PromptDetectionResult(

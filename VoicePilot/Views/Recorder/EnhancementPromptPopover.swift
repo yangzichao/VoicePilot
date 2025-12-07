@@ -3,7 +3,6 @@ import SwiftUI
 // Enhancement Prompt Popover for recorder views
 struct EnhancementPromptPopover: View {
     @EnvironmentObject var enhancementService: AIEnhancementService
-    @State private var selectedPrompt: CustomPrompt?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -25,10 +24,10 @@ struct EnhancementPromptPopover: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
                     // Available Enhancement Prompts
-                    ForEach(enhancementService.allPrompts) { prompt in
+                    ForEach(enhancementService.activePrompts) { prompt in
                         EnhancementPromptRow(
                             prompt: prompt,
-                            isSelected: selectedPrompt?.id == prompt.id,
+                            isSelected: enhancementService.selectedPromptId == prompt.id,
                             isDisabled: !enhancementService.isEnhancementEnabled,
                             action: {
                                 // If enhancement is disabled, enable it first
@@ -36,7 +35,6 @@ struct EnhancementPromptPopover: View {
                                     enhancementService.isEnhancementEnabled = true
                                 }
                                 enhancementService.setActivePrompt(prompt)
-                                selectedPrompt = prompt
                             }
                         )
                     }
@@ -49,13 +47,6 @@ struct EnhancementPromptPopover: View {
         .padding(.vertical, 8)
         .background(Color.black)
         .environment(\.colorScheme, .dark)
-        .onAppear {
-            // Set the initially selected prompt
-            selectedPrompt = enhancementService.activePrompt
-        }
-        .onChange(of: enhancementService.selectedPromptId) { oldValue, newValue in
-            selectedPrompt = enhancementService.activePrompt
-        }
     }
 }
 
