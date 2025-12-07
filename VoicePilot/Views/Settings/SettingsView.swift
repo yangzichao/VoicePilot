@@ -329,7 +329,7 @@ struct SettingsView: View {
                             .onChange(of: appInterfaceLanguage) { _, _ in
                                 NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
                             }
-                            Text("UI language preference for future localization. Currently falls back to system until translations are available.")
+                            Text("Switch VoicePilot's interface language. Changes take effect immediately on supported screens; untranslated items will fall back to English.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -495,9 +495,9 @@ struct SettingsSection<Content: View>: View {
                     .frame(width: 24, height: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
+                    Text(LocalizedStringKey(title))
                         .font(.headline)
-                    Text(subtitle)
+                    Text(LocalizedStringKey(subtitle))
                         .font(.subheadline)
                         .foregroundColor(showWarning ? .red : .secondary)
                 }

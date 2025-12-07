@@ -104,7 +104,9 @@ struct TranscriptionHistoryView: View {
                                                 ProgressView()
                                                     .controlSize(.small)
                                             }
-                                            Text(isLoading ? "Loading..." : "Load More")
+                                            Text(isLoading
+                                                 ? String(localized: "Loading...")
+                                                 : String(localized: "Load More"))
                                                 .font(.system(size: 14, weight: .medium))
                                         }
                                         .frame(maxWidth: .infinity)

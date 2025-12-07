@@ -160,7 +160,7 @@ private struct CopySystemInfoButton: View {
                     .rotationEffect(.degrees(isCopied ? 360 : 0))
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCopied)
 
-                Text(isCopied ? "Copied!" : "Copy System Info")
+                Text(isCopied ? String(localized: "Copied!") : String(localized: "Copy System Info"))
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCopied)
             }
             .font(.system(size: 13, weight: .medium))

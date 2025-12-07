@@ -97,7 +97,7 @@ struct ContentView: View {
                                     .font(.system(size: 18, weight: .medium))
                                     .frame(width: 24, height: 24)
 
-                                Text(viewType.rawValue)
+                                Text(LocalizedStringKey(viewType.rawValue))
                                     .font(.system(size: 14, weight: .medium))
 
                                 Spacer()
@@ -117,7 +117,7 @@ struct ContentView: View {
             if let selectedView = selectedView {
                 detailView(for: selectedView)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .navigationTitle(selectedView.rawValue)
+                    .navigationTitle(LocalizedStringKey(selectedView.rawValue))
             } else {
                 Text("Select a view")
                     .foregroundColor(.secondary)

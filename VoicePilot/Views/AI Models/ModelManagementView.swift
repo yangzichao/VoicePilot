@@ -26,7 +26,7 @@ struct ModelManagementView: View {
     
     // State for the unified alert
     @State private var isShowingDeleteAlert = false
-    @State private var alertTitle = ""
+    @State private var alertTitle: LocalizedStringKey = ""
     @State private var alertMessage = ""
     @State private var deleteActionClosure: () -> Void = {}
 
@@ -56,7 +56,7 @@ struct ModelManagementView: View {
             Text("Default Model")
                 .font(.headline)
                 .foregroundColor(.secondary)
-            Text(whisperState.currentTranscriptionModel?.displayName ?? "No model selected")
+            Text(whisperState.currentTranscriptionModel?.displayName ?? String(localized: "No model selected"))
                 .font(.title2)
                 .fontWeight(.bold)
         }
@@ -82,7 +82,7 @@ struct ModelManagementView: View {
                                 isShowingSettings = false
                             }
                         }) {
-                            Text(filter.rawValue)
+                            Text(LocalizedStringKey(filter.rawValue))
                                 .font(.system(size: 14, weight: selectedFilter == filter ? .semibold : .medium))
                                 .foregroundColor(selectedFilter == filter ? .primary : .primary.opacity(0.7))
                                 .padding(.horizontal, 16)
@@ -134,7 +134,10 @@ struct ModelManagementView: View {
                             deleteAction: {
                                 if let customModel = model as? CustomCloudModel {
                                     alertTitle = "Delete Custom Model"
-                                    alertMessage = "Are you sure you want to delete the custom model '\(customModel.displayName)'?"
+                                    alertMessage = String(
+                                        format: String(localized: "Are you sure you want to delete the custom model '%@'?"),
+                                        customModel.displayName
+                                    )
                                     deleteActionClosure = {
                                         customModelManager.removeCustomModel(withId: customModel.id)
                                         whisperState.refreshAllAvailableModels()
@@ -142,7 +145,10 @@ struct ModelManagementView: View {
                                     isShowingDeleteAlert = true
                                 } else if let downloadedModel = whisperState.availableModels.first(where: { $0.name == model.name }) {
                                     alertTitle = "Delete Model"
-                                    alertMessage = "Are you sure you want to delete the model '\(downloadedModel.name)'?"
+                                    alertMessage = String(
+                                        format: String(localized: "Are you sure you want to delete the model '%@'?"),
+                                        downloadedModel.name
+                                    )
                                     deleteActionClosure = {
                                         Task {
                                             await whisperState.deleteModel(downloadedModel)

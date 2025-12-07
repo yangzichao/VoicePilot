@@ -16,8 +16,10 @@ struct VoicePilotApp: App {
     @StateObject private var menuBarManager: MenuBarManager
     @StateObject private var aiService = AIService()
     @StateObject private var enhancementService: AIEnhancementService
+    @StateObject private var localizationManager = LocalizationManager()
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @State private var showMenuBarIcon = true
+    @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
     
     // Audio cleanup manager for automatic deletion of old audio files
     private let audioCleanupManager = AudioCleanupManager.shared
@@ -184,8 +186,11 @@ struct VoicePilotApp: App {
                 .environmentObject(menuBarManager)
                 .environmentObject(aiService)
                 .environmentObject(enhancementService)
+                .environment(\.locale, localizationManager.locale)
                 .modelContainer(container)
                 .onAppear {
+                    localizationManager.apply(languageCode: appInterfaceLanguage)
+
                     // Check if container initialization failed
                     if containerInitializationFailed {
                         let alert = NSAlert()
@@ -227,6 +232,9 @@ struct VoicePilotApp: App {
                     // Stop the automatic audio cleanup process
                     audioCleanupManager.stopAutomaticCleanup()
                 }
+                .onChange(of: appInterfaceLanguage) { _, newValue in
+                    localizationManager.apply(languageCode: newValue)
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .commands {
@@ -240,6 +248,7 @@ struct VoicePilotApp: App {
                 .environmentObject(menuBarManager)
                 .environmentObject(aiService)
                 .environmentObject(enhancementService)
+                .environment(\.locale, localizationManager.locale)
         } label: {
             let image: NSImage = {
                 let ratio = $0.size.height / $0.size.width

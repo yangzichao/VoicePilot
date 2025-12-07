@@ -21,7 +21,7 @@ struct MetricCard: View {
                 }
                 .frame(width: 34, height: 34)
                 
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.system(size: 13, weight: .semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -33,7 +33,7 @@ struct MetricCard: View {
                 .minimumScaleFactor(0.6)
             
             if let detail, !detail.isEmpty {
-                Text(detail)
+                Text(LocalizedStringKey(detail))
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .lineLimit(2)
