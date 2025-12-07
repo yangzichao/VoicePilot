@@ -9,6 +9,7 @@ struct SettingsView: View {
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     @EnvironmentObject private var whisperState: WhisperState
     @EnvironmentObject private var enhancementService: AIEnhancementService
+    @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
     @StateObject private var deviceManager = AudioDeviceManager.shared
     @ObservedObject private var soundManager = SoundManager.shared
     @ObservedObject private var mediaController = MediaController.shared
@@ -315,6 +316,23 @@ struct SettingsView: View {
                         
                         LaunchAtLogin.Toggle()
                             .toggleStyle(.switch)
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Interface Language")
+                                .font(.headline)
+                            Picker("", selection: $appInterfaceLanguage) {
+                                Text("Follow System").tag("system")
+                                Text("English").tag("en")
+                                Text("简体中文").tag("zh-Hans")
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            .onChange(of: appInterfaceLanguage) { _, _ in
+                                NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+                            }
+                            Text("UI language preference for future localization. Currently falls back to system until translations are available.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                         
                         // Announcements removed in this fork to keep the app lightweight.
                         
