@@ -485,3 +485,6 @@
 "Successfully deleted %lld audio files." = "成功删除了 %lld 个音频文件。";
 "Successfully deleted %lld audio files. Failed to delete %lld files." = "成功删除了 %1$lld 个音频文件。%2$lld 个文件删除失败。";
 
+
+"Configure Shortcuts" = "配置快捷键";
+"Hotkey: %@" = "快捷键：%@";

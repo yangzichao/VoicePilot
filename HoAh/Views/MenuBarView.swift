@@ -42,6 +42,33 @@ struct MenuBarView: View {
                         .font(.system(size: 10))
                 }
             }
+
+            Menu {
+                ForEach(HotkeyManager.HotkeyOption.allCases, id: \.self) { option in
+                    Button {
+                        hotkeyManager.selectedHotkey1 = option
+                    } label: {
+                        HStack {
+                            Text(option.displayName)
+                            if hotkeyManager.selectedHotkey1 == option {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+                
+                Divider()
+                
+                Button("Configure Shortcuts") {
+                    menuBarManager.openMainWindowAndNavigate(to: "Settings")
+                }
+            } label: {
+                HStack {
+                    Text("Hotkey: \(hotkeyManager.selectedHotkey1.displayName)")
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 10))
+                }
+            }
             
             Divider()
             
