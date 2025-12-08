@@ -1,5 +1,5 @@
 # Define a directory for dependencies in the user's home folder
-DEPS_DIR := $(HOME)/VoicePilot-Dependencies
+DEPS_DIR := $(HOME)/HoAh-Dependencies
 WHISPER_CPP_DIR := $(DEPS_DIR)/whisper.cpp
 FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 
@@ -43,19 +43,19 @@ setup: whisper
 BUILD_DIR := $(PWD)/build/DerivedData
 
 build: setup
-	xcodebuild -scheme VoicePilot -configuration Debug \
+	xcodebuild -scheme HoAh -configuration Debug \
 		CODE_SIGN_IDENTITY="" ARCHS=arm64 ONLY_ACTIVE_ARCH=YES SWIFT_DISABLE_EXPLICIT_MODULES=YES \
 		-derivedDataPath $(BUILD_DIR)
 
 # Run application
 run:
-	@echo "Looking for VoicePilot.app..."
-	@APP_PATH=$$(find "$(BUILD_DIR)" "$$HOME/Library/Developer/Xcode/DerivedData" -name "VoicePilot.app" -type d | head -1) && \
+	@echo "Looking for HoAh.app..."
+	@APP_PATH=$$(find "$(BUILD_DIR)" "$$HOME/Library/Developer/Xcode/DerivedData" -name "HoAh.app" -type d | head -1) && \
 	if [ -n "$$APP_PATH" ]; then \
 		echo "Found app at: $$APP_PATH"; \
 		open "$$APP_PATH"; \
 	else \
-		echo "VoicePilot.app not found. Please run 'make build' first."; \
+		echo "HoAh.app not found. Please run 'make build' first."; \
 		exit 1; \
 	fi
 
@@ -70,9 +70,9 @@ help:
 	@echo "Available targets:"
 	@echo "  check/healthcheck  Check if required CLI tools are installed"
 	@echo "  whisper            Clone and build whisper.cpp XCFramework"
-	@echo "  setup              Copy whisper XCFramework to VoicePilot project"
-	@echo "  build              Build the VoicePilot Xcode project"
-	@echo "  run                Launch the built VoicePilot app"
+	@echo "  setup              Copy whisper XCFramework to HoAh project"
+	@echo "  build              Build the HoAh Xcode project"
+	@echo "  run                Launch the built HoAh app"
 	@echo "  dev                Build and run the app (for development)"
 	@echo "  all                Run full build process (default)"
 	@echo "  clean              Remove build artifacts"

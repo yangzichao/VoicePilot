@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="VoicePilot/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
-  <h1>VoicePilot</h1>
+  <img src="HoAh/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
+  <h1>HoAh (吼蛙)</h1>
   <p>Speech-to-text for macOS. Capture audio locally, then let AI Agents structure it.</p>
 
   [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -9,7 +9,7 @@
 
 ---
 
-**VoicePilot** is a refined speech-to-text tool for macOS. The workflow is simple but powerful:
+**HoAh** is a refined speech-to-text tool for macOS. The workflow is simple but powerful:
 1.  **Speech**: Record your voice.
 2.  **Text**: Fast, local transcription via Whisper.
 3.  **Structure**: **AI Agents** (LLMs) instantly process that raw text into formatted emails, meeting notes, code snippets, or polished prose.
@@ -42,6 +42,6 @@ Open an issue with clear steps to reproduce, macOS version, and model/provider s
 
 ## Acknowledgments
 
-- Original app by Pax (VoiceInk/VoicePilot) – thanks for open sourcing and the GPL license.
+- Original app by Pax (VoiceInk/VoicePilot) – thanks for open sourcing and the GPL license that HoAh builds upon.
 - Core tech: [whisper.cpp](https://github.com/ggerganov/whisper.cpp), [FluidAudio](https://github.com/FluidInference/FluidAudio)
 - Dependencies we rely on: [Sparkle](https://github.com/sparkle-project/Sparkle), [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts), [LaunchAtLogin](https://github.com/sindresorhus/LaunchAtLogin), [MediaRemoteAdapter](https://github.com/ejbills/mediaremote-adapter), [Zip](https://github.com/marmelroy/Zip), [SelectedTextKit](https://github.com/tisfeng/SelectedTextKit), [Swift Atomics](https://github.com/apple/swift-atomics)

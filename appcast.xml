@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
-        <title>VoicePilot Releases</title>
+        <title>HoAh Releases</title>
         <item>
             <title>2.1.1</title>
             <pubDate>Thu, 09 Jan 2025 00:00:00 +0000</pubDate>
@@ -18,7 +18,7 @@
                 </ul>
 
             ]]></description>
-            <enclosure url="https://example.com/VoicePilot.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+            <enclosure url="https://example.com/HoAh-2.1.1.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
         </item>
     </channel>
 </rss>
