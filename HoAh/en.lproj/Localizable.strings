@@ -281,6 +281,7 @@
 "prompt_email_description" = "Polite, concise email; context-aware corrections; facts intact.";
 "prompt_terminal_title" = "Terminal";
 "prompt_terminal_description" = "Generate safe, concise English shell commands from user speech.";
+"ai_enhancement_auto_prompt_hint" = "Only one mode is active at a time. It auto-applies after each transcription while AI enhancement is on. Current:";
 "Download AI Model" = "Download AI Model";
 "Downloaded" = "Downloaded";
 "Edit" = "Edit";

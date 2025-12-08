@@ -284,6 +284,7 @@
 "prompt_email_description" = "礼貌简洁的邮件，按上下文纠错，信息原样保留。";
 "prompt_terminal_title" = "终端";
 "prompt_terminal_description" = "从语音生成安全、简洁的英文终端命令。";
+"ai_enhancement_auto_prompt_hint" = "同一时间仅有一个模式生效；开启 AI 增强后会自动应用到每次转录。当前：";
 "Download AI Model" = "下载 AI 模型";
 "Downloaded" = "已下载";
 "Edit" = "编辑";
@@ -579,3 +580,17 @@
 "Check for Updates…" = "检查更新…";
 "HoAh does not check for updates automatically. Click the button above whenever you want to manually check for a new version." = "HoAh 不会自动检查更新。如需检查新版本，请点击上方按钮。";
 "HoAh Homepage" = "吼蛙主页";
+
+// Enhancement Settings
+"Enable Auto Enhancement" = "启用自动增强";
+"AI enhancement lets you pass the transcribed audio through LLMS to post-process using different prompts suitable for different use cases like e-mails, summary, writing, etc." = "AI 增强允许您利用大语言模型对转录文本进行后处理，例如：生成邮件、摘要、润色文章等。";
+"Automatically apply AI-powered enhancement after each transcription" = "在每次转录后自动应用 AI 增强";
+"Clipboard Context" = "剪贴板上下文";
+"Use text from clipboard to understand the context" = "利用剪贴板内容辅助理解上下文";
+"AI Provider Integration" = "AI 服务提供商";
+"Auto Enhancement Modes" = "自动增强模式";
+"Reset Built-in Prompts" = "重置内置提示词";
+"Prompt Triggers" = "提示词触发器";
+"Enable Prompt Triggers" = "启用提示词触发器";
+"When enabled, these prompts auto-activate if their trigger words are present in your text." = "启用后，若文本中包含触发词，对应提示词将自动激活。";
+"No prompts available" = "暂无提示词";

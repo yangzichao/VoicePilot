@@ -88,7 +88,7 @@ struct EnhancementSettingsView: View {
                                 .controlSize(.small)
                             }
                             
-                            Text("Only one mode is active at a time. It auto-applies after each transcription while AI enhancement is on. Current: \(activeAutoPromptTitle).")
+                            Text("\(String(localized: "ai_enhancement_auto_prompt_hint")) \(activeAutoPromptTitle).")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

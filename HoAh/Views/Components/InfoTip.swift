@@ -26,11 +26,11 @@ struct InfoTip: View {
             .contentShape(Rectangle())
             .popover(isPresented: $isShowingTip) {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(title)
+                    Text(LocalizedStringKey(title))
                         .font(.headline)
                         .foregroundColor(.primary)
                     
-                    Text(message)
+                    Text(LocalizedStringKey(message))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -39,7 +39,7 @@ struct InfoTip: View {
                     if let url = learnMoreLink {
                         Link(destination: url) {
                             HStack(spacing: 4) {
-                                Text(learnMoreText)
+                                Text(LocalizedStringKey(learnMoreText))
                                     .font(.caption)
                                     .fontWeight(.medium)
                                 Image(systemName: "arrow.up.forward")
