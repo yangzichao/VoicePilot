@@ -46,7 +46,7 @@ struct KeyboardShortcutsListView: View {
                             icon: "mic.fill",
                             iconColor: .blue,
                             title: "Toggle Recording",
-                            subtitle: "Hotkey 1"
+                            subtitle: String(localized: "Hotkey 1")
                         ) {
                             if hotkeyManager.selectedHotkey1 == .custom, let shortcut = toggleHotkey1 {
                                 KeyboardShortcutBadge(shortcut: shortcut)
@@ -61,7 +61,7 @@ struct KeyboardShortcutsListView: View {
                             icon: "mic.fill",
                             iconColor: .purple,
                             title: "Toggle Recording",
-                            subtitle: "Hotkey 2"
+                            subtitle: String(localized: "Hotkey 2")
                         ) {
                             if hotkeyManager.selectedHotkey2 == .custom, let shortcut = toggleHotkey2 {
                                 KeyboardShortcutBadge(shortcut: shortcut)

@@ -193,7 +193,7 @@ struct MenuBarView: View {
             }
             .keyboardShortcut("d", modifiers: [.command, .shift])
             
-            Toggle("Launch at Login", isOn: $launchAtLoginEnabled)
+            Toggle(LocalizedStringKey("Launch at Login"), isOn: $launchAtLoginEnabled)
                 .onChange(of: launchAtLoginEnabled) { oldValue, newValue in
                     LaunchAtLogin.isEnabled = newValue
                 }

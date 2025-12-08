@@ -428,3 +428,17 @@
 "No models available" = "无可用模型";
 "No devices available" = "无可用设备";
 "Clipboard Context" = "剪贴板上下文";
+
+"Launch at Login" = "登录时启动";
+
+"Right Option (⌥)" = "右 Option (⌥)";
+"Left Option (⌥)" = "左 Option (⌥)";
+"Left Control (⌃)" = "左 Control (⌃)";
+"Right Control (⌃)" = "右 Control (⌃)";
+"Fn" = "Fn";
+"Right Command (⌘)" = "右 Command (⌘)";
+"Right Shift (⇧)" = "右 Shift (⇧)";
+"Custom" = "自定义";
+
+"Hotkey 1" = "快捷键 1";
+"Hotkey 2" = "快捷键 2";
