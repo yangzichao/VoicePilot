@@ -4,11 +4,10 @@ import KeyboardShortcuts
 
 // ViewType enum with all cases
 enum ViewType: String, CaseIterable, Identifiable {
-    case metrics = "Dashboard"
-    case history = "History"
+    case metrics = "HoAh"
+    case powerMode = "Smart Scenes"
     case models = "AI Models"
     case agentMode = "AI Agents"
-    case powerMode = "Smart Scenes"
     case permissions = "Permissions"
     case audioInput = "Audio Input"
     case transcribeAudio = "Transcribe Audio"
@@ -20,7 +19,6 @@ enum ViewType: String, CaseIterable, Identifiable {
         switch self {
         case .metrics: return "gauge.medium"
         case .transcribeAudio: return "waveform.circle.fill"
-        case .history: return "doc.text.fill"
         case .models: return "brain.head.profile"
         case .agentMode: return "wand.and.stars"
         case .powerMode: return "sparkles.square.fill.on.square"
@@ -65,25 +63,28 @@ struct ContentView: View {
         NavigationSplitView {
             List(selection: $selectedView) {
                 Section {
-                    // App Header
-                    HStack(spacing: 6) {
-                        if let appIcon = NSImage(named: "AppIcon") {
-                            Image(nsImage: appIcon)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .cornerRadius(8)
+                    NavigationLink(value: ViewType.metrics) {
+                        HStack(spacing: 8) {
+                            if let appIcon = NSImage(named: "AppIcon") {
+                                Image(nsImage: appIcon)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 28, height: 28)
+                                    .cornerRadius(8)
+                            }
+
+                            Text("HoAh")
+                                .font(.system(size: 14, weight: .semibold))
+
+                            Spacer()
                         }
-
-                        Text("HoAh")
-                            .font(.system(size: 14, weight: .semibold))
-
-                        Spacer()
+                        .padding(.vertical, 4)
                     }
-                    .padding(.vertical, 4)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowSeparator(.hidden)
                 }
 
-                ForEach(visibleViewTypes) { viewType in
+                ForEach(visibleViewTypes.filter { $0 != .metrics }) { viewType in
                     Section {
                         NavigationLink(value: viewType) {
                             HStack(spacing: 12) {
@@ -127,7 +128,7 @@ struct ContentView: View {
                 case "AI Models":
                     selectedView = .models
                 case "History":
-                    selectedView = .history
+                    selectedView = .metrics
                 case "Permissions":
                     selectedView = .permissions
                 case "AI Agents":
@@ -154,8 +155,6 @@ struct ContentView: View {
             EnhancementSettingsView()
         case .transcribeAudio:
             AudioTranscribeView()
-        case .history:
-            TranscriptionHistoryView()
         case .audioInput:
             AudioInputSettingsView()
         case .powerMode:

@@ -9,24 +9,18 @@ struct MetricsContent: View {
             if transcriptions.isEmpty {
                 emptyStateView
             } else {
-                GeometryReader { geometry in
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            metricsSection
+                VStack(spacing: 24) {
+                    metricsSection
 
-                            Spacer(minLength: 20)
-
-                            HStack {
-                                Spacer()
-                                footerActionsView
-                            }
-                        }
-                        .frame(minHeight: geometry.size.height - 56)
-                        .padding(.vertical, 28)
-                        .padding(.horizontal, 32)
+                    HStack {
+                        Spacer()
+                        footerActionsView
                     }
-                    .background(Color(.windowBackgroundColor))
                 }
+                .padding(.vertical, 28)
+                .padding(.horizontal, 32)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(.windowBackgroundColor))
             }
         }
     }

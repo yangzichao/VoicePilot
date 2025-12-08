@@ -10,10 +10,17 @@ struct MetricsView: View {
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             MetricsContent(
                 transcriptions: Array(transcriptions)
             )
+
+            if !transcriptions.isEmpty {
+                Divider()
+                    .padding(.top, 8)
+
+                TranscriptionHistoryView()
+            }
         }
         .background(Color(.controlBackgroundColor))
     }
