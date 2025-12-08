@@ -89,17 +89,6 @@ import Foundation
         
          // Local Models
          LocalModel(
-             name: "ggml-tiny",
-             displayName: "Tiny",
-             size: "75 MB",
-             supportedLanguages: getLanguageDictionary(isMultilingual: true, provider: .local),
-             description: "Tiny model, fastest, least accurate",
-             speed: 0.95,
-             accuracy: 0.6,
-             ramUsage: 0.3
-         ),
-
-         LocalModel(
              name: "ggml-base",
              displayName: "Base",
              size: "142 MB",
