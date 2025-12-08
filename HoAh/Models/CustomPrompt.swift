@@ -132,6 +132,32 @@ struct CustomPrompt: Identifiable, Codable, Equatable {
             return self.promptText
         }
     }
+    
+    var displayTitle: String {
+        guard isPredefined else { return title }
+        switch title {
+        case "Basic": return NSLocalizedString("prompt_basic_title", comment: "")
+        case "Polish": return NSLocalizedString("prompt_polish_title", comment: "")
+        case "Formal": return NSLocalizedString("prompt_formal_title", comment: "")
+        case "Summarize": return NSLocalizedString("prompt_summarize_title", comment: "")
+        case "Email Draft": return NSLocalizedString("prompt_email_title", comment: "")
+        case "Terminal": return NSLocalizedString("prompt_terminal_title", comment: "")
+        default: return title
+        }
+    }
+    
+    var displayDescription: String? {
+        guard isPredefined else { return description }
+        switch title {
+        case "Basic": return NSLocalizedString("prompt_basic_description", comment: "")
+        case "Polish": return NSLocalizedString("prompt_polish_description", comment: "")
+        case "Formal": return NSLocalizedString("prompt_formal_description", comment: "")
+        case "Summarize": return NSLocalizedString("prompt_summarize_description", comment: "")
+        case "Email Draft": return NSLocalizedString("prompt_email_description", comment: "")
+        case "Terminal": return NSLocalizedString("prompt_terminal_description", comment: "")
+        default: return description
+        }
+    }
 }
 
 // MARK: - UI Extensions
@@ -225,7 +251,7 @@ extension CustomPrompt {
             
             // Enhanced title styling
             VStack(spacing: 2) {
-                Text(title)
+                Text(displayTitle)
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(isSelected ?
                         .primary : .secondary)

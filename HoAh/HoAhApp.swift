@@ -4,6 +4,7 @@ import AppKit
 import OSLog
 import AppIntents
 import FluidAudio
+import KeyboardShortcuts
 
 @main
 struct HoAhApp: App {
@@ -33,6 +34,10 @@ struct HoAhApp: App {
     init() {
         // Configure FluidAudio logging subsystem
         AppLogger.defaultSubsystem = "com.yangzichao.hoah.parakeet"
+
+        // Configure KeyboardShortcuts localization
+        KeyboardShortcuts.Localization.recordShortcut = NSLocalizedString("Record Shortcut", comment: "")
+        KeyboardShortcuts.Localization.pressShortcut = NSLocalizedString("Press Shortcut", comment: "")
 
         if UserDefaults.standard.object(forKey: "powerModeUIFlag") == nil {
             let hasEnabledPowerModes = PowerModeManager.shared.configurations.contains { $0.isEnabled }

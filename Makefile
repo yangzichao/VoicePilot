@@ -76,6 +76,10 @@ reset-onboarding:
 dmg:
 	@bash scripts/packaging/build_dmg.sh $(DMG_VERSION)
 
+# Build, sign, notarize, and staple DMG (requires SIGN_IDENTITY/TEAM_ID and notary credentials)
+release-dmg:
+	@bash scripts/packaging/sign_and_notarize.sh $(DMG_VERSION)
+
 # Help
 help:
 	@echo "Available targets:"

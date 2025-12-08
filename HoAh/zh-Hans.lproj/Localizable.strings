@@ -594,3 +594,6 @@
 "Enable Prompt Triggers" = "启用提示词触发器";
 "When enabled, these prompts auto-activate if their trigger words are present in your text." = "启用后，若文本中包含触发词，对应提示词将自动激活。";
 "No prompts available" = "暂无提示词";
+"Add New" = "新增";
+"Record Shortcut" = "录制快捷键";
+"Press Shortcut" = "按下快捷键";

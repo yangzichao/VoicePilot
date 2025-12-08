@@ -12,10 +12,10 @@ struct EnhancementSettingsView: View {
     private var triggerPrompts: [CustomPrompt] { enhancementService.triggerPrompts }
 
     private var activeAutoPromptTitle: String {
-        if let title = autoPrompts.first(where: { $0.id == enhancementService.selectedPromptId })?.title {
-            return title
+        if let prompt = autoPrompts.first(where: { $0.id == enhancementService.selectedPromptId }) {
+            return prompt.displayTitle
         }
-        return "None"
+        return NSLocalizedString("None", comment: "")
     }
     
     var body: some View {
@@ -88,7 +88,7 @@ struct EnhancementSettingsView: View {
                                 .controlSize(.small)
                             }
                             
-                            Text("\(String(localized: "ai_enhancement_auto_prompt_hint")) \(activeAutoPromptTitle).")
+                            Text("\(NSLocalizedString("ai_enhancement_auto_prompt_hint", comment: "")) \(activeAutoPromptTitle).")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
