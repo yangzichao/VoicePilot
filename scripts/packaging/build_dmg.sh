@@ -43,6 +43,16 @@ mkdir -p "$STAGING_DIR"
 cp -R "$APP_PATH" "$STAGING_DIR/"
 ln -s /Applications "$STAGING_DIR/Applications"
 
+cat > "$STAGING_DIR/README.txt" <<'EOF'
+HoAh Install Hint / 安装提示
+--------------------------------
+Drag HoAh.app onto the Applications icon on the right.
+Then launch HoAh from your Applications folder.
+
+将 HoAh.app 拖拽到右侧的 Applications（应用程序）图标。
+安装完成后，请从“应用程序”文件夹里启动 HoAh。
+EOF
+
 if [ -f "$BACKGROUND_SRC" ]; then
   echo "==> Adding background image from $BACKGROUND_SRC"
   mkdir -p "$STAGING_DIR/.background"
