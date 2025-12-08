@@ -345,3 +345,45 @@
 "|" = "|";
 "➕" = "➕";
 "简体中文" = "简体中文";
+
+/* Missing Translations Added */
+
+/* Alerts & Notifications */
+"No AI Model Selected" = "未选择 AI 模型";
+"Recording failed to start" = "录音启动失败";
+"No transcription available" = "无转录内容可用";
+"Last transcription copied" = "上次转录已复制";
+"Failed to copy transcription" = "复制转录失败";
+"Copied to clipboard" = "已复制到剪贴板";
+"Import Error" = "导入错误";
+"Export Error" = "导出错误";
+"Export Successful" = "导出成功";
+"Version Mismatch" = "版本不匹配";
+"Import Canceled" = "导入已取消";
+"Export Canceled" = "导出已取消";
+"Cannot retry: Audio file not found" = "无法重试：音频文件未找到";
+"No transcription model selected" = "未选择转录模型";
+"Retry failed: %@" = "重试失败：%@";
+
+/* Metrics */
+"Avg. Audio" = "平均音频时长";
+"Avg. Process Time" = "平均处理时间";
+
+/* Settings & Onboarding */
+"Microphone Access" = "麦克风权限";
+"Accessibility Access" = "辅助功能权限";
+"Screen Recording Access" = "屏幕录制权限";
+"Keyboard Shortcut" = "键盘快捷键";
+"Set Keyboard Shortcut" = "设置键盘快捷键";
+"Enable Accessibility" = "启用辅助功能";
+"Enable Screen Recording" = "启用屏幕录制";
+"Download Model" = "下载模型";
+"Microphone Selection" = "麦克风选择";
+"Output Format Guide" = "输出格式指南";
+"Trailing Space" = "尾随空格";
+"Automatic Text Formatting" = "自动文本格式化";
+"Voice Activity Detection" = "语音活动检测";
+"System Instructions" = "系统指令";
+
+/* Shortcuts */
+"Toggle Recording" = "切换录音状态";
