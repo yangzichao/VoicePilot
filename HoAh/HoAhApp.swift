@@ -272,6 +272,7 @@ struct HoAhApp: App {
             }
             .onChange(of: appInterfaceLanguage) { _, newValue in
                 localizationManager.apply(languageCode: newValue)
+                NotificationCenter.default.post(name: .languageDidChange, object: nil)
             }
         }
         .windowStyle(.hiddenTitleBar)

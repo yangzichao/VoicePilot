@@ -472,6 +472,8 @@
 "Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first." = "Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first.";
 "After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated." = "After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated.";
 "open_hoah_dashboard" = "Open HoAh";
+"Smart Scenes require AI Enhancement to be enabled. Turn it on in Settings > AI Agents." = "Smart Scenes require AI Enhancement to be enabled. Turn it on in Settings > AI Agents.";
+"Enable AI Enhancement to add smart scenes." = "Enable AI Enhancement to add smart scenes.";
 
 /* Permissions View */
 "HoAh requires the following permissions to function properly" = "HoAh requires the following permissions to function properly";

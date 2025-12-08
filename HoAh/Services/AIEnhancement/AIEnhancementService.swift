@@ -184,12 +184,12 @@ class AIEnhancementService: ObservableObject {
                 prompts[idx] = CustomPrompt(
                     id: p.id,
                     title: template.title,
-                    promptText: p.promptText,
+                    promptText: template.promptText,
                     isActive: p.isActive,
                     icon: p.icon,
                     description: template.description,
                     isPredefined: true,
-                    triggerWords: p.triggerWords,
+                    triggerWords: template.triggerWords,
                     useSystemInstructions: p.useSystemInstructions
                 )
             }

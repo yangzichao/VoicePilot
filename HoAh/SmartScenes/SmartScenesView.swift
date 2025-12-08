@@ -109,6 +109,8 @@ struct SmartScenesView: View {
                                     .background(Color.accentColor)
                                     .cornerRadius(6)
                                 }
+                                .disabled(!enhancementService.isEnhancementEnabled)
+                                .opacity(enhancementService.isEnhancementEnabled ? 1 : 0.45)
                                 .buttonStyle(PlainButtonStyle())
                             }
                             Button(action: { withAnimation { isReorderMode.toggle() } }) {
@@ -140,6 +142,19 @@ struct SmartScenesView: View {
                     .fill(Color(NSColor.separatorColor))
                     .frame(height: 1)
                     .padding(.horizontal, 24)
+                
+                if !enhancementService.isEnhancementEnabled {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text(NSLocalizedString("Smart Scenes require AI Enhancement to be enabled. Turn it on in Settings > AI Agents.", comment: "Warning when AI enhancement is off"))
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 10)
+                }
                 
                 if isReorderMode {
                     VStack(spacing: 12) {
@@ -214,6 +229,11 @@ struct SmartScenesView: View {
                                                     .foregroundColor(.secondary)
                                                     .multilineTextAlignment(.center)
                                                     .lineSpacing(2)
+                                                if !enhancementService.isEnhancementEnabled {
+                                                    Text(NSLocalizedString("Enable AI Enhancement to add smart scenes.", comment: "Empty state hint when enhancement off"))
+                                                        .font(.system(size: 13))
+                                                        .foregroundColor(.secondary)
+                                                }
                                             }
                                         }
                                         

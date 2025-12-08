@@ -13,14 +13,13 @@ struct ConfigurationView: View {
     @State private var selectedEmoji: String = "💼"
     @State private var isShowingEmojiPicker = false
     @State private var isShowingAppPicker = false
-    @State private var isAIEnhancementEnabled: Bool
     @State private var selectedPromptId: UUID?
     @State private var selectedTranscriptionModelName: String?
     @State private var selectedLanguage: String?
     @State private var installedApps: [(url: URL, name: String, bundleId: String, icon: NSImage)] = []
     @State private var searchText = ""
     @State private var showAdvancedAISettings = false
-    
+
     // Validation state
     @State private var validationErrors: [PowerModeValidationError] = []
     @State private var showValidationAlert = false
@@ -37,7 +36,7 @@ struct ConfigurationView: View {
     // New state for screen capture toggle (deprecated, always off)
     @State private var useScreenCapture = false
     @State private var isAutoSendEnabled = false
-    
+
     // State for prompt editing (similar to EnhancementSettingsView)
     @State private var isEditingPrompt = false
     @State private var selectedPromptForEdit: CustomPrompt?
@@ -79,7 +78,6 @@ struct ConfigurationView: View {
         // Always fetch the most current configuration data
         switch mode {
         case .add:
-            _isAIEnhancementEnabled = State(initialValue: true)
             _selectedPromptId = State(initialValue: nil)
             _selectedTranscriptionModelName = State(initialValue: nil)
             _selectedLanguage = State(initialValue: nil)
@@ -93,7 +91,6 @@ struct ConfigurationView: View {
         case .edit(let config):
             // Get the latest version of this config from SmartScenesManager
             let latestConfig = smartScenesManager.getConfiguration(with: config.id) ?? config
-            _isAIEnhancementEnabled = State(initialValue: latestConfig.isAIEnhancementEnabled)
             _selectedPromptId = State(initialValue: latestConfig.selectedPrompt.flatMap { UUID(uuidString: $0) })
             _selectedTranscriptionModelName = State(initialValue: latestConfig.selectedTranscriptionModelName)
             _selectedLanguage = State(initialValue: latestConfig.selectedLanguage)
@@ -367,23 +364,7 @@ struct ConfigurationView: View {
                     VStack(spacing: 16) {
                         SectionHeader(title: "AI Enhancement")
                         
-                        Toggle("Enable AI Enhancement", isOn: $isAIEnhancementEnabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .onChange(of: isAIEnhancementEnabled) { oldValue, newValue in
-                                if newValue && showAdvancedAISettings {
-                                    if selectedAIProvider == nil {
-                                        selectedAIProvider = aiService.selectedProvider.rawValue
-                                    }
-                                    if selectedAIModel == nil {
-                                        selectedAIModel = aiService.currentModel
-                                    }
-                                }
-                            }
-
-                        Divider()
-
-                        if isAIEnhancementEnabled {
-                            Text(NSLocalizedString("Uses current AI provider/model unless you override below.", comment: "Description for AI settings"))
+                        Text(NSLocalizedString("Uses current AI provider/model unless you override below.", comment: "Description for AI settings"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -416,7 +397,7 @@ struct ConfigurationView: View {
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     } else {
                                         Picker("", selection: providerBinding) {
-                                            ForEach(aiService.connectedProviders.filter { $0 != .elevenLabs }, id: \.self) { provider in
+                                            ForEach(aiService.connectedProviders.filter { $0 != .elevenLabs }, id: \ .self) { provider in
                                                 Text(provider.rawValue).tag(provider)
                                             }
                                         }
@@ -461,7 +442,7 @@ struct ConfigurationView: View {
                                             let models = provider == .openRouter ? aiService.availableModels : (provider == .ollama ? aiService.availableModels : provider.availableModels)
                                             
                                             Picker("", selection: modelBinding) {
-                                                ForEach(models, id: \.self) { model in
+                                                ForEach(models, id: \ .self) { model in
                                                     Text(model).tag(model)
                                                 }
                                             }
@@ -505,7 +486,6 @@ struct ConfigurationView: View {
                                     }
                                 }
                             }
-                            .disabled(!isAIEnhancementEnabled)
 
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Enhancement Prompt")
@@ -530,10 +510,7 @@ struct ConfigurationView: View {
                                 )
                             }
 
-                            Divider()
-                            
-                            // Screen context capture has been removed in this fork.
-                        }
+
                     }
                     .padding()
                     .background(CardBackground(isSelected: false))
@@ -611,8 +588,8 @@ struct ConfigurationView: View {
                     }
                 }
                 
-                // Select first prompt if AI enhancement is enabled and no prompt is selected
-                if isAIEnhancementEnabled && selectedPromptId == nil {
+                // Select first prompt if no prompt is selected
+                if selectedPromptId == nil {
                     selectedPromptId = enhancementService.activePrompts.first?.id
             }
         }
@@ -648,7 +625,7 @@ struct ConfigurationView: View {
                 emoji: selectedEmoji,
                 appConfigs: selectedAppConfigs.isEmpty ? nil : selectedAppConfigs,
                 urlConfigs: websiteConfigs.isEmpty ? nil : websiteConfigs,
-                    isAIEnhancementEnabled: isAIEnhancementEnabled,
+                    isAIEnhancementEnabled: true,
                     selectedPrompt: selectedPromptId?.uuidString,
                     selectedTranscriptionModelName: selectedTranscriptionModelName,
                     selectedLanguage: selectedLanguage,
@@ -662,7 +639,7 @@ struct ConfigurationView: View {
             var updatedConfig = config
             updatedConfig.name = configName
             updatedConfig.emoji = selectedEmoji
-            updatedConfig.isAIEnhancementEnabled = isAIEnhancementEnabled
+            updatedConfig.isAIEnhancementEnabled = true
             updatedConfig.selectedPrompt = selectedPromptId?.uuidString
             updatedConfig.selectedTranscriptionModelName = selectedTranscriptionModelName
             updatedConfig.selectedLanguage = selectedLanguage

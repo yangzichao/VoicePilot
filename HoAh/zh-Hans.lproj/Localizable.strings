@@ -334,7 +334,9 @@
 "Keep audio files for" = "保留音频文件时长";
 "Keep enhancement prompts handy" = "随时保留增强提示词";
 "Language" = "语言";
-"Launch at Login" = "登录时启动";
+"Launch at Login" = "登录时自启动";
+"Show Audio Transcription Tool" = "显示音频转录工具";
+"Interface Language" = "界面语言";
 "Learn more" = "了解更多";
 "Learn what is on the screen to understand the context" = "了解屏幕上的内容，以理解上下文";
 "Let's test your HoAh setup." = "来测试一下你的吼蛙配置。";
@@ -631,4 +633,6 @@
 "Optional: Override AI provider/model" = "可选：覆盖 AI 服务商/模型";
 "Advanced" = "高级选项";
 "open_hoah_dashboard" = "打开吼蛙";
+"Smart Scenes require AI Enhancement to be enabled. Turn it on in Settings > AI Agents." = "智能场景需要先启用 AI 增强，请在“设置 > AI 代理”中打开。";
+"Enable AI Enhancement to add smart scenes." = "启用 AI 增强后才能添加智能场景。";
 "Save Changes" = "保存更改";

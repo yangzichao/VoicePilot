@@ -11,6 +11,7 @@ struct SettingsView: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
     @AppStorage("preserveTranscriptInClipboard") private var preserveTranscriptInClipboard = true
+    @AppStorage("isTranscribeAudioEnabled") private var isTranscribeAudioEnabled = false
     @StateObject private var deviceManager = AudioDeviceManager.shared
     @ObservedObject private var soundManager = SoundManager.shared
     @ObservedObject private var mediaController = MediaController.shared
@@ -298,6 +299,9 @@ struct SettingsView: View {
                         Toggle("Hide Dock Icon (Menu Bar Only)", isOn: $menuBarManager.isMenuBarOnly)
                             .toggleStyle(.switch)
                         
+                        Toggle("Show Audio Transcription Tool", isOn: $isTranscribeAudioEnabled)
+                            .toggleStyle(.switch)
+                        
                         Toggle(isOn: Binding(
                             get: { LaunchAtLogin.isEnabled },
                             set: { LaunchAtLogin.isEnabled = $0 }
@@ -318,6 +322,7 @@ struct SettingsView: View {
                             .pickerStyle(SegmentedPickerStyle())
                             .onChange(of: appInterfaceLanguage) { _, _ in
                                 NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+                                NotificationCenter.default.post(name: .languageDidChange, object: nil)
                             }
                             Text("Switch HoAh's interface language. Changes take effect immediately on supported screens; untranslated items will fall back to English.")
                                 .font(.caption)

@@ -52,11 +52,21 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var whisperState: WhisperState
     @EnvironmentObject private var hotkeyManager: HotkeyManager
+    @EnvironmentObject private var enhancementService: AIEnhancementService
     @State private var selectedView: ViewType? = .metrics
+    @AppStorage("isTranscribeAudioEnabled") private var isTranscribeAudioEnabled = false
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
 
     private var visibleViewTypes: [ViewType] {
-        ViewType.allCases
+        ViewType.allCases.filter { view in
+            if view == .smartScenes {
+                return enhancementService.isEnhancementEnabled
+            }
+            if view == .transcribeAudio {
+                return isTranscribeAudioEnabled
+            }
+            return true
+        }
     }
 
     var body: some View {
@@ -134,14 +144,29 @@ struct ContentView: View {
                 case "AI Agents":
                     selectedView = .agentMode
                 case "Transcribe Audio":
+                    isTranscribeAudioEnabled = true
                     selectedView = .transcribeAudio
                 case "Smart Scenes":
-                    selectedView = .smartScenes
+                    if enhancementService.isEnhancementEnabled {
+                        selectedView = .smartScenes
+                    } else {
+                        selectedView = .metrics
+                    }
                 case "HoAh", "Dashboard":
                     selectedView = .metrics
                 default:
                     break
                 }
+            }
+        }
+        .onChange(of: enhancementService.isEnhancementEnabled) { _, isEnabled in
+            if !isEnabled, selectedView == .smartScenes {
+                selectedView = .metrics
+            }
+        }
+        .onChange(of: isTranscribeAudioEnabled) { _, isEnabled in
+            if !isEnabled, selectedView == .transcribeAudio {
+                selectedView = .metrics
             }
         }
     }
