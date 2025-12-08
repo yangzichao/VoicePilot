@@ -298,8 +298,14 @@ struct SettingsView: View {
                         Toggle("Hide Dock Icon (Menu Bar Only)", isOn: $menuBarManager.isMenuBarOnly)
                             .toggleStyle(.switch)
                         
-                        LaunchAtLogin.Toggle()
-                            .toggleStyle(.switch)
+                        Toggle(isOn: Binding(
+                            get: { LaunchAtLogin.isEnabled },
+                            set: { LaunchAtLogin.isEnabled = $0 }
+                        )) {
+                            Text("Launch at Login")
+                        }
+                        .toggleStyle(.switch)
+
 
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Interface Language")
