@@ -48,6 +48,13 @@
                         <span id="demo-scenario-title" class="demo-title">Bug Report</span>
                     </div>
                     <div class="demo-content">
+                        <div id="demo-recording" class="demo-line recording">
+                            <span class="icon">🔴</span>
+                            <div class="recording-text">
+                                <span>Recording...</span>
+                                <span class="recording-dot"></span>
+                            </div>
+                        </div>
                         <div class="demo-line raw">
                             <span class="icon">🎙️</span>
                             <span id="demo-text-raw" class="typewriter">...</span>
@@ -230,6 +237,7 @@
             let scenarioIndex = 0;
             const rawEl = document.getElementById('demo-text-raw');
             const polishedEl = document.getElementById('demo-text-polished');
+            const recordingEl = document.getElementById('demo-recording');
             const titleEl = document.getElementById('demo-scenario-title');
 
             function typeWriter(text, element, speed, callback) {
@@ -262,22 +270,29 @@
                 polishedEl.innerHTML = "";
                 polishedEl.style.opacity = "0";
 
-                // 1. Type Raw Text
-                typeWriter(scenario.raw, rawEl, 40, () => {
-                    // 2. Pause before polishing
-                    demoTimeout = setTimeout(() => {
-                        // 3. Show Polished
-                        polishedEl.innerHTML = scenario.polished;
-                        polishedEl.style.transition = "opacity 0.8s ease";
-                        polishedEl.style.opacity = "1";
+                // 1. Show Recording State
+                recordingEl.classList.add('active');
 
-                        // 4. Hold then next
+                demoTimeout = setTimeout(() => {
+                    // 2. Hide Recording, Start Typing Raw
+                    recordingEl.classList.remove('active');
+
+                    typeWriter(scenario.raw, rawEl, 40, () => {
+                        // 3. Pause
                         demoTimeout = setTimeout(() => {
-                            scenarioIndex++;
-                            startDemo(currentLang); // Recurse
-                        }, 4000); // Read time
-                    }, 800); // Processing time
-                });
+                            // 4. Show Polished
+                            polishedEl.innerHTML = scenario.polished;
+                            polishedEl.style.transition = "opacity 0.8s ease";
+                            polishedEl.style.opacity = "1";
+
+                            // 5. Hold then next
+                            demoTimeout = setTimeout(() => {
+                                scenarioIndex++;
+                                startDemo(currentLang);
+                            }, 4000);
+                        }, 800);
+                    });
+                }, 1500); // Recording duration
             }
 
             // --- Download Logic ---
