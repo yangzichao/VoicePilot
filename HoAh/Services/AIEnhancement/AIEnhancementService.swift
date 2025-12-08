@@ -48,6 +48,12 @@ class AIEnhancementService: ObservableObject {
         }
     }
 
+    @Published var userProfileContext: String {
+        didSet {
+            UserDefaults.standard.set(userProfileContext, forKey: "userProfileContext")
+        }
+    }
+
     @Published var activePrompts: [CustomPrompt] {
         didSet { persistPrompts() }
     }
@@ -106,6 +112,7 @@ class AIEnhancementService: ObservableObject {
         self.useClipboardContext = UserDefaults.standard.bool(forKey: "useClipboardContext")
         self.useScreenCaptureContext = UserDefaults.standard.bool(forKey: "useScreenCaptureContext")
         self.arePromptTriggersEnabled = UserDefaults.standard.object(forKey: "arePromptTriggersEnabled") as? Bool ?? true
+        self.userProfileContext = UserDefaults.standard.string(forKey: "userProfileContext") ?? ""
 
         let decodedActive = UserDefaults.standard.data(forKey: activePromptsKey).flatMap { try? JSONDecoder().decode([CustomPrompt].self, from: $0) }
         let decodedTrigger = UserDefaults.standard.data(forKey: triggerPromptsKey).flatMap { try? JSONDecoder().decode([CustomPrompt].self, from: $0) }
@@ -245,7 +252,13 @@ class AIEnhancementService: ObservableObject {
             ""
         }
 
-        let allContextSections = selectedTextContext + clipboardContext + screenCaptureContext
+        let userProfileSection = if !userProfileContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            "\n\n<USER_PROFILE>\n\(userProfileContext.trimmingCharacters(in: .whitespacesAndNewlines))\n</USER_PROFILE>"
+        } else {
+            ""
+        }
+
+        let allContextSections = userProfileSection + selectedTextContext + clipboardContext + screenCaptureContext
 
         if let activePrompt = activePrompt {
             return activePrompt.finalPromptText + allContextSections

@@ -10,6 +10,7 @@ struct EnhancementSettingsView: View {
     @State private var selectedPromptForEdit: CustomPrompt?
     @State private var pendingPromptKind: PromptKind = .active
     @State private var showProviderAlert = false
+    @State private var isUserProfileExpanded = false
 
     private var autoPrompts: [CustomPrompt] { enhancementService.activePrompts }
     private var triggerPrompts: [CustomPrompt] { enhancementService.triggerPrompts }
@@ -212,6 +213,80 @@ struct EnhancementSettingsView: View {
                             },
                             isEnabled: enhancementService.isEnhancementEnabled && enhancementService.arePromptTriggersEnabled
                         )
+                    }
+                    .padding()
+                    .background(CardBackground(isSelected: false))
+                    
+                    // User Profile Section
+                    DisclosureGroup(isExpanded: $isUserProfileExpanded) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Divider()
+                            
+                            Text("Provide optional context about yourself to help AI better tailor responses. This information will be included in all enhancement requests.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            ZStack(alignment: .topLeading) {
+                                if enhancementService.userProfileContext.isEmpty {
+                                    Text(NSLocalizedString("user_profile_placeholder", comment: ""))
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.secondary.opacity(0.5))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 8)
+                                }
+                                
+                                TextEditor(text: $enhancementService.userProfileContext)
+                                    .font(.system(size: 13))
+                                    .frame(minHeight: 100, maxHeight: 150)
+                                    .scrollContentBackground(.hidden)
+                                    .background(Color(NSColor.textBackgroundColor))
+                                    .cornerRadius(6)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                                    )
+                            }
+                            
+                            HStack {
+                                Text("\(enhancementService.userProfileContext.count) / 500")
+                                    .font(.caption2)
+                                    .foregroundColor(enhancementService.userProfileContext.count > 500 ? .red : .secondary)
+                                
+                                Spacer()
+                                
+                                if !enhancementService.userProfileContext.isEmpty {
+                                    Button("Clear") {
+                                        enhancementService.userProfileContext = ""
+                                    }
+                                    .buttonStyle(.plain)
+                                    .font(.caption)
+                                    .foregroundColor(.accentColor)
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text("User Profile")
+                                .font(.headline)
+                            
+                            InfoTip(
+                                title: "User Profile",
+                                message: "Optional: Add context about yourself (name, role, industry, tech stack, etc.) to help AI provide more relevant responses."
+                            )
+                            
+                            Spacer()
+                            
+                            if !enhancementService.userProfileContext.isEmpty {
+                                Text("Configured")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.accentColor.opacity(0.1))
+                                    .cornerRadius(8)
+                            }
+                        }
                     }
                     .padding()
                     .background(CardBackground(isSelected: false))
