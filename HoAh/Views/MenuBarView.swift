@@ -219,11 +219,6 @@ struct MenuBarView: View {
             }
             .keyboardShortcut("h", modifiers: [.command, .shift])
             
-            Button("Settings") {
-                menuBarManager.openMainWindowAndNavigate(to: "Settings")
-            }
-            .keyboardShortcut(",", modifiers: .command)
-            
             Button(menuBarManager.isMenuBarOnly ? "Show Dock Icon" : "Hide Dock Icon") {
                 menuBarManager.toggleMenuBarOnly()
             }
@@ -233,6 +228,11 @@ struct MenuBarView: View {
                 .onChange(of: launchAtLoginEnabled) { oldValue, newValue in
                     LaunchAtLogin.isEnabled = newValue
                 }
+            
+            Button("Settings") {
+                menuBarManager.openMainWindowAndNavigate(to: "Settings")
+            }
+            .keyboardShortcut(",", modifiers: .command)
             
             Button("Quit HoAh") {
                 NSApplication.shared.terminate(nil)
