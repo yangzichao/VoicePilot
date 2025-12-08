@@ -154,16 +154,6 @@ import Foundation
            supportedLanguages: getLanguageDictionary(isMultilingual: true, provider: .elevenLabs)
        ),
        CloudModel(
-           name: "nova-2",
-           displayName: "Nova (Deepgram)",
-           description: "Deepgram's Nova model for fast, accurate, and cost-effective transcription.",
-           provider: .deepgram,
-           speed: 0.9,
-           accuracy: 0.95,
-           isMultilingual: true,
-           supportedLanguages: getLanguageDictionary(isMultilingual: true, provider: .deepgram)
-       ),
-       CloudModel(
            name: "nova-3-medical",
            displayName: "Nova-3 Medical (Deepgram)",
            description: "Specialized medical transcription model optimized for clinical environments.",
@@ -195,17 +185,6 @@ import Foundation
             isMultilingual: true,
             supportedLanguages: getLanguageDictionary(isMultilingual: true, provider: .gemini)
         ),
-        CloudModel(
-            name: "gemini-2.5-flash",
-            displayName: "Gemini 2.5 Flash",
-            description: "Google's optimized model for low-latency transcription with multimodal support.",
-            provider: .gemini,
-            speed: 0.9,
-            accuracy: 0.94,
-            isMultilingual: true,
-            supportedLanguages: getLanguageDictionary(isMultilingual: true, provider: .gemini)
-        )
-        ,
         CloudModel(
             name: "stt-async-v3",
             displayName: "Soniox (stt-async-v3)",
