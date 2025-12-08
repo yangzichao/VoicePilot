@@ -27,6 +27,8 @@
 "Smart Scenes" = "Smart Scenes";
 "Smart Scene" = "Smart Scene";
 
+"All time" = "All time";
+
 "Transcription Language" = "Transcription Language";
 "Language: Autodetected" = "Language: Autodetected";
 "Current model: %@" = "Current model: %@";

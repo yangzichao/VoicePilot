@@ -8,8 +8,8 @@ struct MetricCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
+            HStack(alignment: .center, spacing: 10) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .fill(color.opacity(0.15))
@@ -19,7 +19,7 @@ struct MetricCard: View {
                         .frame(width: 18, height: 18)
                         .foregroundColor(color)
                 }
-                .frame(width: 34, height: 34)
+                .frame(width: 32, height: 32)
                 
                 Text(LocalizedStringKey(title))
                     .font(.system(size: 13, weight: .semibold))
@@ -27,22 +27,16 @@ struct MetricCard: View {
                     .minimumScaleFactor(0.8)
             }
             
+            Spacer()
+            
             Text(value)
-                .font(.system(size: 24, weight: .black, design: .rounded))
+                .font(.system(size: 22, weight: .bold, design: .rounded))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-            
-            if let detail, !detail.isEmpty {
-                Text(LocalizedStringKey(detail))
-                    .font(.system(size: 11))
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .padding(16)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(.thinMaterial)

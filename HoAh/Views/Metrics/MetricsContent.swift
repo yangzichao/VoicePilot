@@ -1,21 +1,42 @@
 import SwiftUI
 
+private enum MetricsTimeRange: String, CaseIterable, Identifiable {
+    case last7Days
+    case last30Days
+    case allTime
+
+    var id: Self { self }
+
+    var titleKey: LocalizedStringKey {
+        switch self {
+        case .last7Days: return "7 days"
+        case .last30Days: return "30 days"
+        case .allTime: return "All time"
+        }
+    }
+
+    var daysBack: Int? {
+        switch self {
+        case .last7Days: return 7
+        case .last30Days: return 30
+        case .allTime: return nil
+        }
+    }
+}
+
 struct MetricsContent: View {
     let transcriptions: [Transcription]
     @State private var showKeyboardShortcuts = false
+    @State private var selectedRange: MetricsTimeRange = .last7Days
 
     var body: some View {
         Group {
             if transcriptions.isEmpty {
                 emptyStateView
             } else {
-                VStack(spacing: 24) {
+                VStack(spacing: 20) {
+                    rangePicker
                     metricsSection
-
-                    HStack {
-                        Spacer()
-                        footerActionsView
-                    }
                 }
                 .padding(.vertical, 28)
                 .padding(.horizontal, 32)
@@ -40,12 +61,38 @@ struct MetricsContent: View {
     }
     
     // MARK: - Sections
+
+    private var rangePicker: some View {
+        HStack {
+            Spacer()
+            Picker("", selection: $selectedRange) {
+                ForEach(MetricsTimeRange.allCases) { range in
+                    Text(range.titleKey).tag(range)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 260)
+        }
+    }
+
+    private var filteredTranscriptions: [Transcription] {
+        guard let days = selectedRange.daysBack else {
+            return transcriptions
+        }
+        let calendar = Calendar.current
+        let now = Date()
+        guard let cutoff = calendar.date(byAdding: .day, value: -days, to: now) else {
+            return transcriptions
+        }
+        return transcriptions.filter { $0.timestamp >= cutoff }
+    }
+
     private var metricsSection: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 16)], spacing: 16) {
             MetricCard(
                 icon: "mic.fill",
                 title: "Sessions Recorded",
-                value: "\(transcriptions.count)",
+                value: "\(filteredTranscriptions.count)",
                 detail: "HoAh sessions completed",
                 color: .purple
             )
@@ -57,54 +104,16 @@ struct MetricsContent: View {
                 detail: "words generated",
                 color: Color(nsColor: .controlAccentColor)
             )
-            
-            MetricCard(
-                icon: "speedometer",
-                title: "Words Per Minute",
-                value: averageWordsPerMinute > 0
-                    ? String(format: "%.1f", averageWordsPerMinute)
-                    : "–",
-                detail: "HoAh vs. typing by hand",
-                color: .yellow
-            )
-            
-            MetricCard(
-                icon: "keyboard.fill",
-                title: "Keystrokes Saved",
-                value: Formatters.formattedNumber(totalKeystrokesSaved),
-                detail: "fewer keystrokes",
-                color: .orange
-            )
-        }
-    }
-    
-    private var footerActionsView: some View {
-        HStack(spacing: 12) {
-            KeyboardShortcutsButton(showKeyboardShortcuts: $showKeyboardShortcuts)
-            CopySystemInfoButton()
         }
     }
     
     // MARK: - Computed Metrics
     
     private var totalWordsTranscribed: Int {
-        transcriptions.reduce(0) { $0 + $1.text.split(separator: " ").count }
-    }
-    
-    private var totalRecordedTime: TimeInterval {
-        transcriptions.reduce(0) { $0 + $1.duration }
-    }
-    
-    private var averageWordsPerMinute: Double {
-        guard totalRecordedTime > 0 else { return 0 }
-        return Double(totalWordsTranscribed) / (totalRecordedTime / 60.0)
-    }
-    
-    private var totalKeystrokesSaved: Int {
-        Int(Double(totalWordsTranscribed) * 5.0)
+        filteredTranscriptions.reduce(0) { $0 + $1.text.split(separator: " ").count }
     }
 }
-
+    
 private enum Formatters {
     static let numberFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -114,70 +123,5 @@ private enum Formatters {
     
     static func formattedNumber(_ value: Int) -> String {
         return numberFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
-    }
-}
-
-private struct KeyboardShortcutsButton: View {
-    @Binding var showKeyboardShortcuts: Bool
-
-    var body: some View {
-        Button(action: {
-            showKeyboardShortcuts = true
-        }) {
-            HStack(spacing: 8) {
-                Image(systemName: "command")
-                    .font(.system(size: 13, weight: .medium))
-
-                Text("Keyboard Shortcuts")
-            }
-            .font(.system(size: 13, weight: .medium))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Capsule().fill(.thinMaterial))
-        }
-        .buttonStyle(.plain)
-        .popover(isPresented: $showKeyboardShortcuts, arrowEdge: .bottom) {
-            KeyboardShortcutsListView()
-        }
-    }
-}
-
-private struct CopySystemInfoButton: View {
-    @State private var isCopied: Bool = false
-
-    var body: some View {
-        Button(action: {
-            copySystemInfo()
-        }) {
-            HStack(spacing: 8) {
-                Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                    .rotationEffect(.degrees(isCopied ? 360 : 0))
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCopied)
-
-                Text(isCopied ? String(localized: "Copied!") : String(localized: "Copy System Info"))
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCopied)
-            }
-            .font(.system(size: 13, weight: .medium))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Capsule().fill(.thinMaterial))
-        }
-        .buttonStyle(.plain)
-        .scaleEffect(isCopied ? 1.1 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCopied)
-    }
-
-    private func copySystemInfo() {
-        SystemInfoService.shared.copySystemInfoToClipboard()
-
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            isCopied = true
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                isCopied = false
-            }
-        }
     }
 }

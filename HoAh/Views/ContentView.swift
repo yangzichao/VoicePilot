@@ -5,9 +5,9 @@ import KeyboardShortcuts
 // ViewType enum with all cases
 enum ViewType: String, CaseIterable, Identifiable {
     case metrics = "HoAh"
+    case agentMode = "AI Agents"
     case powerMode = "Smart Scenes"
     case models = "AI Models"
-    case agentMode = "AI Agents"
     case permissions = "Permissions"
     case audioInput = "Audio Input"
     case transcribeAudio = "Transcribe Audio"

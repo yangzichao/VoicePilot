@@ -27,6 +27,8 @@
 "Smart Scenes" = "智能场景";
 "Smart Scene" = "智能场景";
 
+"All time" = "全部";
+
 "Transcription Language" = "转录语言";
 "Language: Autodetected" = "语言：自动检测";
 "Current model: %@" = "当前模型：%@";
