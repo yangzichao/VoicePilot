@@ -4,7 +4,7 @@ import AppKit
 class WindowManager: NSObject {
     static let shared = WindowManager()
     
-    private static let mainWindowIdentifier = NSUserInterfaceItemIdentifier("com.prakashjoshipax.hoah.mainWindow")
+    private static let mainWindowIdentifier = NSUserInterfaceItemIdentifier("com.yangzichao.hoah.mainWindow")
     private static let mainWindowAutosaveName = NSWindow.FrameAutosaveName("HoAhMainWindowFrame")
     
     private weak var mainWindow: NSWindow?

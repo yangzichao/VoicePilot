@@ -6,7 +6,7 @@ import os
 @MainActor
 class Recorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     private var recorder: AVAudioRecorder?
-    private let logger = Logger(subsystem: "com.prakashjoshipax.hoah", category: "Recorder")
+    private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "Recorder")
     private let deviceManager = AudioDeviceManager.shared
     private var deviceObserver: NSObjectProtocol?
     private var isReconfiguring = false

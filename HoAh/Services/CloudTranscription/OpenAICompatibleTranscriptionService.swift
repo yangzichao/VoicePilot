@@ -2,7 +2,7 @@ import Foundation
 import os
 
 class OpenAICompatibleTranscriptionService {
-    private let logger = Logger(subsystem: "com.prakashjoshipax.hoah", category: "OpenAICompatibleService")
+    private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "OpenAICompatibleService")
     
     func transcribe(audioURL: URL, model: CustomCloudModel) async throws -> String {
         guard let url = URL(string: model.apiEndpoint) else {

@@ -16,7 +16,7 @@ enum AudioInputMode: String, CaseIterable {
 }
 
 class AudioDeviceManager: ObservableObject {
-    private let logger = Logger(subsystem: "com.prakashjoshipax.hoah", category: "AudioDeviceManager")
+    private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "AudioDeviceManager")
     @Published var availableDevices: [(id: AudioDeviceID, uid: String, name: String)] = []
     @Published var selectedDeviceID: AudioDeviceID?
     @Published var inputMode: AudioInputMode = .systemDefault

@@ -5,7 +5,7 @@ import OSLog
 class TranscriptionAutoCleanupService {
     static let shared = TranscriptionAutoCleanupService()
 
-    private let logger = Logger(subsystem: "com.prakashjoshipax.hoah", category: "TranscriptionAutoCleanupService")
+    private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "TranscriptionAutoCleanupService")
     private var modelContext: ModelContext?
 
     private let keyIsEnabled = "IsTranscriptionCleanupEnabled"

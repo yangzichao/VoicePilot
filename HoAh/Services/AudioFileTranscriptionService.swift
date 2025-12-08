@@ -13,7 +13,7 @@ class AudioTranscriptionService: ObservableObject {
     private let enhancementService: AIEnhancementService?
     private let whisperState: WhisperState
     private let promptDetectionService = PromptDetectionService()
-    private let logger = Logger(subsystem: "com.prakashjoshipax.hoah", category: "AudioTranscriptionService")
+    private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "AudioTranscriptionService")
     
     // Transcription services
     private let localTranscriptionService: LocalTranscriptionService
@@ -76,7 +76,7 @@ class AudioTranscriptionService: ObservableObject {
             
             // Create a permanent copy of the audio file
             let recordingsDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent("com.prakashjoshipax.HoAh")
+                .appendingPathComponent("com.yangzichao.HoAh")
                 .appendingPathComponent("Recordings")
             
             let fileName = "retranscribed_\(UUID().uuidString).wav"

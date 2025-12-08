@@ -15,7 +15,7 @@ class AudioTranscriptionManager: ObservableObject {
     
     private var currentTask: Task<Void, Error>?
     private let audioProcessor = AudioProcessor()
-    private let logger = Logger(subsystem: "com.prakashjoshipax.hoah", category: "AudioTranscriptionManager")
+    private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "AudioTranscriptionManager")
     
     // Transcription services - will be initialized when needed
     private var localTranscriptionService: LocalTranscriptionService?
@@ -79,7 +79,7 @@ class AudioTranscriptionManager: ObservableObject {
                 
                 // Create permanent copy of the audio file
                 let recordingsDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-                    .appendingPathComponent("com.prakashjoshipax.HoAh")
+                    .appendingPathComponent("com.yangzichao.HoAh")
                     .appendingPathComponent("Recordings")
                 
                 let fileName = "transcribed_\(UUID().uuidString).wav"

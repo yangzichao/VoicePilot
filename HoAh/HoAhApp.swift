@@ -7,8 +7,7 @@ import FluidAudio
 
 @main
 struct HoAhApp: App {
-    private static let appSupportIdentifier = "com.prakashjoshipax.HoAh"
-    private static let legacyAppSupportIdentifier = "com.prakashjoshipax.VoicePilot"
+    private static let appSupportIdentifier = "com.yangzichao.hoah"
     
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     let container: ModelContainer
@@ -32,14 +31,14 @@ struct HoAhApp: App {
     
     init() {
         // Configure FluidAudio logging subsystem
-        AppLogger.defaultSubsystem = "com.prakashjoshipax.hoah.parakeet"
+        AppLogger.defaultSubsystem = "com.yangzichao.hoah.parakeet"
 
         if UserDefaults.standard.object(forKey: "powerModeUIFlag") == nil {
             let hasEnabledPowerModes = PowerModeManager.shared.configurations.contains { $0.isEnabled }
             UserDefaults.standard.set(hasEnabledPowerModes, forKey: "powerModeUIFlag")
         }
 
-        let logger = Logger(subsystem: "com.prakashjoshipax.hoah", category: "Initialization")
+        let logger = Logger(subsystem: "com.yangzichao.hoah", category: "Initialization")
         
         let schema = Schema([Transcription.self])
         var initializationFailed = false
@@ -160,19 +159,13 @@ struct HoAhApp: App {
     private static func prepareAppSupportDirectory(baseDirectory: URL, logger: Logger) -> URL {
         let fileManager = FileManager.default
         let appSupportURL = baseDirectory.appendingPathComponent(appSupportIdentifier, isDirectory: true)
-        let legacySupportURL = baseDirectory.appendingPathComponent(legacyAppSupportIdentifier, isDirectory: true)
         
         if !fileManager.fileExists(atPath: appSupportURL.path) {
             do {
-                if fileManager.fileExists(atPath: legacySupportURL.path) {
-                    try fileManager.moveItem(at: legacySupportURL, to: appSupportURL)
-                    logger.notice("Migrated legacy VoicePilot data directory to HoAh.")
-                } else {
-                    try fileManager.createDirectory(at: appSupportURL, withIntermediateDirectories: true)
-                }
+                try fileManager.createDirectory(at: appSupportURL, withIntermediateDirectories: true)
+                logger.notice("Created HoAh app support directory: \(appSupportURL.path)")
             } catch {
-                logger.error("Failed to prepare HoAh app support directory: \(error.localizedDescription)")
-                try? fileManager.createDirectory(at: appSupportURL, withIntermediateDirectories: true)
+                logger.error("Failed to create HoAh app support directory: \(error.localizedDescription)")
             }
         }
         

@@ -15,7 +15,7 @@ enum PromptKind {
 
 @MainActor
 class AIEnhancementService: ObservableObject {
-    private let logger = Logger(subsystem: "com.prakashjoshipax.hoah", category: "AIEnhancementService")
+    private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "AIEnhancementService")
     
     private let activePromptsKey = "activePrompts"
     private let triggerPromptsKey = "triggerPrompts"
