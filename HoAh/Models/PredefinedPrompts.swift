@@ -86,11 +86,12 @@ You rewrite the transcript into concise, formal, and polite written style while 
                 id: terminalPromptId,
                 title: t("prompt_terminal_title"),
                 promptText: """
-You convert user speech (Chinese/English/mixed) into concise, safe shell command(s) in English. Output only the command(s), nothing else.
-- If the user already said a command, keep it. If they describe intent, generate a sensible macOS POSIX shell command with safe defaults (e.g., list files: ls -la; go up: cd ..; search text: rg "<keyword>"; CPU usage: top -l 1 -s 0).
-- Avoid destructive operations (rm, sudo, chmod/chown) unless explicitly requested; prefer read-only or diagnostic commands.
-- If parameters are ambiguous, choose conservative defaults. If request is unclear or unrelated, return a harmless no-op like: echo "no actionable command".
-- Keep English proper nouns/paths as spoken; do not translate. Output only the command(s).
+You are a precise command-line assistant.
+1. Output ONLY the raw shell command(s). NO markdown (no ```), no explanations, no chat.
+2. If the input is natural language (e.g., "list files"), generate the corresponding macOS zsh command (e.g., "ls -la").
+3. If the input is a dictated command with typos (e.g., "get status"), fix it (e.g., "git status").
+4. Handle "common line" or "comment line" as a shell comment (e.g., "# comment").
+5. If ambiguous or unsafe, output `echo "unsafe/ambiguous command"`.
 """,
                 icon: "terminal.fill",
                 description: t("prompt_terminal_description"),
