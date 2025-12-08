@@ -100,6 +100,74 @@
 "Data Management" = "Data Management";
 "Import or export your settings" = "Import or export your settings";
 
+// Onboarding - Language selection
+"onboarding_language_title" = "Choose Your Language";
+"onboarding_language_subtitle" = "This sets both the app interface and the default dictation language. You can change it later in Settings.";
+"onboarding_language_follow_system_title" = "Follow System";
+"onboarding_language_follow_system_subtitle" = "Match macOS language automatically";
+"onboarding_language_zh_title" = "中文（简体）";
+"onboarding_language_zh_subtitle" = "Interface and dictation default to Simplified Chinese";
+"onboarding_language_en_title" = "English";
+"onboarding_language_en_subtitle" = "Interface and dictation in English";
+"onboarding_continue" = "Continue";
+
+// Onboarding - Permissions
+"onboarding_permissions_microphone_title" = "Microphone Access";
+"onboarding_permissions_microphone_description" = "Allow HoAh to use your microphone so you can start speaking and convert voice to text.";
+"onboarding_permissions_device_title" = "Microphone Selection";
+"onboarding_permissions_device_description" = "Choose the microphone you want HoAh to use. The built-in microphone is usually a good default.";
+"onboarding_permissions_accessibility_title" = "Accessibility Access";
+"onboarding_permissions_accessibility_description" = "Enable Accessibility for HoAh in System Settings so it can type into any app for you.";
+"onboarding_permissions_keyboard_title" = "Keyboard Shortcut";
+"onboarding_permissions_keyboard_description" = "Pick a shortcut (we recommend the right Option key) so you can start and stop dictation from anywhere.";
+"onboarding_permissions_open_settings" = "Open System Settings";
+"onboarding_permissions_accessibility_confirm_or_skip" = "I've set it up / Skip for now";
+"onboarding_permissions_button_enable" = "Enable Access";
+"onboarding_permissions_button_continue" = "Looks good, continue";
+"onboarding_permissions_button_keyboard_setup" = "Set Shortcut";
+"onboarding_permissions_button_keyboard_continue" = "Looks good, continue";
+"onboarding_permissions_skip_for_now" = "Skip for now";
+
+// Onboarding - Model selection
+"onboarding_model_title" = "Choose a Speech Model";
+"onboarding_model_subtitle" = "HoAh needs at least one model to transcribe your voice. We strongly recommend starting with a local Whisper model, and using Scribe v2 if you have access to ElevenLabs.";
+"onboarding_model_whisper_title" = "Strongly Recommended · Local Whisper Large v3 Turbo (Quantized)";
+"onboarding_model_whisper_body" = "Best default for most users. High accuracy, great for Chinese + English and mixed speech.";
+"onboarding_model_whisper_note" = "Approx. %@ download once, then runs entirely on your Mac without uploading audio.";
+"onboarding_model_whisper_download_and_use" = "Download and Use (Recommended)";
+"onboarding_model_whisper_use" = "Use This Model";
+"onboarding_model_scribe_title" = "Strongly Recommended · Scribe v2 (ElevenLabs)";
+"onboarding_model_scribe_body" = "Currently the best cloud model for accuracy and long recordings.";
+"onboarding_model_scribe_note" = "Requires an ElevenLabs account and API key. You can enable Scribe v2 later in the “AI Models” section.";
+"onboarding_model_scribe_later" = "Learn about Scribe v2 in AI Models later";
+"onboarding_model_apple_title" = "Not Recommended · Apple Dictation (Quick Trial Only)";
+"onboarding_model_apple_body" = "No download required, but quality is usually lower than Whisper or Scribe for long or mixed Chinese–English speech.";
+"onboarding_model_apple_note" = "If you plan to use Apple dictation most of the time, using macOS built-in dictation may be enough. In HoAh we recommend switching to Whisper or Scribe for better results.";
+"onboarding_model_apple_use_anyway" = "Still Use Apple Dictation";
+
+// Onboarding - Tutorial
+"onboarding_tutorial_title" = "Start Using HoAh";
+"onboarding_tutorial_subtitle" = "Here's how to start dictating and how AI can help you polish the results.";
+"onboarding_tutorial_shortcut_label" = "Your Shortcut:";
+"onboarding_tutorial_step1" = "At any time, press the right Option key to start listening.";
+"onboarding_tutorial_step2" = "When you’re done speaking, press the right Option key again to stop.";
+"onboarding_tutorial_step3" = "If your cursor is in a text field, HoAh types the result there; otherwise the text is copied to your clipboard so you can paste it wherever you like.";
+"onboarding_tutorial_ai_title" = "AI Post-processing (Highly Recommended)";
+"onboarding_tutorial_ai_intro" = "If you provide your own API key (for example from OpenAI, Groq, or other providers), HoAh can:";
+"onboarding_tutorial_ai_point1" = "• Polish your text into clear emails, documents, or chat replies.";
+"onboarding_tutorial_ai_point2" = "• Translate between Chinese and English while keeping tone and terminology.";
+"onboarding_tutorial_ai_point3" = "• Turn long speech into summaries, meeting notes, and action items.";
+"onboarding_tutorial_ai_footer" = "You can enable AI post-processing later in the AI settings and Smart Scenes sections.";
+"onboarding_tutorial_complete" = "Complete Setup";
+"onboarding_tutorial_skip" = "Skip for now";
+"onboarding_tutorial_example_title" = "Example: Delaying a meeting (mixed Chinese / English)";
+"onboarding_tutorial_example_raw_title" = "1. What you actually say (raw speech)";
+"onboarding_tutorial_example_transcript_title" = "2. Base transcription (Whisper, local model)";
+"onboarding_tutorial_example_ai_title" = "3. AI enhancement examples";
+"onboarding_tutorial_example_polish_label" = "· Polishing mode:";
+"onboarding_tutorial_example_email_label" = "· Email mode:";
+"onboarding_tutorial_summary" = "At any time, press the right Option key to start speaking and press it again to stop. If your cursor is in a text field, HoAh types the result there; otherwise the text is copied to your clipboard so you can paste it into any app. HoAh first transcribes faithfully, then lets AI polish, translate, or structure the text — we strongly recommend enabling AI post-processing in the AI settings.";
+
 "Audio file selected: %@" = "Audio file selected: %@";
 "AI Enhancement" = "AI Enhancement";
 "Prompt:" = "Prompt:";

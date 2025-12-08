@@ -4,6 +4,7 @@ struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
     @State private var textOpacity: CGFloat = 0
     @State private var showSecondaryElements = false
+    @State private var showLanguageSelection = false
     @State private var showPermissions = false
     
     // Animation timing
@@ -58,7 +59,7 @@ struct OnboardingView: View {
                                 VStack(spacing: 20) {
                                     Button(action: {
                                         withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                                            showPermissions = true
+                                            showLanguageSelection = true
                                         }
                                     }) {
                                         Text("Get Started")
@@ -80,6 +81,16 @@ struct OnboardingView: View {
                         }
                     }
                 }
+            }
+            
+            if showLanguageSelection {
+                OnboardingLanguageSelectionView {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        showLanguageSelection = false
+                        showPermissions = true
+                    }
+                }
+                .transition(.move(edge: .trailing).combined(with: .opacity))
             }
             
             if showPermissions {
@@ -370,4 +381,3 @@ struct ScaleButtonStyle: ButtonStyle {
 #Preview {
     OnboardingView(hasCompletedOnboarding: .constant(false))
 } 
-

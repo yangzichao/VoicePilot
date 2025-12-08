@@ -112,7 +112,7 @@ extension WhisperState {
     /// build and on the current OS. This mirrors the feature gating used
     /// in `NativeAppleTranscriptionService` so we don't select a model
     /// that can never successfully run.
-    private func isNativeAppleTranscriptionAvailable() -> Bool {
+    func isNativeAppleTranscriptionAvailable() -> Bool {
         #if canImport(Speech) && ENABLE_NATIVE_SPEECH_ANALYZER
         if #available(macOS 26, *) {
             return true

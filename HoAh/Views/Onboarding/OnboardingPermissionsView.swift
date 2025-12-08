@@ -5,8 +5,8 @@ import KeyboardShortcuts
 
 struct OnboardingPermission: Identifiable {
     let id = UUID()
-    let title: String
-    let description: String
+    let titleKey: String
+    let descriptionKey: String
     let icon: String
     let type: PermissionType
     
@@ -31,6 +31,7 @@ struct OnboardingPermissionsView: View {
     @Binding var hasCompletedOnboarding: Bool
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     @ObservedObject private var audioDeviceManager = AudioDeviceManager.shared
+    @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
     @State private var currentPermissionIndex = 0
     @State private var permissionStates: [Bool] = [false, false, false, false]
     @State private var showAnimation = false
@@ -40,30 +41,34 @@ struct OnboardingPermissionsView: View {
     
     private let permissions: [OnboardingPermission] = [
         OnboardingPermission(
-            title: "Microphone Access",
-            description: "Enable your microphone to start speaking and converting your voice to text instantly.",
+            titleKey: "onboarding_permissions_microphone_title",
+            descriptionKey: "onboarding_permissions_microphone_description",
             icon: "waveform",
             type: .microphone
         ),
         OnboardingPermission(
-            title: "Microphone Selection",
-            description: "Select the audio input device you want to use with HoAh.",
+            titleKey: "onboarding_permissions_device_title",
+            descriptionKey: "onboarding_permissions_device_description",
             icon: "headphones",
             type: .audioDeviceSelection
         ),
         OnboardingPermission(
-            title: "Accessibility Access",
-            description: "Allow HoAh to help you type anywhere in your Mac.",
+            titleKey: "onboarding_permissions_accessibility_title",
+            descriptionKey: "onboarding_permissions_accessibility_description",
             icon: "accessibility",
             type: .accessibility
         ),
         OnboardingPermission(
-            title: "Keyboard Shortcut",
-            description: "Set up a keyboard shortcut to quickly access HoAh from anywhere.",
+            titleKey: "onboarding_permissions_keyboard_title",
+            descriptionKey: "onboarding_permissions_keyboard_description",
             icon: "keyboard",
             type: .keyboardShortcut
         )
     ]
+    
+    private var isChineseInterface: Bool {
+        AppLanguage(code: appInterfaceLanguage) == .simplifiedChinese
+    }
     
     var body: some View {
         ZStack {
@@ -110,7 +115,7 @@ struct OnboardingPermissionsView: View {
                             // Permission text
                             VStack(spacing: 12) {
                                 HStack(spacing: 8) {
-                                    Text(permissions[currentPermissionIndex].title)
+                                    Text(LocalizedStringKey(permissions[currentPermissionIndex].titleKey))
                                         .font(.title2)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
@@ -118,7 +123,7 @@ struct OnboardingPermissionsView: View {
                                     // Screen recording info tip removed in this fork.
                                 }
                                 
-                                Text(permissions[currentPermissionIndex].description)
+                                Text(LocalizedStringKey(permissions[currentPermissionIndex].descriptionKey))
                                     .font(.body)
                                     .foregroundColor(.white.opacity(0.7))
                                     .multilineTextAlignment(.center)
@@ -210,21 +215,42 @@ struct OnboardingPermissionsView: View {
                         
                         // Action buttons
                         VStack(spacing: 16) {
-                            Button(action: requestPermission) {
-                                Text(getButtonTitle())
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(width: 200, height: 50)
-                                    .background(Color.accentColor)
-                                    .cornerRadius(25)
-                            }
-                            .buttonStyle(ScaleButtonStyle())
-                            
-                            if !permissionStates[currentPermissionIndex] && 
-                               permissions[currentPermissionIndex].type != .keyboardShortcut &&
-                               permissions[currentPermissionIndex].type != .audioDeviceSelection {
-                                SkipButton(text: "Skip for now") {
-                                    moveToNext()
+                            if permissions[currentPermissionIndex].type == .accessibility {
+                                // Primary button: open System Settings for Accessibility
+                                Button(action: openAccessibilitySettings) {
+                                    Text(LocalizedStringKey("onboarding_permissions_open_settings"))
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .frame(width: 220, height: 50)
+                                        .background(Color.accentColor)
+                                        .cornerRadius(25)
+                                }
+                                .buttonStyle(ScaleButtonStyle())
+                                
+                                // Secondary option: user confirms they are done, or chooses to skip
+                                Button(action: confirmAccessibilityAndContinue) {
+                                    Text(LocalizedStringKey("onboarding_permissions_accessibility_confirm_or_skip"))
+                                        .font(.system(size: 13, weight: .regular))
+                                        .foregroundColor(.white.opacity(0.8))
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            } else {
+                                Button(action: requestPermission) {
+                                    Text(getButtonTitle())
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .frame(width: 200, height: 50)
+                                        .background(Color.accentColor)
+                                        .cornerRadius(25)
+                                }
+                                .buttonStyle(ScaleButtonStyle())
+                                
+                                if !permissionStates[currentPermissionIndex] && 
+                                   permissions[currentPermissionIndex].type != .keyboardShortcut &&
+                                   permissions[currentPermissionIndex].type != .audioDeviceSelection {
+                                    SkipButton(text: NSLocalizedString("onboarding_permissions_skip_for_now", comment: "")) {
+                                        moveToNext()
+                                    }
                                 }
                             }
                         }
@@ -328,19 +354,8 @@ struct OnboardingPermissionsView: View {
             moveToNext()
             
         case .accessibility:
-            let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
-            AXIsProcessTrustedWithOptions(options)
-            
-            // Start checking for permission status
-            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
-                if AXIsProcessTrusted() {
-                    timer.invalidate()
-                    permissionStates[currentPermissionIndex] = true
-                    withAnimation {
-                        showAnimation = true
-                    }
-                }
-            }
+            // Handled by dedicated buttons (openAccessibilitySettings / confirmAccessibilityAndContinue)
+            openAccessibilitySettings()
             
         case .keyboardShortcut:
             // The keyboard shortcut is handled by the KeyboardShortcuts.Recorder
@@ -362,14 +377,35 @@ struct OnboardingPermissionsView: View {
     }
     
     private func getButtonTitle() -> String {
+        let isConfigured = permissionStates[currentPermissionIndex]
         switch permissions[currentPermissionIndex].type {
         case .keyboardShortcut:
-            return permissionStates[currentPermissionIndex] ? "Continue" : "Set Shortcut"
+            return isConfigured
+            ? NSLocalizedString("onboarding_permissions_button_keyboard_continue", comment: "")
+            : NSLocalizedString("onboarding_permissions_button_keyboard_setup", comment: "")
         case .audioDeviceSelection:
-            return "Continue"
+            return NSLocalizedString("onboarding_continue", comment: "")
         default:
-            return permissionStates[currentPermissionIndex] ? "Continue" : "Enable Access"
+            return isConfigured
+            ? NSLocalizedString("onboarding_permissions_button_continue", comment: "")
+            : NSLocalizedString("onboarding_permissions_button_enable", comment: "")
         }
+    }
+
+    private func openAccessibilitySettings() {
+        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+        AXIsProcessTrustedWithOptions(options)
+    }
+
+    private func confirmAccessibilityAndContinue() {
+        let trusted = AXIsProcessTrusted()
+        permissionStates[currentPermissionIndex] = trusted
+        if trusted {
+            withAnimation {
+                showAnimation = true
+            }
+        }
+        moveToNext()
     }
 
     @ViewBuilder

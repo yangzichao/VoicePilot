@@ -21,6 +21,7 @@ struct HoAhApp: App {
     @StateObject private var localizationManager = LocalizationManager()
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @State private var showMenuBarIcon = true
+    @AppStorage("HasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
     
     // Audio cleanup manager for automatic deletion of old audio files
@@ -195,61 +196,69 @@ struct HoAhApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(whisperState)
-                .environmentObject(hotkeyManager)
-                .environmentObject(menuBarManager)
-                .environmentObject(aiService)
-                .environmentObject(enhancementService)
-                .environment(\.locale, localizationManager.locale)
-                .modelContainer(container)
-                .onAppear {
-                    localizationManager.apply(languageCode: appInterfaceLanguage)
+            ZStack {
+                ContentView()
+                
+                if !hasCompletedOnboarding {
+                    OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                        .transition(.opacity)
+                }
+            }
+            .environmentObject(whisperState)
+            .environmentObject(hotkeyManager)
+            .environmentObject(menuBarManager)
+            .environmentObject(aiService)
+            .environmentObject(enhancementService)
+            .environmentObject(localizationManager)
+            .environment(\.locale, localizationManager.locale)
+            .modelContainer(container)
+            .onAppear {
+                localizationManager.apply(languageCode: appInterfaceLanguage)
 
-                    // Check if container initialization failed
-                    if containerInitializationFailed {
-                        let alert = NSAlert()
-                        alert.messageText = "Critical Storage Error"
-                        alert.informativeText = "HoAh cannot initialize its storage system. The app cannot continue.\n\nPlease try reinstalling the app or contact support if the issue persists."
-                        alert.alertStyle = .critical
-                        alert.addButton(withTitle: "Quit")
-                        alert.runModal()
-                        
-                        NSApplication.shared.terminate(nil)
-                        return
-                    }
-                    // Start the transcription auto-cleanup service (handles immediate and scheduled transcript deletion)
-                    transcriptionAutoCleanupService.startMonitoring(modelContext: container.mainContext)
+                // Check if container initialization failed
+                if containerInitializationFailed {
+                    let alert = NSAlert()
+                    alert.messageText = "Critical Storage Error"
+                    alert.informativeText = "HoAh cannot initialize its storage system. The app cannot continue.\n\nPlease try reinstalling the app or contact support if the issue persists."
+                    alert.alertStyle = .critical
+                    alert.addButton(withTitle: "Quit")
+                    alert.runModal()
                     
-                    // Start the automatic audio cleanup process only if transcript cleanup is not enabled
-                    if !UserDefaults.standard.bool(forKey: "IsTranscriptionCleanupEnabled") {
-                        audioCleanupManager.startAutomaticCleanup(modelContext: container.mainContext)
-                    }
-                    
-                    // Process any pending open-file request now that the main ContentView is ready.
-                    if let pendingURL = appDelegate.pendingOpenFileURL {
-                        NotificationCenter.default.post(name: .navigateToDestination, object: nil, userInfo: ["destination": "Transcribe Audio"])
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            NotificationCenter.default.post(name: .openFileForTranscription, object: nil, userInfo: ["url": pendingURL])
-                        }
-                        appDelegate.pendingOpenFileURL = nil
-                    }
+                    NSApplication.shared.terminate(nil)
+                    return
                 }
-                .background(WindowAccessor { window in
-                    WindowManager.shared.configureWindow(window)
-                })
-                .onDisappear {
-                    whisperState.unloadModel()
-                    
-                    // Stop the transcription auto-cleanup service
-                    transcriptionAutoCleanupService.stopMonitoring()
-                    
-                    // Stop the automatic audio cleanup process
-                    audioCleanupManager.stopAutomaticCleanup()
+                // Start the transcription auto-cleanup service (handles immediate and scheduled transcript deletion)
+                transcriptionAutoCleanupService.startMonitoring(modelContext: container.mainContext)
+                
+                // Start the automatic audio cleanup process only if transcript cleanup is not enabled
+                if !UserDefaults.standard.bool(forKey: "IsTranscriptionCleanupEnabled") {
+                    audioCleanupManager.startAutomaticCleanup(modelContext: container.mainContext)
                 }
-                .onChange(of: appInterfaceLanguage) { _, newValue in
-                    localizationManager.apply(languageCode: newValue)
+                
+                // Process any pending open-file request now that the main ContentView is ready.
+                if let pendingURL = appDelegate.pendingOpenFileURL {
+                    NotificationCenter.default.post(name: .navigateToDestination, object: nil, userInfo: ["destination": "Transcribe Audio"])
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        NotificationCenter.default.post(name: .openFileForTranscription, object: nil, userInfo: ["url": pendingURL])
+                    }
+                    appDelegate.pendingOpenFileURL = nil
                 }
+            }
+            .background(WindowAccessor { window in
+                WindowManager.shared.configureWindow(window)
+            })
+            .onDisappear {
+                whisperState.unloadModel()
+                
+                // Stop the transcription auto-cleanup service
+                transcriptionAutoCleanupService.stopMonitoring()
+                
+                // Stop the automatic audio cleanup process
+                audioCleanupManager.stopAutomaticCleanup()
+            }
+            .onChange(of: appInterfaceLanguage) { _, newValue in
+                localizationManager.apply(languageCode: newValue)
+            }
         }
         .windowStyle(.hiddenTitleBar)
         .commands {

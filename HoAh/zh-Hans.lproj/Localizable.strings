@@ -103,6 +103,74 @@
 "Settings Management" = "设置管理";
 "Import or export your settings" = "导入或导出你的设置";
 
+// Onboarding - Language selection
+"onboarding_language_title" = "选择界面与听写语言";
+"onboarding_language_subtitle" = "这会同时设置界面语言和默认听写语言。之后可以在设置中随时更改。";
+"onboarding_language_follow_system_title" = "跟随系统";
+"onboarding_language_follow_system_subtitle" = "自动跟随 macOS 的语言设置";
+"onboarding_language_zh_title" = "中文（简体）";
+"onboarding_language_zh_subtitle" = "界面和听写默认使用中文";
+"onboarding_language_en_title" = "English";
+"onboarding_language_en_subtitle" = "Interface and dictation in English";
+"onboarding_continue" = "继续";
+
+// Onboarding - Permissions
+"onboarding_permissions_microphone_title" = "麦克风权限";
+"onboarding_permissions_microphone_description" = "允许 HoAh 访问麦克风，这样你才能开始说话并把语音实时转成文字。";
+"onboarding_permissions_device_title" = "选择麦克风设备";
+"onboarding_permissions_device_description" = "选择你希望 HoAh 使用的麦克风设备，推荐使用 Mac 内置麦克风。";
+"onboarding_permissions_accessibility_title" = "辅助功能权限";
+"onboarding_permissions_accessibility_description" = "在系统设置中为 HoAh 打开「辅助功能」权限，这样它才能在任何应用里帮你输入文字。打开后回到这里，再继续下一步。";
+"onboarding_permissions_keyboard_title" = "键盘快捷键";
+"onboarding_permissions_keyboard_description" = "为 HoAh 选择一个快捷键（推荐右侧 Option 键），这样你可以随时一键开始和结束说话。";
+"onboarding_permissions_open_settings" = "打开系统设置";
+"onboarding_permissions_accessibility_confirm_or_skip" = "我已完成设置 / 暂时跳过";
+"onboarding_permissions_button_enable" = "去设置";
+"onboarding_permissions_button_continue" = "已设置好，继续";
+"onboarding_permissions_button_keyboard_setup" = "设置快捷键";
+"onboarding_permissions_button_keyboard_continue" = "已设置好，继续";
+"onboarding_permissions_skip_for_now" = "暂时跳过";
+
+// Onboarding - Model selection
+"onboarding_model_title" = "选择语音模型";
+"onboarding_model_subtitle" = "HoAh 需要至少一个语音模型才能开始工作。我们强烈推荐先使用本地 Whisper 模型，如果你有条件，也可以使用 ElevenLabs 的 Scribe v2 云端模型。";
+"onboarding_model_whisper_title" = "强烈推荐 · 本地 Whisper Large v3 Turbo（量化版）";
+"onboarding_model_whisper_body" = "大多数用户的首选方案。高准确率，适合中文、英文以及中英混合场景。";
+"onboarding_model_whisper_note" = "大约 %@ 下载一次，之后完全在本机运行，音频不会上传到云端。";
+"onboarding_model_whisper_download_and_use" = "下载并使用（推荐）";
+"onboarding_model_whisper_use" = "使用此模型";
+"onboarding_model_scribe_title" = "强烈推荐 · Scribe v2（ElevenLabs）";
+"onboarding_model_scribe_body" = "目前效果最好的云端听写模型，适合追求极致准确和长时间录音。";
+"onboarding_model_scribe_note" = "需要 ElevenLabs 账号和 API Key。你可以稍后在「AI 模型」页面中启用 Scribe v2。";
+"onboarding_model_scribe_later" = "稍后在「AI 模型」中了解 Scribe v2";
+"onboarding_model_apple_title" = "不推荐 · Apple 听写（仅用于快速试用）";
+"onboarding_model_apple_body" = "无需下载即可使用，但在长篇或中英混合的场景下，准确率通常低于 Whisper 或 Scribe。";
+"onboarding_model_apple_note" = "如果你长期只打算使用 Apple 听写，其实直接使用 macOS 自带听写即可。HoAh 中更推荐使用 Whisper 或 Scribe，获得更好的体验。";
+"onboarding_model_apple_use_anyway" = "仍然使用 Apple 听写";
+
+// Onboarding - Tutorial
+"onboarding_tutorial_title" = "开始使用 HoAh";
+"onboarding_tutorial_subtitle" = "下面介绍如何开始说话，以及 AI 如何帮你润色结果。";
+"onboarding_tutorial_shortcut_label" = "你的快捷键：";
+"onboarding_tutorial_step1" = "在任何时候按下右侧 Option 键，就会开始听你说话。";
+"onboarding_tutorial_step2" = "说完你想表达的内容后，再按一次右侧 Option 键结束。";
+"onboarding_tutorial_step3" = "如果此时光标在输入框内，HoAh 会直接在这里打字；如果不在，结果会自动保存到剪贴板，你可以粘贴到任意应用。";
+"onboarding_tutorial_ai_title" = "AI 后处理（强烈推荐）";
+"onboarding_tutorial_ai_intro" = "如果你愿意提供自己的 API Key（例如 OpenAI、Groq 等），HoAh 可以：";
+"onboarding_tutorial_ai_point1" = "• 把口语化内容润色成清晰的邮件、文档或聊天回复。";
+"onboarding_tutorial_ai_point2" = "• 在中英文之间智能翻译，并尽量保持语气和专业术语。";
+"onboarding_tutorial_ai_point3" = "• 把长时间录音整理成摘要、会议纪要和行动项。";
+"onboarding_tutorial_ai_footer" = "你可以在之后的 AI 设置和智能场景（Smart Scenes）中打开 AI 后处理。";
+"onboarding_tutorial_complete" = "完成设置";
+"onboarding_tutorial_skip" = "稍后再说";
+"onboarding_tutorial_example_title" = "示例：推迟会议（中英混合口语）";
+"onboarding_tutorial_example_raw_title" = "1. 你的语音（原始口语）";
+"onboarding_tutorial_example_transcript_title" = "2. 基础转录（Whisper，本地模型）";
+"onboarding_tutorial_example_ai_title" = "3. AI 增强示例";
+"onboarding_tutorial_example_polish_label" = "· 润色模式：";
+"onboarding_tutorial_example_email_label" = "· 邮件模式：";
+"onboarding_tutorial_summary" = "在任何时候按右侧 Option 键开始说话，再按一次结束。光标在输入框里时，HoAh 会直接帮你打字；如果当前没有聚焦输入框，结果会自动复制到剪贴板，你可以粘贴到任意应用。HoAh 会先忠实转录你的原话，再交给 AI 做润色、翻译或结构化——强烈建议在 AI 设置中打开 AI 后处理。";
+
 "Audio file selected: %@" = "已选择音频文件：%@";
 "AI Enhancement" = "AI 增强";
 "Prompt:" = "提示词：";
