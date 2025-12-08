@@ -599,3 +599,6 @@
 "Add New" = "新增";
 "Record Shortcut" = "录制快捷键";
 "Press Shortcut" = "按下快捷键";
+"provider_status_ready" = "已就绪";
+"provider_status_not_configured" = "未配置";
+"ai_provider_configure_prompt" = "请先配置您的 AI 服务商。";

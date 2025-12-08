@@ -28,7 +28,17 @@ struct PromptEditorView: View {
     @State private var showingPredefinedPrompts = false
     @State private var useSystemInstructions: Bool
     @State private var showingIconPicker = false
-    
+
+    private var isTriggerKind: Bool {
+        switch mode {
+        case .add(let kind):
+            return kind == .trigger
+        case .edit(let prompt):
+            return enhancementService.triggerPrompts.contains(where: { $0.id == prompt.id })
+        }
+    }
+    private var shouldShowTriggerWordsEditor: Bool { isTriggerKind }
+
     private var isEditingPredefinedPrompt: Bool {
         if case .edit(let prompt) = mode {
             return prompt.isPredefined
@@ -115,8 +125,10 @@ struct PromptEditorView: View {
             titleAndIcon
             descriptionField
             promptTextSection
-            TriggerWordsEditor(triggerWords: $triggerWords)
-                .padding(.horizontal)
+            if shouldShowTriggerWordsEditor {
+                TriggerWordsEditor(triggerWords: $triggerWords)
+                    .padding(.horizontal)
+            }
             templatePicker
         }
     }

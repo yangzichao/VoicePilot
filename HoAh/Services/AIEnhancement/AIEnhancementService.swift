@@ -807,6 +807,44 @@ class AIEnhancementService: ObservableObject {
                 triggerPrompts.append(template)
             }
         }
+
+        // Migrate TODO preset to trigger collection and ensure it has trigger words
+        if let todoTemplate = predefinedTemplates.first(where: { $0.id == PredefinedPrompts.todoPromptId }) {
+            if let idx = activePrompts.firstIndex(where: { $0.id == todoTemplate.id }) {
+                let prompt = activePrompts.remove(at: idx)
+                let migrated = CustomPrompt(
+                    id: prompt.id,
+                    title: todoTemplate.title,
+                    promptText: prompt.promptText,
+                    isActive: prompt.isActive,
+                    icon: prompt.icon,
+                    description: prompt.description,
+                    isPredefined: prompt.isPredefined,
+                    triggerWords: todoTemplate.triggerWords,
+                    useSystemInstructions: prompt.useSystemInstructions
+                )
+                if !triggerPrompts.contains(where: { $0.id == prompt.id }) {
+                    triggerPrompts.append(migrated)
+                }
+            }
+            if let idx = triggerPrompts.firstIndex(where: { $0.id == todoTemplate.id }) {
+                let prompt = triggerPrompts[idx]
+                if prompt.triggerWords.isEmpty {
+                    let updated = CustomPrompt(
+                        id: prompt.id,
+                        title: todoTemplate.title,
+                        promptText: prompt.promptText,
+                        isActive: prompt.isActive,
+                        icon: prompt.icon,
+                        description: prompt.description,
+                        isPredefined: prompt.isPredefined,
+                        triggerWords: todoTemplate.triggerWords,
+                        useSystemInstructions: prompt.useSystemInstructions
+                    )
+                    triggerPrompts[idx] = updated
+                }
+            }
+        }
     }
 }
 

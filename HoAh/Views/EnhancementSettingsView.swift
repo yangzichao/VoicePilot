@@ -3,10 +3,13 @@ import UniformTypeIdentifiers
 
 struct EnhancementSettingsView: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
+    @EnvironmentObject private var aiService: AIService
     @State private var isEditingPrompt = false
     @State private var isSettingsExpanded = true
+    @State private var isProviderExpanded = false
     @State private var selectedPromptForEdit: CustomPrompt?
     @State private var pendingPromptKind: PromptKind = .active
+    @State private var showProviderAlert = false
 
     private var autoPrompts: [CustomPrompt] { enhancementService.activePrompts }
     private var triggerPrompts: [CustomPrompt] { enhancementService.triggerPrompts }
@@ -45,10 +48,30 @@ struct EnhancementSettingsView: View {
                             
                             Spacer()
                             
-                            Toggle("", isOn: $enhancementService.isEnhancementEnabled)
-                                .toggleStyle(SwitchToggleStyle(tint: .blue))
-                                .labelsHidden()
-                                .scaleEffect(1.2)
+                            Toggle("", isOn: Binding(
+                                get: { enhancementService.isEnhancementEnabled },
+                                set: { newValue in
+                                    if newValue {
+                                        if aiService.isAPIKeyValid {
+                                            enhancementService.isEnhancementEnabled = true
+                                        } else {
+                                            // User tries to enable but no provider configured
+                                            isProviderExpanded = true
+                                            showProviderAlert = true
+                                        }
+                                    } else {
+                                        enhancementService.isEnhancementEnabled = false
+                                    }
+                                }
+                            ))
+                            .toggleStyle(SwitchToggleStyle(tint: .blue))
+                            .labelsHidden()
+                            .scaleEffect(1.2)
+                            .popover(isPresented: $showProviderAlert) {
+                                Text(NSLocalizedString("ai_provider_configure_prompt", comment: ""))
+                                    .padding()
+                                    .foregroundColor(.red)
+                            }
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
@@ -63,12 +86,40 @@ struct EnhancementSettingsView: View {
                     .padding()
                     .background(CardBackground(isSelected: false))
                     
-                    // 1. AI Provider Integration Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("AI Provider Integration")
-                            .font(.headline)
-                        
-                        APIKeyManagementView()
+                    // 1. AI Provider Integration Section (Collapsible)
+                    DisclosureGroup(isExpanded: $isProviderExpanded) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Divider()
+                            APIKeyManagementView()
+                        }
+                    } label: {
+                        HStack {
+                            Text("AI Provider Integration")
+                                .font(.headline)
+                            
+                            Spacer()
+                            
+                            // Status Badge
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(aiService.isAPIKeyValid ? Color.green : Color.orange)
+                                    .frame(width: 8, height: 8)
+                                
+                                if aiService.isAPIKeyValid {
+                                    Text("\(aiService.selectedProvider.rawValue) (\(NSLocalizedString("provider_status_ready", comment: "")))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                } else {
+                                    Text(NSLocalizedString("provider_status_not_configured", comment: ""))
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(8)
+                        }
                     }
                     .padding()
                     .background(CardBackground(isSelected: false))

@@ -113,7 +113,18 @@ Turn the transcript into a concise, actionable TODO list.
                 icon: "checklist",
                 description: t("prompt_todo_description"),
                 isPredefined: true,
-                triggerWords: [],
+                triggerWords: [
+                    "generate to do list",
+                    "generate todo list",
+                    "create a to do list",
+                    "make a task list",
+                    "create a task list",
+                    "生成待办事项",
+                    "生成待办清单",
+                    "创建待办清单",
+                    "生成待办",
+                    "创建任务列表"
+                ],
                 useSystemInstructions: true
             ),
 
@@ -130,7 +141,19 @@ Create a crisp summary in 3–5 bullet points.
                 icon: "text.alignleft",
                 description: t("prompt_summarize_description"),
                 isPredefined: true,
-                triggerWords: ["summarize my conversation", "give me a summary of this conversation"],
+                triggerWords: [
+                    "summarize this transcript",
+                    "summarize the above",
+                    "give me a summary of this conversation",
+                    "write a brief summary",
+                    "please summarize",
+                    "帮我总结一下",
+                    "生成总结",
+                    "写一个摘要",
+                    "请写摘要",
+                    "总结一下上面的内容",
+                    "给我一个总结"
+                ],
                 useSystemInstructions: true
             ),
             CustomPrompt(
@@ -146,7 +169,21 @@ Rewrite as a concise, polite, professional email with a clear greeting and sign-
                 icon: "envelope.fill",
                 description: t("prompt_email_description"),
                 isPredefined: true,
-                triggerWords: ["draft an email reply", "compose an email reply", "write an email reply"],
+                triggerWords: [
+                    "draft an email reply",
+                    "compose an email reply",
+                    "write an email response",
+                    "write a reply email",
+                    "generate an email reply",
+                    "write an email draft",
+                    "draft a reply email",
+                    "帮我写一封邮件",
+                    "写一封回复邮件",
+                    "生成回复邮件",
+                    "生成邮件草稿",
+                    "写封邮件回复",
+                    "写邮件回信"
+                ],
                 useSystemInstructions: true
             ),
 
