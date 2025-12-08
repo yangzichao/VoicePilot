@@ -42,6 +42,6 @@ Open an issue with clear steps to reproduce, macOS version, and model/provider s
 
 ## Acknowledgments
 
-- Original app by Pax (VoiceInk/VoicePilot) – thanks for open sourcing and the GPL license that HoAh builds upon.
+- Original app by Pax (VoiceInk) – thanks for open sourcing and the GPL license that HoAh builds upon.
 - Core tech: [whisper.cpp](https://github.com/ggerganov/whisper.cpp), [FluidAudio](https://github.com/FluidInference/FluidAudio)
 - Dependencies we rely on: [Sparkle](https://github.com/sparkle-project/Sparkle), [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts), [LaunchAtLogin](https://github.com/sindresorhus/LaunchAtLogin), [MediaRemoteAdapter](https://github.com/ejbills/mediaremote-adapter), [Zip](https://github.com/marmelroy/Zip), [SelectedTextKit](https://github.com/tisfeng/SelectedTextKit), [Swift Atomics](https://github.com/apple/swift-atomics)
