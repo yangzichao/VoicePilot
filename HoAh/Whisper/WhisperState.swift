@@ -102,7 +102,7 @@ class WhisperState: NSObject, ObservableObject {
         
         // Configure the session manager
         if let enhancementService = enhancementService {
-            PowerModeSessionManager.shared.configure(whisperState: self, enhancementService: enhancementService)
+            SmartSceneSessionManager.shared.configure(whisperState: self, enhancementService: enhancementService)
         }
         
         // Set the whisperState reference after super.init()
@@ -289,10 +289,10 @@ class WhisperState: NSObject, ObservableObject {
             logger.notice("📝 Output filter result: \(text, privacy: .public)")
             let transcriptionDuration = Date().timeIntervalSince(transcriptionStart)
 
-            let powerModeManager = PowerModeManager.shared
-            let activePowerModeConfig = powerModeManager.currentActiveConfiguration
-            let powerModeName = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.name : nil
-            let powerModeEmoji = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.emoji : nil
+            let smartScenesManager = SmartScenesManager.shared
+            let activeSmartSceneConfig = smartScenesManager.currentActiveConfiguration
+            let smartSceneName = (activeSmartSceneConfig?.isEnabled == true) ? activeSmartSceneConfig?.name : nil
+            let smartSceneEmoji = (activeSmartSceneConfig?.isEnabled == true) ? activeSmartSceneConfig?.emoji : nil
 
             if await checkCancellationAndCleanup() { return }
 
@@ -310,8 +310,8 @@ class WhisperState: NSObject, ObservableObject {
             transcription.duration = actualDuration
             transcription.transcriptionModelName = model.displayName
             transcription.transcriptionDuration = transcriptionDuration
-            transcription.powerModeName = powerModeName
-            transcription.powerModeEmoji = powerModeEmoji
+            transcription.smartSceneName = smartSceneName
+            transcription.smartSceneEmoji = smartSceneEmoji
             finalPastedText = text
             
             if let enhancementService = enhancementService, enhancementService.isConfigured {
@@ -369,8 +369,8 @@ class WhisperState: NSObject, ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 CursorPaster.pasteAtCursor(textToPaste + " ")
 
-                let powerMode = PowerModeManager.shared
-                if let activeConfig = powerMode.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
+                let smartScene = SmartScenesManager.shared
+                if let activeConfig = smartScene.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
                     // Slight delay to ensure the paste operation completes
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         CursorPaster.pressEnter()

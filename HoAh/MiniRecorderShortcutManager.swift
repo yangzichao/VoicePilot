@@ -205,14 +205,14 @@ class MiniRecorderShortcutManager: ObservableObject {
                 guard let self = self,
                       await self.whisperState.isMiniRecorderVisible else { return }
                 
-                let powerModeManager = PowerModeManager.shared
+                let smartScenesManager = SmartScenesManager.shared
                 
-                if !powerModeManager.enabledConfigurations.isEmpty {
-                    let availableConfigurations = powerModeManager.enabledConfigurations
+                if !smartScenesManager.enabledConfigurations.isEmpty {
+                    let availableConfigurations = smartScenesManager.enabledConfigurations
                     if index < availableConfigurations.count {
                         let selectedConfig = availableConfigurations[index]
-                        powerModeManager.setActiveConfiguration(selectedConfig)
-                        await PowerModeSessionManager.shared.beginSession(with: selectedConfig)
+                        smartScenesManager.setActiveConfiguration(selectedConfig)
+                        await SmartSceneSessionManager.shared.beginSession(with: selectedConfig)
                     }
                 }
             }

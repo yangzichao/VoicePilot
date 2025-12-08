@@ -201,8 +201,8 @@ struct TranscriptionCard: View {
 
                         VStack(alignment: .leading, spacing: 10) {
                             if let powerModeValue = powerModeDisplay(
-                                name: transcription.powerModeName,
-                                emoji: transcription.powerModeEmoji
+                                name: transcription.smartSceneName,
+                                emoji: transcription.smartSceneEmoji
                             ) {
                                 metadataRow(
                                     icon: "bolt.fill",
@@ -269,8 +269,8 @@ struct TranscriptionCard: View {
     }
 
     private var hasMetadata: Bool {
-        transcription.powerModeName != nil ||
-        transcription.powerModeEmoji != nil ||
+        transcription.smartSceneName != nil ||
+        transcription.smartSceneEmoji != nil ||
         transcription.transcriptionModelName != nil ||
         transcription.aiEnhancementModelName != nil ||
         transcription.promptName != nil ||

@@ -219,9 +219,19 @@
             const scenarios = {
                 en: [
                     {
-                        title: "Speech to Code",
-                        raw: "So, um, basically I want a Python function that filters out inactive users. Yeah, just keep the active ones.",
-                        polished: "<code>def keep_active(users):<br>&nbsp;&nbsp;return [u for u in users if u.active]</code>"
+                        title: "Text Cleanup",
+                        raw: "So, um, basically the idea is, like, we should just launch it, you know, maybe next week.",
+                        polished: "The idea is that we should launch it next week."
+                    },
+                    {
+                        title: "Email Draft",
+                        raw: "Write a quick email to Sarah saying I checked the report and it looks good but the budget numbers for Q3 need a double check thanks.",
+                        polished: "<strong>Subject:</strong> Q3 Budget Report<br><strong>Body:</strong> Hi Sarah, I reviewed the report and it looks good. However, please double-check the Q3 budget numbers. Thanks."
+                    },
+                    {
+                        title: "Command Line",
+                        raw: "Find all PDF files in the documents folder and copy them to the backup drive right now.",
+                        polished: "<code>find ~/Documents -name \"*.pdf\" -exec cp {} /Volumes/Backup/ \\;</code>"
                     }
                 ],
                 zh: [

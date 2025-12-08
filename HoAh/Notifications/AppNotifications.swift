@@ -10,7 +10,7 @@ extension Notification.Name {
     static let aiProviderKeyChanged = Notification.Name("aiProviderKeyChanged")
     static let navigateToDestination = Notification.Name("navigateToDestination")
     static let promptSelectionChanged = Notification.Name("promptSelectionChanged")
-    static let powerModeConfigurationApplied = Notification.Name("powerModeConfigurationApplied")
+    static let smartSceneConfigurationApplied = Notification.Name("smartSceneConfigurationApplied")
     static let transcriptionCreated = Notification.Name("transcriptionCreated")
     static let transcriptionCompleted = Notification.Name("transcriptionCompleted")
     static let enhancementToggleChanged = Notification.Name("enhancementToggleChanged")

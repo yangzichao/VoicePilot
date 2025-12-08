@@ -78,10 +78,10 @@ extension WhisperState {
         
         await cleanupModelResources()
         
-        if UserDefaults.standard.bool(forKey: PowerModeDefaults.autoRestoreKey) {
-            await PowerModeSessionManager.shared.endSession()
+        if UserDefaults.standard.bool(forKey: SmartSceneDefaults.autoRestoreKey) {
+            await SmartSceneSessionManager.shared.endSession()
             await MainActor.run {
-                PowerModeManager.shared.setActiveConfiguration(nil)
+                SmartScenesManager.shared.setActiveConfiguration(nil)
             }
         }
         

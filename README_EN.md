@@ -30,30 +30,19 @@ It supports multiple languages, custom agent prompts, and runs fully local by de
 
 HoAh's core philosophy: **Transcription captures reality; Agents polish it to perfection.** You can speak naturally, stutter and all, and let AI handle the formatting.
 
-### Scenario: Coding (Natural Speech to Code)
+### Scenario 1: Text Cleanup
+**Raw**: "So, um, basically the idea is, like, we should just launch it, you know, maybe next week."
+**Result**: "The idea is that we should launch it next week."
 
-**1. Your Voice (Raw Input)**
-> "So, um, basically I want to write a Python function that, uh, takes a list of users, you know, and filters out the ones that are, like, inactive. Yeah, just keep the active ones."
+### Scenario 2: Email Draft
+**Raw**: "Write a quick email to Sarah saying I checked the report and it looks good but the budget numbers for Q3 need a double check thanks."
+**Result**:
+> **Subject**: Q3 Budget Report
+> Hi Sarah, I reviewed the report and it looks good. However, please double-check the Q3 budget numbers. Thanks.
 
-**2. Basic Transcript (Whisper)**
-> *(Faithful metadata)*
-> "So, um, basically I want to write a Python function that, uh, takes a list of users, you know, and filters out the ones that are, like, inactive. Yeah, just keep the active ones."
-
-**3. Agent Enhancement**
-
-*   **Using [Polishing Agent] (Default):**
-    > "I want to write a Python function that takes a list of users and filters out the inactive ones, keeping only the active users."
-    > *(Fluent, concise text)*
-
-*   **Using [Coding Agent]:**
-    ```python
-    def filter_active_users(users):
-        """
-        Filters a list of users to return only those who are active.
-        """
-        return [user for user in users if user.is_active]
-    ```
-    *(Directly executable code)*
+### Scenario 3: Command Line (Terminal)
+**Raw**: "Find all PDF files in the documents folder and copy them to the backup drive right now."
+**Result**: `find ~/Documents -name "*.pdf" -exec cp {} /Volumes/Backup/ \;`
 
 ## Requirements
 

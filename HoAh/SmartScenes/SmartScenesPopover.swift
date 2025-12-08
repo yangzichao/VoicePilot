@@ -1,8 +1,8 @@
 import SwiftUI
 
-struct PowerModePopover: View {
-    @ObservedObject var powerModeManager = PowerModeManager.shared
-    @State private var selectedConfig: PowerModeConfig?
+struct SmartScenesPopover: View {
+    @ObservedObject var smartScenesManager = SmartScenesManager.shared
+    @State private var selectedConfig: SmartSceneConfig?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -16,7 +16,7 @@ struct PowerModePopover: View {
                 .background(Color.white.opacity(0.1))
             
             ScrollView {
-                let enabledConfigs = powerModeManager.configurations.filter { $0.isEnabled }
+                let enabledConfigs = smartScenesManager.configurations.filter { $0.isEnabled }
                 VStack(alignment: .leading, spacing: 4) {
                     if enabledConfigs.isEmpty {
                         VStack(alignment: .center, spacing: 8) {
@@ -33,11 +33,11 @@ struct PowerModePopover: View {
                         .padding(.vertical, 16)
                     } else {
                         ForEach(enabledConfigs) { config in
-                            PowerModeRow(
+                            SmartSceneRow(
                                 config: config,
                                 isSelected: selectedConfig?.id == config.id,
                                 action: {
-                                    powerModeManager.setActiveConfiguration(config)
+                                    smartScenesManager.setActiveConfiguration(config)
                                     selectedConfig = config
                                     applySelectedConfiguration()
                                 }
@@ -54,9 +54,9 @@ struct PowerModePopover: View {
         .background(Color.black)
         .environment(\.colorScheme, .dark)
         .onAppear {
-            selectedConfig = powerModeManager.activeConfiguration
+            selectedConfig = smartScenesManager.activeConfiguration
         }
-        .onChange(of: powerModeManager.activeConfiguration) { newValue in
+        .onChange(of: smartScenesManager.activeConfiguration) { newValue in
             selectedConfig = newValue
         }
     }
@@ -64,14 +64,14 @@ struct PowerModePopover: View {
     private func applySelectedConfiguration() {
         Task {
             if let config = selectedConfig {
-                await PowerModeSessionManager.shared.beginSession(with: config)
+                await SmartSceneSessionManager.shared.beginSession(with: config)
             }
         }
     }
 }
 
-struct PowerModeRow: View {
-    let config: PowerModeConfig
+struct SmartSceneRow: View {
+    let config: SmartSceneConfig
     let isSelected: Bool
     let action: () -> Void
     

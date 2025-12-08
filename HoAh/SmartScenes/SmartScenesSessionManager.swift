@@ -10,17 +10,17 @@ struct ApplicationState: Codable {
     var transcriptionModelName: String?
 }
 
-struct PowerModeSession: Codable {
+struct SmartSceneSession: Codable {
     let id: UUID
     let startTime: Date
     var originalState: ApplicationState
 }
 
 @MainActor
-class PowerModeSessionManager {
-    static let shared = PowerModeSessionManager()
-    private let sessionKey = "powerModeActiveSession.v1"
-    private var isApplyingPowerModeConfig = false
+class SmartSceneSessionManager {
+    static let shared = SmartSceneSessionManager()
+    private let sessionKey = "smartSceneActiveSession.v1"
+    private var isApplyingSmartSceneConfig = false
 
     private var whisperState: WhisperState?
     private var enhancementService: AIEnhancementService?
@@ -34,7 +34,7 @@ class PowerModeSessionManager {
         self.enhancementService = enhancementService
     }
 
-    func beginSession(with config: PowerModeConfig) async {
+    func beginSession(with config: SmartSceneConfig) async {
         guard let whisperState = whisperState, let enhancementService = enhancementService else {
             print("SessionManager not configured.")
             return
@@ -49,7 +49,7 @@ class PowerModeSessionManager {
             transcriptionModelName: whisperState.currentTranscriptionModel?.name
         )
 
-        let newSession = PowerModeSession(
+        let newSession = SmartSceneSession(
             id: UUID(),
             startTime: Date(),
             originalState: originalState
@@ -58,17 +58,17 @@ class PowerModeSessionManager {
         
         NotificationCenter.default.addObserver(self, selector: #selector(updateSessionSnapshot), name: .AppSettingsDidChange, object: nil)
 
-        isApplyingPowerModeConfig = true
+        isApplyingSmartSceneConfig = true
         await applyConfiguration(config)
-        isApplyingPowerModeConfig = false
+        isApplyingSmartSceneConfig = false
     }
 
     func endSession() async {
         guard let session = loadSession() else { return }
 
-        isApplyingPowerModeConfig = true
+        isApplyingSmartSceneConfig = true
         await restoreState(session.originalState)
-        isApplyingPowerModeConfig = false
+        isApplyingSmartSceneConfig = false
         
         NotificationCenter.default.removeObserver(self, name: .AppSettingsDidChange, object: nil)
 
@@ -76,7 +76,7 @@ class PowerModeSessionManager {
     }
     
     @objc func updateSessionSnapshot() {
-        guard !isApplyingPowerModeConfig else { return }
+        guard !isApplyingSmartSceneConfig else { return }
         
         guard var session = loadSession(), let whisperState = whisperState, let enhancementService = enhancementService else { return }
 
@@ -93,7 +93,7 @@ class PowerModeSessionManager {
         saveSession(session)
     }
 
-    private func applyConfiguration(_ config: PowerModeConfig) async {
+    private func applyConfiguration(_ config: SmartSceneConfig) async {
         guard let enhancementService = enhancementService else { return }
 
         await MainActor.run {
@@ -128,7 +128,7 @@ class PowerModeSessionManager {
         }
         
         await MainActor.run {
-            NotificationCenter.default.post(name: .powerModeConfigurationApplied, object: nil)
+            NotificationCenter.default.post(name: .smartSceneConfigurationApplied, object: nil)
         }
     }
 
@@ -190,7 +190,7 @@ class PowerModeSessionManager {
         }
     }
 
-    private func saveSession(_ session: PowerModeSession) {
+    private func saveSession(_ session: SmartSceneSession) {
         do {
             let data = try JSONEncoder().encode(session)
             UserDefaults.standard.set(data, forKey: sessionKey)
@@ -199,10 +199,10 @@ class PowerModeSessionManager {
         }
     }
     
-    private func loadSession() -> PowerModeSession? {
+    private func loadSession() -> SmartSceneSession? {
         guard let data = UserDefaults.standard.data(forKey: sessionKey) else { return nil }
         do {
-            return try JSONDecoder().decode(PowerModeSession.self, from: data)
+            return try JSONDecoder().decode(SmartSceneSession.self, from: data)
         } catch {
             print("Error loading Power Mode session: \(error)")
             return nil

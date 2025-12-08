@@ -15,7 +15,7 @@ extension View {
 
 enum ConfigurationMode: Hashable {
     case add
-    case edit(PowerModeConfig)
+    case edit(SmartSceneConfig)
     
     var isAdding: Bool {
         if case .add = self { return true }
@@ -58,8 +58,8 @@ enum ConfigurationType {
 
 let commonEmojis = ["🏢", "🏠", "💼", "🎮", "📱", "📺", "🎵", "📚", "✏️", "🎨", "🧠", "⚙️", "💻", "🌐", "📝", "📊", "🔍", "💬", "📈", "🔧"]
 
-struct PowerModeView: View {
-    @StateObject private var powerModeManager = PowerModeManager.shared
+struct SmartScenesView: View {
+    @StateObject private var smartScenesManager = SmartScenesManager.shared
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @EnvironmentObject private var aiService: AIService
     @State private var configurationMode: ConfigurationMode?
@@ -144,7 +144,7 @@ struct PowerModeView: View {
                 if isReorderMode {
                     VStack(spacing: 12) {
                         List {
-                            ForEach(powerModeManager.configurations) { config in
+                            ForEach(smartScenesManager.configurations) { config in
                                 HStack(spacing: 12) {
                                     ZStack {
                                         Circle()
@@ -189,7 +189,7 @@ struct PowerModeView: View {
                                 .listRowSeparator(.hidden)
                                 .padding(.vertical, 6)
                             }
-                            .onMove(perform: powerModeManager.moveConfigurations)
+                            .onMove(perform: smartScenesManager.moveConfigurations)
                         }
                         .listStyle(.plain)
                         .listRowSeparator(.hidden)
@@ -202,7 +202,7 @@ struct PowerModeView: View {
                     GeometryReader { geometry in
                         ScrollView {
                             VStack(spacing: 0) {
-                                if powerModeManager.configurations.isEmpty {
+                                if smartScenesManager.configurations.isEmpty {
                                     VStack(spacing: 24) {
                                         Spacer()
                                             .frame(height: geometry.size.height * 0.2)
@@ -231,8 +231,8 @@ struct PowerModeView: View {
                                     .frame(minHeight: geometry.size.height)
                                 } else {
                                     VStack(spacing: 0) {
-                                        PowerModeConfigurationsGrid(
-                                            powerModeManager: powerModeManager,
+                                        SmartSceneConfigurationsGrid(
+                                            smartScenesManager: smartScenesManager,
                                             onEditConfig: { config in
                                                 configurationMode = .edit(config)
                                                 navigationPath.append(configurationMode!)
@@ -252,7 +252,7 @@ struct PowerModeView: View {
             }
             .background(Color(NSColor.controlBackgroundColor))
             .navigationDestination(for: ConfigurationMode.self) { mode in
-                ConfigurationView(mode: mode, powerModeManager: powerModeManager)
+                ConfigurationView(mode: mode, smartScenesManager: smartScenesManager)
             }
         }
     }

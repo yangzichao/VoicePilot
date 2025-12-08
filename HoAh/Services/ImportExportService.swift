@@ -29,7 +29,7 @@ struct GeneralSettings: Codable {
 struct HoAhExportedSettings: Codable {
     let version: String
     let customPrompts: [CustomPrompt]
-    let powerModeConfigs: [PowerModeConfig]
+    let powerModeConfigs: [SmartSceneConfig]
     let generalSettings: GeneralSettings?
     let customEmojis: [String]?
     let customCloudModels: [CustomCloudModel]?
@@ -62,12 +62,12 @@ class ImportExportService {
 
     @MainActor
     func exportSettings(enhancementService: AIEnhancementService, whisperPrompt: WhisperPrompt, hotkeyManager: HotkeyManager, menuBarManager: MenuBarManager, mediaController: MediaController, playbackController: PlaybackController, soundManager: SoundManager, whisperState: WhisperState) {
-        let powerModeManager = PowerModeManager.shared
+        let smartScenesManager = SmartScenesManager.shared
         let emojiManager = EmojiManager.shared
 
         let exportablePrompts = enhancementService.allPrompts.filter { !$0.isPredefined }
 
-        let powerConfigs = powerModeManager.configurations
+        let powerConfigs = smartScenesManager.configurations
         
         // Export custom models
         let customModels = CustomModelManager.shared.customModels
@@ -169,9 +169,9 @@ class ImportExportService {
                         enhancementService.selectedPromptId = enhancementService.activePrompts.first?.id
                     }
                     
-                    let powerModeManager = PowerModeManager.shared
-                    powerModeManager.configurations = importedSettings.powerModeConfigs
-                    powerModeManager.saveConfigurations()
+                    let smartScenesManager = SmartScenesManager.shared
+                    smartScenesManager.configurations = importedSettings.powerModeConfigs
+                    smartScenesManager.saveConfigurations()
 
                     // Import Custom Models
                     if let modelsToImport = importedSettings.customCloudModels {

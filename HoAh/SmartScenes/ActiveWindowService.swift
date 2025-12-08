@@ -34,12 +34,12 @@ class ActiveWindowService: ObservableObject {
             currentApplication = frontmostApp
         }
 
-        var configToApply: PowerModeConfig?
+        var configToApply: SmartSceneConfig?
 
         if let browserType = BrowserType.allCases.first(where: { $0.bundleIdentifier == bundleIdentifier }) {
             do {
                 let currentURL = try await browserURLService.getCurrentURL(from: browserType)
-                if let config = PowerModeManager.shared.getConfigurationForURL(currentURL) {
+                if let config = SmartScenesManager.shared.getConfigurationForURL(currentURL) {
                     configToApply = config
                 }
             } catch {
@@ -48,18 +48,18 @@ class ActiveWindowService: ObservableObject {
         }
 
         if configToApply == nil {
-            configToApply = PowerModeManager.shared.getConfigurationForApp(bundleIdentifier)
+            configToApply = SmartScenesManager.shared.getConfigurationForApp(bundleIdentifier)
         }
 
         if configToApply == nil {
-            configToApply = PowerModeManager.shared.getDefaultConfiguration()
+            configToApply = SmartScenesManager.shared.getDefaultConfiguration()
         }
 
         if let config = configToApply {
             await MainActor.run {
-                PowerModeManager.shared.setActiveConfiguration(config)
+                SmartScenesManager.shared.setActiveConfiguration(config)
             }
-            await PowerModeSessionManager.shared.beginSession(with: config)
+            await SmartSceneSessionManager.shared.beginSession(with: config)
         } else {
             // If no config found, keep the current active configuration (don't clear it)
         }

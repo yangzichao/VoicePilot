@@ -22,29 +22,29 @@ enum PowerModeValidationError: Error, Identifiable {
             return "Power mode name cannot be empty."
         case .duplicateName(let name):
             return "A power mode with the name '\(name)' already exists."
-        case .duplicateAppTrigger(let appName, let powerModeName):
-            return "The app '\(appName)' is already configured in the '\(powerModeName)' power mode."
-        case .duplicateWebsiteTrigger(let website, let powerModeName):
-            return "The website '\(website)' is already configured in the '\(powerModeName)' power mode."
+        case .duplicateAppTrigger(let appName, let smartSceneName):
+            return "The app '\(appName)' is already configured in the '\(smartSceneName)' power mode."
+        case .duplicateWebsiteTrigger(let website, let smartSceneName):
+            return "The website '\(website)' is already configured in the '\(smartSceneName)' power mode."
         }
     }
 }
 
-struct PowerModeValidator {
-    private let powerModeManager: PowerModeManager
+struct SmartSceneValidator {
+    private let smartScenesManager: SmartScenesManager
     
-    init(powerModeManager: PowerModeManager) {
-        self.powerModeManager = powerModeManager
+    init(smartScenesManager: SmartScenesManager) {
+        self.smartScenesManager = smartScenesManager
     }
     
-    func validateForSave(config: PowerModeConfig, mode: ConfigurationMode) -> [PowerModeValidationError] {
+    func validateForSave(config: SmartSceneConfig, mode: ConfigurationMode) -> [PowerModeValidationError] {
         var errors: [PowerModeValidationError] = []
         
         if config.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             errors.append(.emptyName)
         }
         
-        let isDuplicateName = powerModeManager.configurations.contains { existingConfig in
+        let isDuplicateName = smartScenesManager.configurations.contains { existingConfig in
             if case .edit(let editConfig) = mode, existingConfig.id == editConfig.id {
                 return false
             }
@@ -59,7 +59,7 @@ struct PowerModeValidator {
         
         if let appConfigs = config.appConfigs {
             for appConfig in appConfigs {
-                for existingConfig in powerModeManager.configurations {
+                for existingConfig in smartScenesManager.configurations {
                     if case .edit(let editConfig) = mode, existingConfig.id == editConfig.id {
                         continue
                     }
@@ -74,7 +74,7 @@ struct PowerModeValidator {
         
         if let urlConfigs = config.urlConfigs {
             for urlConfig in urlConfigs {
-                for existingConfig in powerModeManager.configurations {
+                for existingConfig in smartScenesManager.configurations {
                     if case .edit(let editConfig) = mode, existingConfig.id == editConfig.id {
                         continue
                     }

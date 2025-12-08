@@ -214,7 +214,7 @@ struct RecorderPromptButton: View {
 
 // MARK: - Power Mode Button Component
 struct RecorderPowerModeButton: View {
-    @ObservedObject private var powerModeManager = PowerModeManager.shared
+    @ObservedObject private var smartScenesManager = SmartScenesManager.shared
     @Binding var activePopover: ActivePopoverState
     let buttonSize: CGFloat
     let padding: EdgeInsets
@@ -230,10 +230,10 @@ struct RecorderPowerModeButton: View {
     
     var body: some View {
         RecorderToggleButton(
-            isEnabled: !powerModeManager.enabledConfigurations.isEmpty,
-            icon: powerModeManager.enabledConfigurations.isEmpty ? "✨" : (powerModeManager.currentActiveConfiguration?.emoji ?? "✨"),
+            isEnabled: !smartScenesManager.enabledConfigurations.isEmpty,
+            icon: smartScenesManager.enabledConfigurations.isEmpty ? "✨" : (smartScenesManager.currentActiveConfiguration?.emoji ?? "✨"),
             color: .orange,
-            disabled: powerModeManager.enabledConfigurations.isEmpty
+            disabled: smartScenesManager.enabledConfigurations.isEmpty
         ) {
             activePopover = activePopover == .power ? .none : .power
         }
@@ -244,7 +244,7 @@ struct RecorderPowerModeButton: View {
             syncPowerPopoverVisibility()
         }
         .popover(isPresented: .constant(activePopover == .power), arrowEdge: .bottom) {
-            PowerModePopover()
+            SmartScenesPopover()
                 .onHover {
                     isHoveringPowerPopover = $0
                     syncPowerPopoverVisibility()

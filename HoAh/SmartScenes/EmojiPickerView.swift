@@ -136,7 +136,7 @@ struct EmojiPickerView: View {
     private func attemptToRemoveCustomEmoji(_ emojiToRemove: String) {
         guard emojiManager.isCustomEmoji(emojiToRemove) else { return }
 
-        if PowerModeManager.shared.isEmojiInUse(emojiToRemove) {
+        if SmartScenesManager.shared.isEmojiInUse(emojiToRemove) {
             emojiForAlert = emojiToRemove
             showingEmojiInUseAlert = true
         } else {

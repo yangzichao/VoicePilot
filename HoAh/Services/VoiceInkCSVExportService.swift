@@ -32,13 +32,13 @@ class HoAhCSVExportService {
             let enhancementModel = escapeCSVString(transcription.aiEnhancementModelName ?? "")
             let promptName = escapeCSVString(transcription.promptName ?? "")
             let transcriptionModel = escapeCSVString(transcription.transcriptionModelName ?? "")
-            let powerMode = escapeCSVString(powerModeDisplay(name: transcription.powerModeName, emoji: transcription.powerModeEmoji))
+            let smartScene = escapeCSVString(smartSceneDisplay(name: transcription.smartSceneName, emoji: transcription.smartSceneEmoji))
             let enhancementTime = transcription.enhancementDuration ?? 0
             let transcriptionTime = transcription.transcriptionDuration ?? 0
             let timestamp = transcription.timestamp.ISO8601Format()
             let duration = transcription.duration
 
-            let row = "\(originalText),\(enhancedText),\(enhancementModel),\(promptName),\(transcriptionModel),\(powerMode),\(enhancementTime),\(transcriptionTime),\(timestamp),\(duration)\n"
+            let row = "\(originalText),\(enhancedText),\(enhancementModel),\(promptName),\(transcriptionModel),\(smartScene),\(enhancementTime),\(transcriptionTime),\(timestamp),\(duration)\n"
             csvString.append(row)
         }
 
@@ -53,7 +53,7 @@ class HoAhCSVExportService {
         return escapedString
     }
 
-    private func powerModeDisplay(name: String?, emoji: String?) -> String {
+    private func smartSceneDisplay(name: String?, emoji: String?) -> String {
         switch (emoji?.trimmingCharacters(in: .whitespacesAndNewlines), name?.trimmingCharacters(in: .whitespacesAndNewlines)) {
         case let (.some(emojiValue), .some(nameValue)) where !emojiValue.isEmpty && !nameValue.isEmpty:
             return "\(emojiValue) \(nameValue)"

@@ -1,6 +1,6 @@
 import Foundation
 
-struct PowerModeConfig: Codable, Identifiable, Equatable {
+struct SmartSceneConfig: Codable, Identifiable, Equatable {
     var id: UUID
     var name: String
     var emoji: String
@@ -90,7 +90,7 @@ struct PowerModeConfig: Codable, Identifiable, Equatable {
     }
     
     
-    static func == (lhs: PowerModeConfig, rhs: PowerModeConfig) -> Bool {
+    static func == (lhs: SmartSceneConfig, rhs: SmartSceneConfig) -> Bool {
         lhs.id == rhs.id
     }
 }
@@ -125,12 +125,12 @@ struct URLConfig: Codable, Identifiable, Equatable {
     }
 }
 
-class PowerModeManager: ObservableObject {
-    static let shared = PowerModeManager()
-    @Published var configurations: [PowerModeConfig] = []
-    @Published var activeConfiguration: PowerModeConfig?
+class SmartScenesManager: ObservableObject {
+    static let shared = SmartScenesManager()
+    @Published var configurations: [SmartSceneConfig] = []
+    @Published var activeConfiguration: SmartSceneConfig?
 
-    private let configKey = "powerModeConfigurationsV2"
+    private let configKey = "smartSceneConfigurationsV2"
     private let activeConfigIdKey = "activeConfigurationId"
 
     private init() {
@@ -146,7 +146,7 @@ class PowerModeManager: ObservableObject {
 
     private func loadConfigurations() {
         if let data = UserDefaults.standard.data(forKey: configKey),
-           let configs = try? JSONDecoder().decode([PowerModeConfig].self, from: data) {
+           let configs = try? JSONDecoder().decode([SmartSceneConfig].self, from: data) {
             configurations = configs
         }
     }
@@ -157,7 +157,7 @@ class PowerModeManager: ObservableObject {
         }
     }
 
-    func addConfiguration(_ config: PowerModeConfig) {
+    func addConfiguration(_ config: SmartSceneConfig) {
         if !configurations.contains(where: { $0.id == config.id }) {
             configurations.append(config)
             saveConfigurations()
@@ -169,11 +169,11 @@ class PowerModeManager: ObservableObject {
         saveConfigurations()
     }
 
-    func getConfiguration(with id: UUID) -> PowerModeConfig? {
+    func getConfiguration(with id: UUID) -> SmartSceneConfig? {
         return configurations.first { $0.id == id }
     }
 
-    func updateConfiguration(_ config: PowerModeConfig) {
+    func updateConfiguration(_ config: SmartSceneConfig) {
         if let index = configurations.firstIndex(where: { $0.id == config.id }) {
             configurations[index] = config
             saveConfigurations()
@@ -185,7 +185,7 @@ class PowerModeManager: ObservableObject {
         saveConfigurations()
     }
 
-    func getConfigurationForURL(_ url: String) -> PowerModeConfig? {
+    func getConfigurationForURL(_ url: String) -> SmartSceneConfig? {
         let cleanedURL = cleanURL(url)
         
         for config in configurations.filter({ $0.isEnabled }) {
@@ -202,7 +202,7 @@ class PowerModeManager: ObservableObject {
         return nil
     }
     
-    func getConfigurationForApp(_ bundleId: String) -> PowerModeConfig? {
+    func getConfigurationForApp(_ bundleId: String) -> SmartSceneConfig? {
         for config in configurations.filter({ $0.isEnabled }) {
             if let appConfigs = config.appConfigs {
                 if appConfigs.contains(where: { $0.bundleIdentifier == bundleId }) {
@@ -213,7 +213,7 @@ class PowerModeManager: ObservableObject {
         return nil
     }
     
-    func getDefaultConfiguration() -> PowerModeConfig? {
+    func getDefaultConfiguration() -> SmartSceneConfig? {
         return configurations.first { $0.isEnabled && $0.isDefault }
     }
     
@@ -249,11 +249,11 @@ class PowerModeManager: ObservableObject {
         }
     }
     
-    var enabledConfigurations: [PowerModeConfig] {
+    var enabledConfigurations: [SmartSceneConfig] {
         return configurations.filter { $0.isEnabled }
     }
 
-    func addAppConfig(_ appConfig: AppConfig, to config: PowerModeConfig) {
+    func addAppConfig(_ appConfig: AppConfig, to config: SmartSceneConfig) {
         if var updatedConfig = configurations.first(where: { $0.id == config.id }) {
             var configs = updatedConfig.appConfigs ?? []
             configs.append(appConfig)
@@ -262,14 +262,14 @@ class PowerModeManager: ObservableObject {
         }
     }
 
-    func removeAppConfig(_ appConfig: AppConfig, from config: PowerModeConfig) {
+    func removeAppConfig(_ appConfig: AppConfig, from config: SmartSceneConfig) {
         if var updatedConfig = configurations.first(where: { $0.id == config.id }) {
             updatedConfig.appConfigs?.removeAll(where: { $0.id == appConfig.id })
             updateConfiguration(updatedConfig)
         }
     }
 
-    func addURLConfig(_ urlConfig: URLConfig, to config: PowerModeConfig) {
+    func addURLConfig(_ urlConfig: URLConfig, to config: SmartSceneConfig) {
         if var updatedConfig = configurations.first(where: { $0.id == config.id }) {
             var configs = updatedConfig.urlConfigs ?? []
             configs.append(urlConfig)
@@ -278,7 +278,7 @@ class PowerModeManager: ObservableObject {
         }
     }
 
-    func removeURLConfig(_ urlConfig: URLConfig, from config: PowerModeConfig) {
+    func removeURLConfig(_ urlConfig: URLConfig, from config: SmartSceneConfig) {
         if var updatedConfig = configurations.first(where: { $0.id == config.id }) {
             updatedConfig.urlConfigs?.removeAll(where: { $0.id == urlConfig.id })
             updateConfiguration(updatedConfig)
@@ -293,17 +293,17 @@ class PowerModeManager: ObservableObject {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    func setActiveConfiguration(_ config: PowerModeConfig?) {
+    func setActiveConfiguration(_ config: SmartSceneConfig?) {
         activeConfiguration = config
         UserDefaults.standard.set(config?.id.uuidString, forKey: activeConfigIdKey)
         self.objectWillChange.send()
     }
 
-    var currentActiveConfiguration: PowerModeConfig? {
+    var currentActiveConfiguration: SmartSceneConfig? {
         return activeConfiguration
     }
 
-    func getAllAvailableConfigurations() -> [PowerModeConfig] {
+    func getAllAvailableConfigurations() -> [SmartSceneConfig] {
         return configurations
     }
 

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ConfigurationView: View {
     let mode: ConfigurationMode
-    let powerModeManager: PowerModeManager
+    let smartScenesManager: SmartScenesManager
     @EnvironmentObject var enhancementService: AIEnhancementService
     @EnvironmentObject var aiService: AIService
     @Environment(\.presentationMode) private var presentationMode
@@ -80,9 +80,9 @@ struct ConfigurationView: View {
         return whisperState.currentTranscriptionModel?.name
     }
     
-    init(mode: ConfigurationMode, powerModeManager: PowerModeManager) {
+    init(mode: ConfigurationMode, smartScenesManager: SmartScenesManager) {
         self.mode = mode
-        self.powerModeManager = powerModeManager
+        self.smartScenesManager = smartScenesManager
         
         // Always fetch the most current configuration data
         switch mode {
@@ -100,8 +100,8 @@ struct ConfigurationView: View {
             _selectedAIProvider = State(initialValue: UserDefaults.standard.string(forKey: "selectedAIProvider"))
             _selectedAIModel = State(initialValue: nil) // Initialize to nil and set it after view appears
         case .edit(let config):
-            // Get the latest version of this config from PowerModeManager
-            let latestConfig = powerModeManager.getConfiguration(with: config.id) ?? config
+            // Get the latest version of this config from SmartScenesManager
+            let latestConfig = smartScenesManager.getConfiguration(with: config.id) ?? config
             _isAIEnhancementEnabled = State(initialValue: latestConfig.isAIEnhancementEnabled)
             _selectedPromptId = State(initialValue: latestConfig.selectedPrompt.flatMap { UUID(uuidString: $0) })
             _selectedTranscriptionModelName = State(initialValue: latestConfig.selectedTranscriptionModelName)
@@ -142,7 +142,7 @@ struct ConfigurationView: View {
                         
                         let response = alert.runModal()
                         if response == .alertFirstButtonReturn {
-                            powerModeManager.removeConfiguration(with: config.id)
+                            smartScenesManager.removeConfiguration(with: config.id)
                             presentationMode.wrappedValue.dismiss()
                         }
                     }
@@ -685,7 +685,7 @@ struct ConfigurationView: View {
     private func addWebsite() {
         guard !newWebsiteURL.isEmpty else { return }
         
-        let cleanedURL = powerModeManager.cleanURL(newWebsiteURL)
+        let cleanedURL = smartScenesManager.cleanURL(newWebsiteURL)
         let urlConfig = URLConfig(url: cleanedURL)
         websiteConfigs.append(urlConfig)
         newWebsiteURL = ""
@@ -700,10 +700,10 @@ struct ConfigurationView: View {
         }
     }
     
-    private func getConfigForForm() -> PowerModeConfig {
+    private func getConfigForForm() -> SmartSceneConfig {
         switch mode {
         case .add:
-                return PowerModeConfig(
+                return SmartSceneConfig(
                 name: configName,
                 emoji: selectedEmoji,
                 appConfigs: selectedAppConfigs.isEmpty ? nil : selectedAppConfigs,
@@ -805,7 +805,7 @@ struct ConfigurationView: View {
         let config = getConfigForForm()
         
         // Only validate when the user explicitly tries to save
-        let validator = PowerModeValidator(powerModeManager: powerModeManager)
+        let validator = SmartSceneValidator(smartScenesManager: smartScenesManager)
         validationErrors = validator.validateForSave(config: config, mode: mode)
         
         if !validationErrors.isEmpty {
@@ -816,14 +816,14 @@ struct ConfigurationView: View {
         // If validation passes, save the configuration
         switch mode {
         case .add:
-            powerModeManager.addConfiguration(config)
+            smartScenesManager.addConfiguration(config)
         case .edit:
-            powerModeManager.updateConfiguration(config)
+            smartScenesManager.updateConfiguration(config)
         }
         
         // Handle default flag separately to ensure only one config is default
         if isDefault {
-            powerModeManager.setAsDefault(configId: config.id)
+            smartScenesManager.setAsDefault(configId: config.id)
         }
         
         presentationMode.wrappedValue.dismiss()

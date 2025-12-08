@@ -6,7 +6,7 @@ import KeyboardShortcuts
 enum ViewType: String, CaseIterable, Identifiable {
     case metrics = "HoAh"
     case agentMode = "AI Agents"
-    case powerMode = "Smart Scenes"
+    case smartScenes = "Smart Scenes"
     case models = "AI Models"
     case permissions = "Permissions"
     case audioInput = "Audio Input"
@@ -21,7 +21,7 @@ enum ViewType: String, CaseIterable, Identifiable {
         case .transcribeAudio: return "waveform.circle.fill"
         case .models: return "brain.head.profile"
         case .agentMode: return "wand.and.stars"
-        case .powerMode: return "sparkles.square.fill.on.square"
+        case .smartScenes: return "sparkles.square.fill.on.square"
         case .permissions: return "shield.fill"
         case .audioInput: return "mic.fill"
         case .settings: return "gearshape.fill"
@@ -136,7 +136,7 @@ struct ContentView: View {
                 case "Transcribe Audio":
                     selectedView = .transcribeAudio
                 case "Smart Scenes":
-                    selectedView = .powerMode
+                    selectedView = .smartScenes
                 default:
                     break
                 }
@@ -157,8 +157,8 @@ struct ContentView: View {
             AudioTranscribeView()
         case .audioInput:
             AudioInputSettingsView()
-        case .powerMode:
-            PowerModeView()
+        case .smartScenes:
+            SmartScenesView()
         case .settings:
             SettingsView()
                 .environmentObject(whisperState)

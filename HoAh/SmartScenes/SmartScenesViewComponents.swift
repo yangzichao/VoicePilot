@@ -22,7 +22,7 @@ struct HoAhButton: View {
     }
 }
 
-struct PowerModeEmptyStateView: View {
+struct SmartScenesEmptyStateView: View {
     let action: () -> Void
     
     var body: some View {
@@ -49,18 +49,18 @@ struct PowerModeEmptyStateView: View {
     }
 }
 
-struct PowerModeConfigurationsGrid: View {
-    @ObservedObject var powerModeManager: PowerModeManager
-    let onEditConfig: (PowerModeConfig) -> Void
+struct SmartSceneConfigurationsGrid: View {
+    @ObservedObject var smartScenesManager: SmartScenesManager
+    let onEditConfig: (SmartSceneConfig) -> Void
     @EnvironmentObject var enhancementService: AIEnhancementService
     
     var body: some View {
         LazyVStack(spacing: 12) {
-            ForEach($powerModeManager.configurations) { $config in
+            ForEach($smartScenesManager.configurations) { $config in
                 ConfigurationRow(
                     config: $config,
                     isEditing: false,
-                    powerModeManager: powerModeManager,
+                    smartScenesManager: smartScenesManager,
                     onEditConfig: onEditConfig
                 )
             }
@@ -70,10 +70,10 @@ struct PowerModeConfigurationsGrid: View {
 }
 
 struct ConfigurationRow: View {
-    @Binding var config: PowerModeConfig
+    @Binding var config: SmartSceneConfig
     let isEditing: Bool
-    let powerModeManager: PowerModeManager
-    let onEditConfig: (PowerModeConfig) -> Void
+    let smartScenesManager: SmartScenesManager
+    let onEditConfig: (SmartSceneConfig) -> Void
     @EnvironmentObject var enhancementService: AIEnhancementService
     @EnvironmentObject var whisperState: WhisperState
     @State private var isHovering = false
@@ -185,7 +185,7 @@ struct ConfigurationRow: View {
                     .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                     .labelsHidden()
                     .onChange(of: config.isEnabled) { _, _ in
-                        powerModeManager.updateConfiguration(config)
+                        smartScenesManager.updateConfiguration(config)
                     }
             }
             .padding(.vertical, 12)
@@ -310,7 +310,7 @@ struct ConfigurationRow: View {
             alert.buttons[0].hasDestructiveAction = true
             
             if alert.runModal() == .alertFirstButtonReturn {
-                powerModeManager.removeConfiguration(with: config.id)
+                smartScenesManager.removeConfiguration(with: config.id)
             }
         }) {
             Label("Delete", systemImage: "trash")
@@ -323,7 +323,7 @@ struct ConfigurationRow: View {
     }
 }
 
-struct PowerModeAppIcon: View {
+struct SmartSceneAppIcon: View {
     let bundleId: String
     
     var body: some View {

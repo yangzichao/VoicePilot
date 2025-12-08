@@ -61,10 +61,10 @@ class AudioTranscriptionService: ObservableObject {
             text = TranscriptionOutputFilter.filter(text)
             text = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
-            let powerModeManager = PowerModeManager.shared
-            let activePowerModeConfig = powerModeManager.currentActiveConfiguration
-            let powerModeName = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.name : nil
-            let powerModeEmoji = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.emoji : nil
+            let smartScenesManager = SmartScenesManager.shared
+            let activeSmartSceneConfig = smartScenesManager.currentActiveConfiguration
+            let smartSceneName = (activeSmartSceneConfig?.isEnabled == true) ? activeSmartSceneConfig?.name : nil
+            let smartSceneEmoji = (activeSmartSceneConfig?.isEnabled == true) ? activeSmartSceneConfig?.emoji : nil
 
             if UserDefaults.standard.object(forKey: "IsTextFormattingEnabled") as? Bool ?? true {
                 text = WhisperTextFormatter.format(text)
@@ -121,8 +121,8 @@ class AudioTranscriptionService: ObservableObject {
                         enhancementDuration: enhancementDuration,
                         aiRequestSystemMessage: enhancementService.lastSystemMessageSent,
                         aiRequestUserMessage: enhancementService.lastUserMessageSent,
-                        powerModeName: powerModeName,
-                        powerModeEmoji: powerModeEmoji
+                        smartSceneName: smartSceneName,
+                        smartSceneEmoji: smartSceneEmoji
                     )
                     modelContext.insert(newTranscription)
                     do {
@@ -151,8 +151,8 @@ class AudioTranscriptionService: ObservableObject {
                         transcriptionModelName: model.displayName,
                         promptName: nil,
                         transcriptionDuration: transcriptionDuration,
-                        powerModeName: powerModeName,
-                        powerModeEmoji: powerModeEmoji
+                        smartSceneName: smartSceneName,
+                        smartSceneEmoji: smartSceneEmoji
                     )
                     modelContext.insert(newTranscription)
                     do {
@@ -176,8 +176,8 @@ class AudioTranscriptionService: ObservableObject {
                     transcriptionModelName: model.displayName,
                     promptName: nil,
                     transcriptionDuration: transcriptionDuration,
-                    powerModeName: powerModeName,
-                    powerModeEmoji: powerModeEmoji
+                    smartSceneName: smartSceneName,
+                    smartSceneEmoji: smartSceneEmoji
                 )
                 modelContext.insert(newTranscription)
                 do {

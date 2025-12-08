@@ -1,9 +1,9 @@
 import SwiftUI
 
-struct PowerModeSettingsSection: View {
-    @ObservedObject private var powerModeManager = PowerModeManager.shared
-    @AppStorage("powerModeUIFlag") private var powerModeUIFlag = false
-    @AppStorage(PowerModeDefaults.autoRestoreKey) private var powerModeAutoRestoreEnabled = false
+struct SmartScenesSettingsSection: View {
+    @ObservedObject private var smartScenesManager = SmartScenesManager.shared
+    @AppStorage("smartScenesUIFlag") private var smartScenesUIFlag = false
+    @AppStorage(SmartSceneDefaults.autoRestoreKey) private var powerModeAutoRestoreEnabled = false
     @State private var showDisableAlert = false
     
     var body: some View {
@@ -29,7 +29,7 @@ struct PowerModeSettingsSection: View {
                     .toggleStyle(.switch)
             }
 
-            if powerModeUIFlag {
+            if smartScenesUIFlag {
                 Divider()
                     .padding(.vertical, 4)
                     .transition(.opacity.combined(with: .move(edge: .top)))
@@ -48,7 +48,7 @@ struct PowerModeSettingsSection: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: powerModeUIFlag)
+        .animation(.easeInOut(duration: 0.25), value: smartScenesUIFlag)
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(CardBackground(isSelected: false, useAccentGradientWhenSelected: true))
@@ -61,12 +61,12 @@ struct PowerModeSettingsSection: View {
     
     private var toggleBinding: Binding<Bool> {
         Binding(
-            get: { powerModeUIFlag },
+            get: { smartScenesUIFlag },
             set: { newValue in
                 if newValue {
-                    powerModeUIFlag = true
-                } else if powerModeManager.configurations.noneEnabled {
-                    powerModeUIFlag = false
+                    smartScenesUIFlag = true
+                } else if smartScenesManager.configurations.noneEnabled {
+                    smartScenesUIFlag = false
                 } else {
                     showDisableAlert = true
                 }
@@ -76,12 +76,12 @@ struct PowerModeSettingsSection: View {
     
 }
 
-private extension Array where Element == PowerModeConfig {
+private extension Array where Element == SmartSceneConfig {
     var noneEnabled: Bool {
         allSatisfy { !$0.isEnabled }
     }
 }
 
-enum PowerModeDefaults {
+enum SmartSceneDefaults {
     static let autoRestoreKey = "powerModeAutoRestoreEnabled"
 }

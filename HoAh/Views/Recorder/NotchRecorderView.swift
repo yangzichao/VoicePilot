@@ -6,7 +6,7 @@ struct NotchRecorderView: View {
     @EnvironmentObject var windowManager: NotchWindowManager
     @State private var isHovering = false
     @State private var activePopover: ActivePopoverState = .none
-    @ObservedObject private var powerModeManager = PowerModeManager.shared
+    @ObservedObject private var smartScenesManager = SmartScenesManager.shared
     
     @EnvironmentObject private var enhancementService: AIEnhancementService
     

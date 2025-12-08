@@ -40,9 +40,9 @@ struct HoAhApp: App {
         // KeyboardShortcuts.Localization.recordShortcut = NSLocalizedString("Record Shortcut", comment: "")
         // KeyboardShortcuts.Localization.pressShortcut = NSLocalizedString("Press Shortcut", comment: "")
 
-        if UserDefaults.standard.object(forKey: "powerModeUIFlag") == nil {
-            let hasEnabledPowerModes = PowerModeManager.shared.configurations.contains { $0.isEnabled }
-            UserDefaults.standard.set(hasEnabledPowerModes, forKey: "powerModeUIFlag")
+        if UserDefaults.standard.object(forKey: "smartScenesUIFlag") == nil {
+            let hasEnabledPowerModes = SmartScenesManager.shared.configurations.contains { $0.isEnabled }
+            UserDefaults.standard.set(hasEnabledPowerModes, forKey: "smartScenesUIFlag")
         }
 
         let logger = Logger(subsystem: "com.yangzichao.hoah", category: "Initialization")
