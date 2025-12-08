@@ -135,6 +135,7 @@ class AIEnhancementService: ObservableObject {
         )
 
         initializePredefinedPrompts()
+        relocalizePredefinedPromptTitles()
         
         if selectedPromptId == nil {
             selectedPromptId = activePrompts.first?.id
@@ -152,6 +153,33 @@ class AIEnhancementService: ObservableObject {
                 self.isEnhancementEnabled = false
             }
         }
+    }
+
+    /// Ensure predefined prompts pick up localized titles/descriptions each launch (language-dependent UI).
+    private func relocalizePredefinedPromptTitles() {
+        let templates = PredefinedPrompts.createDefaultPrompts()
+        let templateMap = Dictionary(uniqueKeysWithValues: templates.map { ($0.id, $0) })
+
+        func relocalize(_ prompts: inout [CustomPrompt]) {
+            for idx in prompts.indices {
+                let p = prompts[idx]
+                guard p.isPredefined, let template = templateMap[p.id] else { continue }
+                prompts[idx] = CustomPrompt(
+                    id: p.id,
+                    title: template.title,
+                    promptText: p.promptText,
+                    isActive: p.isActive,
+                    icon: p.icon,
+                    description: template.description,
+                    isPredefined: true,
+                    triggerWords: p.triggerWords,
+                    useSystemInstructions: p.useSystemInstructions
+                )
+            }
+        }
+
+        relocalize(&activePrompts)
+        relocalize(&triggerPrompts)
     }
 
     func getAIService() -> AIService? {
@@ -203,11 +231,7 @@ class AIEnhancementService: ObservableObject {
         let allContextSections = selectedTextContext + clipboardContext + screenCaptureContext
 
         if let activePrompt = activePrompt {
-            if activePrompt.id == PredefinedPrompts.assistantPromptId {
-                return activePrompt.promptText + allContextSections
-            } else {
-                return activePrompt.finalPromptText + allContextSections
-            }
+            return activePrompt.finalPromptText + allContextSections
         } else {
             guard let fallback = activePrompts.first(where: { $0.id == PredefinedPrompts.defaultPromptId }) ?? activePrompts.first else {
                 return allContextSections

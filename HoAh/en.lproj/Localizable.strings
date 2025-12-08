@@ -267,6 +267,18 @@
 "Dismiss" = "Dismiss";
 "Done" = "Done";
 "Double-click to edit • Right-click for more options" = "Double-click to edit • Right-click for more options";
+
+// AI Enhancement Presets (titles & descriptions)
+"prompt_basic_title" = "Basic";
+"prompt_basic_description" = "Basic cleanup: drop fillers/stutters, keep wording and language mix intact.";
+"prompt_polish_title" = "Polish";
+"prompt_polish_description" = "Polish for clarity/conciseness; respects corrections, language mix, and technical details.";
+"prompt_formal_title" = "Formal";
+"prompt_formal_description" = "Formal rewrite: polite, concise, fixes homophone/ASR slips, preserves English nouns and details.";
+"prompt_summarize_title" = "Summarize";
+"prompt_summarize_description" = "Concise bullets with context-aware corrections; preserves key facts.";
+"prompt_email_title" = "Email Draft";
+"prompt_email_description" = "Polite, concise email; context-aware corrections; facts intact.";
 "Download AI Model" = "Download AI Model";
 "Downloaded" = "Downloaded";
 "Edit" = "Edit";

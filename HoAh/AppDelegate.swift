@@ -3,14 +3,20 @@ import SwiftUI
 import UniformTypeIdentifiers
 import Sparkle
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     weak var menuBarManager: MenuBarManager?
     
-    private let updaterController = SPUStandardUpdaterController(
-        startingUpdater: false,
-        updaterDelegate: nil,
-        userDriverDelegate: nil
-    )
+    private lazy var updaterControllerString: SPUStandardUpdaterController = {
+        return SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: self,
+            userDriverDelegate: nil
+        )
+    }()
+    
+    private var updaterController: SPUStandardUpdaterController {
+        return updaterControllerString
+    }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         menuBarManager?.applyActivationPolicy()
@@ -56,4 +62,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+    
+    // MARK: - SPUUpdaterDelegate
+    
+    // Delegate methods removed to avoid duplicate alerts.
+    // SPUStandardUpdaterController handles UI including "No Update Found" and errors automatically.
 }

@@ -3,10 +3,12 @@ import SwiftUI    // Import to ensure we have access to SwiftUI types if needed
 
 enum PredefinedPrompts {
     private static let predefinedPromptsKey = "PredefinedPrompts"
+    private static func t(_ key: String) -> String {
+        NSLocalizedString(key, bundle: .main, comment: "")
+    }
     
     // Static UUIDs for predefined prompts
     static let defaultPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-    static let assistantPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
     static let polishPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000003")!
     static let summarizePromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000005")!
     static let emailDraftPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000007")!
@@ -22,7 +24,7 @@ enum PredefinedPrompts {
             // Manual presets (no trigger words; user selects explicitly)
             CustomPrompt(
                 id: defaultPromptId,
-                title: "Basic",
+                title: t("prompt_basic_title"),
                 promptText: """
 You are a light transcript cleaner. Keep the original meaning, tone, and language mix; do NOT translate.
 - Input can be Chinese, English, or mixed. Keep the same languages and code-mix.
@@ -33,14 +35,14 @@ You are a light transcript cleaner. Keep the original meaning, tone, and languag
 - Output only the lightly cleaned text in the original language mix.
 """,
                 icon: "checkmark.seal.fill",
-                description: "Basic cleanup: drop fillers/stutters, keep wording and language mix intact.",
+                description: t("prompt_basic_description"),
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true
             ),
             CustomPrompt(
                 id: polishPromptId,
-                title: "Polish",
+                title: t("prompt_polish_title"),
                 promptText: """
 You are polishing a transcript for clarity, concision, and correctness without changing intent. Do NOT translate.
 - Input may be Chinese, English, or mixed; keep the same language mix.
@@ -53,14 +55,14 @@ You are polishing a transcript for clarity, concision, and correctness without c
 - Output only the polished text in the original language mix; no added commentary.
 """,
                 icon: "wand.and.stars",
-                description: "Polish for clarity/conciseness; respects corrections, language mix, and technical details.",
+                description: t("prompt_polish_description"),
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true
             ),
             CustomPrompt(
                 id: formalPromptId,
-                title: "Formal",
+                title: t("prompt_formal_title"),
                 promptText: """
 You rewrite the transcript into concise, formal, and polite written style while keeping the original meaning. Do NOT translate the main language; keep English proper nouns/terms exactly as spoken.
 - Input may be Chinese, English, or mixed. Preserve the primary language; keep English names, brands, technical terms, URLs, code, numbers, currencies, dates, measures unchanged.
@@ -73,7 +75,7 @@ You rewrite the transcript into concise, formal, and polite written style while 
 - Output only the finalized formal text in the original language mix (with English nouns preserved).
 """,
                 icon: "doc.text.magnifyingglass",
-                description: "Formal rewrite: polite, concise, fixes homophone/ASR slips, preserves English nouns and details.",
+                description: t("prompt_formal_description"),
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true
@@ -82,7 +84,7 @@ You rewrite the transcript into concise, formal, and polite written style while 
             // Auto-trigger presets (activated via trigger words)
             CustomPrompt(
                 id: summarizePromptId,
-                title: "Summarize",
+                title: t("prompt_summarize_title"),
                 promptText: """
 Create a crisp summary in 3–5 bullet points.
 - Fix obvious mistranscriptions (homophones/near-homophones, ASR/IME slips) using context; keep English proper nouns/brands/technical terms exactly as spoken.
@@ -90,14 +92,14 @@ Create a crisp summary in 3–5 bullet points.
 - Keep wording brief and readable; no extra commentary.
 """,
                 icon: "text.alignleft",
-                description: "Auto-activates on summary cues; concise bullets with context-aware corrections.",
+                description: t("prompt_summarize_description"),
                 isPredefined: true,
                 triggerWords: ["summarize my conversation", "give me a summary of this conversation"],
                 useSystemInstructions: true
             ),
             CustomPrompt(
                 id: emailDraftPromptId,
-                title: "Email Draft",
+                title: t("prompt_email_title"),
                 promptText: """
 Rewrite as a concise, polite, professional email with a clear greeting and sign-off.
 - Maintain the original language (Chinese/English/mixed) unless the user explicitly asked to translate.
@@ -106,23 +108,13 @@ Rewrite as a concise, polite, professional email with a clear greeting and sign-
 - Tone: professional, courteous, readable; keep it brief and structured.
 """,
                 icon: "envelope.fill",
-                description: "Auto-activates on email cues; polite, concise email with context-aware corrections.",
+                description: t("prompt_email_description"),
                 isPredefined: true,
                 triggerWords: ["draft an email reply", "compose an email reply", "write an email reply"],
                 useSystemInstructions: true
             ),
 
             // Assistant remains available for freeform Q&A (manual)
-            CustomPrompt(
-                id: assistantPromptId,
-                title: "Assistant",
-                promptText: AIPrompts.assistantMode,
-                icon: "bubble.left.and.bubble.right.fill",
-                description: "AI assistant that provides direct answers to queries",
-                isPredefined: true,
-                triggerWords: [],
-                useSystemInstructions: false
-            )
         ]
     }
 }

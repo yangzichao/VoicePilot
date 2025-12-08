@@ -271,6 +271,10 @@ struct OnboardingPermissionsView: View {
             // Ensure audio devices are loaded
             audioDeviceManager.loadAvailableDevices()
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            // Re-check permissions when user returns from System Settings
+            checkExistingPermissions()
+        }
     }
     
     private func animateIn() {

@@ -270,6 +270,18 @@
 "Dismiss" = "知道了";
 "Done" = "完成";
 "Double-click to edit • Right-click for more options" = "双击进行编辑 • 右键查看更多选项";
+
+// AI Enhancement Presets (titles & descriptions)
+"prompt_basic_title" = "基础";
+"prompt_basic_description" = "基础清理：去除口头填充/结巴，保持原有措辞和语言混排。";
+"prompt_polish_title" = "润色";
+"prompt_polish_description" = "增强清晰/简洁，尊重自我纠正，保留语言混排与技术细节。";
+"prompt_formal_title" = "正式";
+"prompt_formal_description" = "正式书面化：礼貌精简，修正同音/ASR 误听，保留英文专有名词等细节。";
+"prompt_summarize_title" = "总结";
+"prompt_summarize_description" = "精炼要点，按上下文纠错，保留关键信息。";
+"prompt_email_title" = "邮件草稿";
+"prompt_email_description" = "礼貌简洁的邮件，按上下文纠错，信息原样保留。";
 "Download AI Model" = "下载 AI 模型";
 "Downloaded" = "已下载";
 "Edit" = "编辑";
@@ -557,3 +569,5 @@
 
 "Configure Shortcuts" = "配置快捷键";
 "Hotkey: %@" = "快捷键：%@";
+
+
