@@ -6,7 +6,6 @@ import KeyboardShortcuts
 class PermissionManager: ObservableObject {
     @Published var audioPermissionStatus = AVCaptureDevice.authorizationStatus(for: .audio)
     @Published var isAccessibilityEnabled = false
-    @Published var isScreenRecordingEnabled = false
     @Published var isKeyboardShortcutSet = false
     
     init() {
@@ -38,7 +37,6 @@ class PermissionManager: ObservableObject {
     
     func checkAllPermissions() {
         checkAccessibilityPermissions()
-        checkScreenRecordingPermission()
         checkAudioPermissionStatus()
         checkKeyboardShortcut()
     }
@@ -49,16 +47,6 @@ class PermissionManager: ObservableObject {
         DispatchQueue.main.async {
             self.isAccessibilityEnabled = accessibilityEnabled
         }
-    }
-    
-    func checkScreenRecordingPermission() {
-        DispatchQueue.main.async {
-            self.isScreenRecordingEnabled = CGPreflightScreenCaptureAccess()
-        }
-    }
-    
-    func requestScreenRecordingPermission() {
-        CGRequestScreenCaptureAccess()
     }
     
     func checkAudioPermissionStatus() {
@@ -277,25 +265,7 @@ struct PermissionsView: View {
                         infoTipMessage: "HoAh uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac."
                     )
                     
-                    // Screen Recording Permission
-                    PermissionCard(
-                        icon: "rectangle.on.rectangle",
-                        title: "Screen Recording Access",
-                        description: "Allow HoAh to understand context from your screen for transcript Enhancement",
-                        isGranted: permissionManager.isScreenRecordingEnabled,
-                        buttonTitle: "Request Permission",
-                        buttonAction: {
-                            permissionManager.requestScreenRecordingPermission()
-                            // After requesting, open system preferences as fallback
-                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-                                NSWorkspace.shared.open(url)
-                            }
-                        },
-                        checkPermission: { permissionManager.checkScreenRecordingPermission() },
-                        infoTipTitle: "Screen Recording Access",
-                        infoTipMessage: "HoAh captures on-screen text to understand the context of your voice input, which significantly improves transcription accuracy. Your privacy is important: this data is processed locally and is not stored.",
-                        infoTipLink: "https://tryvoiceink.com/docs/contextual-awareness"
-                    )
+                    // Screen Recording permission has been removed in this fork.
                 }
             }
             .padding(24)

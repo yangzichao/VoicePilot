@@ -41,7 +41,7 @@ struct LanguageSelectionView: View {
         guard let provider = whisperState.currentTranscriptionModel?.provider else {
             return false
         }
-        return provider == .parakeet || provider == .gemini
+        return provider == .gemini
     }
 
     // Function to get current model's supported languages

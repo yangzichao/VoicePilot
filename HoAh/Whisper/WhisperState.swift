@@ -72,26 +72,6 @@ class WhisperState: NSObject, ObservableObject {
     private var localTranscriptionService: LocalTranscriptionService!
     private lazy var cloudTranscriptionService = CloudTranscriptionService()
     private lazy var nativeAppleTranscriptionService = NativeAppleTranscriptionService()
-    internal lazy var parakeetTranscriptionService = ParakeetTranscriptionService()
-    
-    private var modelUrl: URL? {
-        let possibleURLs = [
-            Bundle.main.url(forResource: "ggml-base.en", withExtension: "bin", subdirectory: "Models"),
-            Bundle.main.url(forResource: "ggml-base.en", withExtension: "bin"),
-            Bundle.main.bundleURL.appendingPathComponent("Models/ggml-base.en.bin")
-        ]
-        
-        for url in possibleURLs {
-            if let url = url, FileManager.default.fileExists(atPath: url.path) {
-                return url
-            }
-        }
-        return nil
-    }
-    
-    private enum LoadError: Error {
-        case couldNotLocateModel
-    }
     
     let modelsDirectory: URL
     let recordingsDirectory: URL
@@ -102,7 +82,6 @@ class WhisperState: NSObject, ObservableObject {
     
     // For model progress tracking
     @Published var downloadProgress: [String: Double] = [:]
-    @Published var parakeetDownloadStates: [String: Bool] = [:]
     
     init(modelContext: ModelContext, enhancementService: AIEnhancementService? = nil) {
         self.modelContext = modelContext
@@ -214,8 +193,6 @@ class WhisperState: NSObject, ObservableObject {
                                         self.logger.error("❌ Model loading failed: \(error.localizedDescription)")
                                     }
                                 }
-                            } else if let parakeetModel = self.currentTranscriptionModel as? ParakeetModel {
-                                try? await self.parakeetTranscriptionService.loadModel(for: parakeetModel)
                             }
         
                             if let enhancementService = self.enhancementService {
@@ -299,8 +276,6 @@ class WhisperState: NSObject, ObservableObject {
             switch model.provider {
             case .local:
                 transcriptionService = localTranscriptionService
-            case .parakeet:
-                transcriptionService = parakeetTranscriptionService
             case .nativeApple:
                 transcriptionService = nativeAppleTranscriptionService
             default:

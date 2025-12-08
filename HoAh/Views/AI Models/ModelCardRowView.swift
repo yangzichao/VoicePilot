@@ -41,13 +41,6 @@ struct ModelCardRowView: View {
                         setDefaultAction: setDefaultAction
                     )
                 }
-                    case .parakeet:
-            if let parakeetModel = model as? ParakeetModel {
-                ParakeetModelCardRowView(
-                    model: parakeetModel,
-                        whisperState: whisperState
-                    )
-                }
             case .nativeApple:
                 if let nativeAppleModel = model as? NativeAppleModel {
                     NativeAppleModelCardView(

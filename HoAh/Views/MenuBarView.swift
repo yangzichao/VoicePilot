@@ -164,19 +164,6 @@ struct MenuBarView: View {
                         }
                     }
                 }
-
-                Button {
-                    enhancementService.useScreenCaptureContext.toggle()
-                    menuRefreshTrigger.toggle()
-                } label: {
-                    HStack {
-                        Text("Context Awareness")
-                        Spacer()
-                        if enhancementService.useScreenCaptureContext {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
             }
             .id("additional-menu-\(menuRefreshTrigger)")
             

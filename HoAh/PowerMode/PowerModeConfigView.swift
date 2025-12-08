@@ -33,7 +33,7 @@ struct ConfigurationView: View {
     @State private var websiteConfigs: [URLConfig] = []
     @State private var newWebsiteURL: String = ""
     
-    // New state for screen capture toggle
+    // New state for screen capture toggle (deprecated, always off)
     @State private var useScreenCapture = false
     @State private var isAutoSendEnabled = false
     @State private var isDefault = false
@@ -48,7 +48,7 @@ struct ConfigurationView: View {
         else {
             return false
         }
-        return model.provider == .parakeet || model.provider == .gemini
+        return model.provider == .gemini
     }
     
     // Whisper state for model selection
@@ -110,7 +110,7 @@ struct ConfigurationView: View {
             _selectedEmoji = State(initialValue: latestConfig.emoji)
             _selectedAppConfigs = State(initialValue: latestConfig.appConfigs ?? [])
             _websiteConfigs = State(initialValue: latestConfig.urlConfigs ?? [])
-            _useScreenCapture = State(initialValue: latestConfig.useScreenCapture)
+            _useScreenCapture = State(initialValue: false)
             _isAutoSendEnabled = State(initialValue: latestConfig.isAutoSendEnabled)
             _isDefault = State(initialValue: latestConfig.isDefault)
             _selectedAIProvider = State(initialValue: latestConfig.selectedAIProvider)
@@ -597,11 +597,7 @@ struct ConfigurationView: View {
 
                             Divider()
                             
-                           
-                            Toggle("Context Awareness", isOn: $useScreenCapture)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                            
+                            // Screen context capture has been removed in this fork.
                         }
                     }
                     .padding()

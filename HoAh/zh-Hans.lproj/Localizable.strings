@@ -401,11 +401,9 @@
 /* Settings & Onboarding */
 "Microphone Access" = "麦克风权限";
 "Accessibility Access" = "辅助功能权限";
-"Screen Recording Access" = "屏幕录制权限";
 "Keyboard Shortcut" = "键盘快捷键";
 "Set Keyboard Shortcut" = "设置键盘快捷键";
 "Enable Accessibility" = "启用辅助功能";
-"Enable Screen Recording" = "启用屏幕录制";
 "Download Model" = "下载模型";
 "Microphone Selection" = "麦克风选择";
 "Output Format Guide" = "输出格式指南";
@@ -420,3 +418,13 @@
 /* Menu Bar Specific */
 "Hide Dock Icon" = "隐藏 Dock 图标";
 "Show Dock Icon" = "显示 Dock 图标";
+
+"Transcription Model: %@" = "转录模型：%@";
+"Prompt: %@" = "提示词：%@";
+"AI Provider: %@" = "AI 提供商：%@";
+"AI Model: %@" = "AI 模型：%@";
+"None" = "无";
+"No providers connected" = "未连接提供商";
+"No models available" = "无可用模型";
+"No devices available" = "无可用设备";
+"Clipboard Context" = "剪贴板上下文";
