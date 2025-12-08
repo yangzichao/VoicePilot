@@ -36,8 +36,9 @@ struct HoAhApp: App {
         AppLogger.defaultSubsystem = "com.yangzichao.hoah.parakeet"
 
         // Configure KeyboardShortcuts localization
-        KeyboardShortcuts.Localization.recordShortcut = NSLocalizedString("Record Shortcut", comment: "")
-        KeyboardShortcuts.Localization.pressShortcut = NSLocalizedString("Press Shortcut", comment: "")
+        // Note: KeyboardShortcuts.Localization may not be available in all versions
+        // KeyboardShortcuts.Localization.recordShortcut = NSLocalizedString("Record Shortcut", comment: "")
+        // KeyboardShortcuts.Localization.pressShortcut = NSLocalizedString("Press Shortcut", comment: "")
 
         if UserDefaults.standard.object(forKey: "powerModeUIFlag") == nil {
             let hasEnabledPowerModes = PowerModeManager.shared.configurations.contains { $0.isEnabled }
