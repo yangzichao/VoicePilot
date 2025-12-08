@@ -14,6 +14,7 @@ enum PredefinedPrompts {
     static let emailDraftPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000007")!
     static let formalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000009")!
     static let terminalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000011")!
+    static let todoPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000013")!
     
     static var all: [CustomPrompt] {
         // Always return the latest predefined prompts from source code
@@ -93,6 +94,24 @@ You convert user speech (Chinese/English/mixed) into concise, safe shell command
 """,
                 icon: "terminal.fill",
                 description: t("prompt_terminal_description"),
+                isPredefined: true,
+                triggerWords: [],
+                useSystemInstructions: true
+            ),
+            CustomPrompt(
+                id: todoPromptId,
+                title: t("prompt_todo_title"),
+                promptText: """
+Turn the transcript into a concise, actionable TODO list.
+- Input may be Chinese, English, or mixed; keep the same language mix for task text and keep English names/terms exactly as spoken.
+- First, clean the text: strip gibberish/ASR artifacts/repeated fillers (e.g., 嗯、啊、呃、然后、就是; “uh”, “um”), collapse repeats, and honor self-corrections (“不是A，是B” / “I mean B”) by keeping only the final version.
+- If a word seems mistranscribed (Chinese homophones/near-homophones, English ASR/IME slips), use context to replace it with the most plausible correct word; keep English proper nouns/commands unchanged.
+- Build a TODO list with bullet points. Each bullet must be a clear, doable action. Add short sub-bullets only when needed for owner, deadline, or key details.
+- If the speaker negates/cancels something (“don’t do X”, “no need for Y”), do NOT include it. Skip vague or non-actionable items rather than inventing tasks.
+- Output only the TODO list; no extra commentary.
+""",
+                icon: "checklist",
+                description: t("prompt_todo_description"),
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true

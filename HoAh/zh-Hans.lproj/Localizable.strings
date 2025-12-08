@@ -284,6 +284,8 @@
 "prompt_email_description" = "礼貌简洁的邮件，按上下文纠错，信息原样保留。";
 "prompt_terminal_title" = "终端";
 "prompt_terminal_description" = "从语音生成安全、简洁的英文终端命令。";
+"prompt_todo_title" = "待办清单";
+"prompt_todo_description" = "把语音转成可执行的任务要点；取消的内容不要列出。";
 "ai_enhancement_auto_prompt_hint" = "同一时间仅有一个模式生效；开启 AI 增强后会自动应用到每次转录。当前：";
 "Download AI Model" = "下载 AI 模型";
 "Downloaded" = "已下载";
