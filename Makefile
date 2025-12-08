@@ -3,7 +3,7 @@ DEPS_DIR := $(HOME)/HoAh-Dependencies
 WHISPER_CPP_DIR := $(DEPS_DIR)/whisper.cpp
 FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 
-.PHONY: all clean whisper setup build check healthcheck help dev run
+.PHONY: all clean whisper setup build check healthcheck help dev run reset-onboarding
 
 # Default target
 all: check build
@@ -65,6 +65,12 @@ clean:
 	@rm -rf $(DEPS_DIR)
 	@echo "Clean complete"
 
+# Reset onboarding flow so the app behaves like first launch
+reset-onboarding:
+	@echo "Resetting onboarding state for HoAh (bundle id: com.yangzichao.hoah)..."
+	@defaults delete com.yangzichao.hoah HasCompletedOnboarding || echo "No existing onboarding flag to delete."
+	@echo "Next launch will show the full onboarding flow again."
+
 # Help
 help:
 	@echo "Available targets:"
@@ -74,6 +80,7 @@ help:
 	@echo "  build              Build the HoAh Xcode project"
 	@echo "  run                Launch the built HoAh app"
 	@echo "  dev                Build and run the app (for development)"
+	@echo "  reset-onboarding   Clear onboarding flag so next launch shows first-time experience"
 	@echo "  all                Run full build process (default)"
 	@echo "  clean              Remove build artifacts"
 	@echo "  help               Show this help message"

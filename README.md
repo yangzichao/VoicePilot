@@ -1,7 +1,7 @@
 <div align="center">
   <img src="HoAh/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
   <h1>HoAh (吼蛙)</h1>
-  <p>macOS 语音转文字工具。本地捕捉音频，AI Agent 整理成文。</p>
+  <p>忠实、快速的本地多语言转录。AI 智能体为您按需处理。</p>
 
   [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
   ![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-brightgreen)

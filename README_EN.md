@@ -1,7 +1,7 @@
 <div align="center">
   <img src="HoAh/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
   <h1>HoAh (吼蛙)</h1>
-  <p>Speech-to-text for macOS. Capture audio locally, then let AI Agents structure it.</p>
+  <p>Faithful, multi-language transcription locally. AI Agents transform it for your needs.</p>
 
   [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
   ![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-brightgreen)
