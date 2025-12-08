@@ -46,7 +46,7 @@ struct MenuBarView: View {
                 }
             } label: {
                 HStack {
-                    Text("Transcription Model: \(whisperState.currentTranscriptionModel?.displayName ?? "None")")
+                    Text(String(format: NSLocalizedString("Transcription Model: %@", comment: ""), whisperState.currentTranscriptionModel?.displayName ?? NSLocalizedString("None", comment: "")))
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10))
                 }
@@ -101,7 +101,7 @@ struct MenuBarView: View {
                 }
             } label: {
                 HStack {
-                    Text("Prompt: \(enhancementService.activePrompt?.title ?? "None")")
+                    Text(String(format: NSLocalizedString("Prompt: %@", comment: ""), enhancementService.activePrompt?.title ?? NSLocalizedString("None", comment: "")))
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10))
                 }
@@ -127,7 +127,7 @@ struct MenuBarView: View {
                 }
             } label: {
                 HStack {
-                    Text("AI Provider: \(aiService.selectedProvider.rawValue)")
+                    Text(String(format: NSLocalizedString("AI Provider: %@", comment: ""), aiService.selectedProvider.rawValue))
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10))
                 }
@@ -153,7 +153,7 @@ struct MenuBarView: View {
                 }
             } label: {
                 HStack {
-                    Text("AI Model: \(aiService.currentModel)")
+                    Text(String(format: NSLocalizedString("AI Model: %@", comment: ""), aiService.currentModel))
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10))
                 }
@@ -181,7 +181,7 @@ struct MenuBarView: View {
                 }
             } label: {
                 HStack {
-                    Text("Audio Input")
+                    Text(LocalizedStringKey("Audio Input"))
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10))
                 }

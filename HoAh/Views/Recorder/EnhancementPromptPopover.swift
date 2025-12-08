@@ -85,5 +85,6 @@ struct EnhancementPromptRow: View {
         .buttonStyle(.plain)
         .background(isSelected ? Color.white.opacity(0.1) : Color.clear)
         .cornerRadius(4)
+        .help(prompt.displayDescription ?? "")
     }
 } 

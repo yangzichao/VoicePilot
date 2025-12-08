@@ -287,7 +287,7 @@ struct RecorderStatusDisplay: View {
         Group {
             if currentState == .enhancing {
                 VStack(spacing: 2) {
-                    Text("Enhancing")
+                    Text(LocalizedStringKey("Enhancing"))
                         .foregroundColor(.white)
                         .font(.system(size: 11, weight: .medium, design: .default))
                         .lineLimit(1)
@@ -297,7 +297,7 @@ struct RecorderStatusDisplay: View {
                 }
             } else if currentState == .transcribing {
                 VStack(spacing: 2) {
-                    Text("Transcribing")
+                    Text(LocalizedStringKey("Transcribing"))
                         .foregroundColor(.white)
                         .font(.system(size: 11, weight: .medium, design: .default))
                         .lineLimit(1)

@@ -6,7 +6,7 @@ struct SmartScenesPopover: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Select Smart Scene")
+            Text(LocalizedStringKey("Select Smart Scene"))
                 .font(.headline)
                 .foregroundColor(.white.opacity(0.9))
                 .padding(.horizontal)
@@ -23,7 +23,7 @@ struct SmartScenesPopover: View {
                             Image(systemName: "sparkles")
                                 .foregroundColor(.white.opacity(0.6))
                                 .font(.system(size: 16))
-                            Text("No Smart Scenes Available")
+                            Text(LocalizedStringKey("No Smart Scenes Available"))
                                 .foregroundColor(.white.opacity(0.8))
                                 .font(.system(size: 13))
                                 .lineLimit(1)
