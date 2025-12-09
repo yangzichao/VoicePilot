@@ -318,26 +318,58 @@
             const repo = 'yangzichao/hoah-dictation';
             const btn = document.getElementById('download-btn');
             const versionText = document.getElementById('version-text');
+            let latestRelease = null;
 
-            /*
+            function renderDownloadButton() {
+                if (!latestRelease) return;
+
+                const lang = currentLang;
+                const releaseName = latestRelease.tag_name; // e.g. v3.1.0
+
+                // Button Text
+                if (lang === 'zh') {
+                    btn.innerText = `下载 ${releaseName}`;
+                } else {
+                    btn.innerText = `Download ${releaseName}`;
+                }
+
+                // Href
+                btn.href = latestRelease.downloadUrl;
+
+                // Version Subtext
+                if (latestRelease.size) {
+                    const sizeMB = (latestRelease.size / 1024 / 1024).toFixed(1);
+                    versionText.innerText = `Latest: ${releaseName} (${sizeMB} MB) • macOS 14.0+`;
+                } else {
+                    versionText.innerText = `Latest: ${releaseName} • macOS 14.0+`;
+                }
+            }
+
             fetch(`https://api.github.com/repos/${repo}/releases/latest`)
                 .then(response => response.json())
                 .then(data => {
+                    if (!data || !data.assets) return;
                     const dmgAsset = data.assets.find(asset => asset.name.endsWith('.dmg'));
                     if (dmgAsset) {
-                        btn.href = dmgAsset.browser_download_url;
-                        const langText = currentLang === 'en' ? "Download" : "下载";
-                        btn.innerText = `${langText} ${data.tag_name}`;
-                        // We could keep version text logic simple or localized, for now keeping English structure with dynamic version
-                        versionText.innerText = `Latest: ${data.tag_name} (${(dmgAsset.size / 1024 / 1024).toFixed(1)} MB)`;
+                        latestRelease = {
+                            tag_name: data.tag_name,
+                            downloadUrl: dmgAsset.browser_download_url,
+                            size: dmgAsset.size
+                        };
+                        renderDownloadButton();
                     }
                 })
                 .catch(err => console.error('Error fetching release:', err));
-            */
 
             // Init Everything
             updateLanguage(currentLang);
-            // startDemo is called inside updateLanguage -> consistent init
+
+            // Re-render download button on language toggle
+            toggleBtn.addEventListener('click', () => {
+                setTimeout(renderDownloadButton, 0);
+            });
+
+            updateLanguage(currentLang);
         });
     </script>
 </body>
