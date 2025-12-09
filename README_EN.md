@@ -36,7 +36,6 @@ HoAh's core philosophy: **Transcription captures reality; Agents polish it to pe
 **Result (Polish)**:
 "I cannot complete this today. The client changed their requirements again, so it is not my fault the deadline is missed."
 *(Cleaned up, but still blunt)*
-
 **Result (Professional)**:
 "I will be unable to complete this task today due to recent changes in the client's requirements. Given these adjustments, we may need to revisit the timeline to ensure we meet expectations."
 *(Diplomatic, solution-oriented, high-EQ)*
