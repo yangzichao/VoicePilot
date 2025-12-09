@@ -350,7 +350,7 @@ class AIService: ObservableObject {
         if !trimmedKey.isEmpty {
             let entry = keyManager.addKey(trimmedKey, for: AIProvider.awsBedrock.rawValue)
             keyManager.selectKey(id: entry.id, for: AIProvider.awsBedrock.rawValue)
-            apiKey = entry.value
+            self.apiKey = entry.value
         }
         
         isAPIKeyValid = keyManager.activeKey(for: AIProvider.awsBedrock.rawValue) != nil && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
