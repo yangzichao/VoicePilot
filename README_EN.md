@@ -30,19 +30,16 @@ It supports multiple languages, custom agent prompts, and runs fully local by de
 
 HoAh's core philosophy: **Transcription captures reality; Agents polish it to perfection.** You can speak naturally, stutter and all, and let AI handle the formatting.
 
-### Scenario 1: Text Cleanup
-**Raw**: "So, um, basically the idea is, like, we should just launch it, you know, maybe next week."
-**Result**: "The idea is that we should launch it next week."
+### Example: Professional Mode (High-EQ)
+**Raw**: "Hey, I can't do this today. The client is being annoying and changed their mind again. It's not my fault the deadline is missed."
 
-### Scenario 2: Email Draft
-**Raw**: "Write a quick email to Sarah saying I checked the report and it looks good but the budget numbers for Q3 need a double check thanks."
-**Result**:
-> **Subject**: Q3 Budget Report
-> Hi Sarah, I reviewed the report and it looks good. However, please double-check the Q3 budget numbers. Thanks.
+**Result (Polish)**:
+"I cannot complete this today. The client changed their requirements again, so it is not my fault the deadline is missed."
+*(Cleaned up, but still blunt)*
 
-### Scenario 3: Command Line (Terminal)
-**Raw**: "Find all PDF files in the documents folder and copy them to the backup drive right now."
-**Result**: `find ~/Documents -name "*.pdf" -exec cp {} /Volumes/Backup/ \;`
+**Result (Professional)**:
+"I will be unable to complete this task today due to recent changes in the client's requirements. Given these adjustments, we may need to revisit the timeline to ensure we meet expectations."
+*(Diplomatic, solution-oriented, high-EQ)*
 
 ## Requirements
 
