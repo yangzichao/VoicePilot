@@ -127,6 +127,8 @@ class AIEnhancementService: ObservableObject {
             self.activePrompts = []
             self.triggerPrompts = []
         }
+        
+        normalizeTriggerActivityDefaults()
 
         if let savedPromptId = UserDefaults.standard.string(forKey: "selectedPromptId") {
             self.selectedPromptId = UUID(uuidString: savedPromptId)
@@ -203,6 +205,18 @@ class AIEnhancementService: ObservableObject {
 
         relocalize(&activePrompts)
         relocalize(&triggerPrompts)
+    }
+
+    /// Ensure trigger-word prompts default to enabled when no prior state exists,
+    /// so newly introduced or migrated prompts don't silently stay off.
+    private func normalizeTriggerActivityDefaults() {
+        triggerPrompts = triggerPrompts.map { prompt in
+            var updated = prompt
+            if !updated.triggerWords.isEmpty && updated.isActive == false {
+                updated.isActive = true
+            }
+            return updated
+        }
     }
 
     func getAIService() -> AIService? {
@@ -503,7 +517,7 @@ class AIEnhancementService: ObservableObject {
     }
     
     private func makeBedrockRequest(systemMessage: String, userMessage: String) async throws -> String {
-        let apiKey = aiService.bedrockApiKey
+        let apiKey = aiService.apiKey
         let region = aiService.bedrockRegion
         let modelId = aiService.currentModel
         
@@ -511,7 +525,10 @@ class AIEnhancementService: ObservableObject {
             throw EnhancementError.notConfigured
         }
         
+        // Combine system message and user message into a single prompt
         let prompt = "\(systemMessage)\n\(userMessage)"
+        
+        // Build messages array according to Bedrock Converse API format
         let messages: [[String: Any]] = [
             [
                 "role": "user",
@@ -520,23 +537,28 @@ class AIEnhancementService: ObservableObject {
                 ]
             ]
         ]
+        
+        // Build payload - note: modelId is NOT included in the payload body
         let payload: [String: Any] = [
-            "modelId": modelId,
             "messages": messages,
             "inferenceConfig": [
                 "maxTokens": 1024,
-                "temperature": aiService.currentModel.lowercased().hasPrefix("gpt-5") ? 1.0 : 0.3
+                "temperature": 0.3
             ]
         ]
+        
         let payloadData = try JSONSerialization.data(withJSONObject: payload)
         
+        // Build URL with model ID in the path
         let host = "bedrock-runtime.\(region).amazonaws.com"
         let url = URL(string: "https://\(host)/model/\(modelId)/converse")!
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = payloadData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = baseTimeout
         
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -568,20 +590,46 @@ class AIEnhancementService: ObservableObject {
     }
     
     private static func parseBedrockResponse(data: Data) -> String? {
-        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            if let text = json["output_text"] as? String { return text }
-            if let text = json["outputText"] as? String { return text }
-            if let text = json["completion"] as? String { return text }
-            if let text = json["generated_text"] as? String { return text }
-            if let outputs = json["outputs"] as? [[String: Any]] {
-                if let first = outputs.first {
-                    if let text = first["text"] as? String { return text }
-                    if let text = first["output_text"] as? String { return text }
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            // If JSON parsing fails, try returning as string
+            return String(data: data, encoding: .utf8)
+        }
+        
+        // Parse Bedrock Converse API response format:
+        // {"output": {"message": {"content": [{"text": "..."}], "role": "assistant"}}, ...}
+        if let output = json["output"] as? [String: Any],
+           let message = output["message"] as? [String: Any],
+           let content = message["content"] as? [[String: Any]] {
+            
+            // Try to extract text from each content item
+            for contentItem in content {
+                // Standard text format
+                if let text = contentItem["text"] as? String {
+                    return text
+                }
+                
+                // GPT-OSS reasoning format: {"reasoningContent": {"reasoningText": {"text": "..."}}}
+                if let reasoningContent = contentItem["reasoningContent"] as? [String: Any],
+                   let reasoningText = reasoningContent["reasoningText"] as? [String: Any],
+                   let text = reasoningText["text"] as? String {
+                    return text
                 }
             }
-        } else if let asString = String(data: data, encoding: .utf8) {
-            return asString
         }
+        
+        // Fallback: try other possible response formats
+        if let text = json["output_text"] as? String { return text }
+        if let text = json["outputText"] as? String { return text }
+        if let text = json["completion"] as? String { return text }
+        if let text = json["generated_text"] as? String { return text }
+        
+        if let outputs = json["outputs"] as? [[String: Any]] {
+            if let first = outputs.first {
+                if let text = first["text"] as? String { return text }
+                if let text = first["output_text"] as? String { return text }
+            }
+        }
+        
         return nil
     }
 
@@ -614,7 +662,7 @@ class AIEnhancementService: ObservableObject {
     }
 
     func addPrompt(title: String, promptText: String, icon: PromptIcon = "doc.text.fill", description: String? = nil, triggerWords: [String] = [], useSystemInstructions: Bool = true, kind: PromptKind) {
-        let newPrompt = CustomPrompt(title: title, promptText: promptText, icon: icon, description: description, isPredefined: false, triggerWords: triggerWords, useSystemInstructions: useSystemInstructions)
+        let newPrompt = CustomPrompt(title: title, promptText: promptText, isActive: true, icon: icon, description: description, isPredefined: false, triggerWords: triggerWords, useSystemInstructions: useSystemInstructions)
         switch kind {
         case .active:
             activePrompts.append(newPrompt)

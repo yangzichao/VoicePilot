@@ -211,7 +211,13 @@ struct EnhancementSettingsView: View {
                                 pendingPromptKind = .trigger
                                 isEditingPrompt = true
                             },
-                            isEnabled: enhancementService.isEnhancementEnabled && enhancementService.arePromptTriggersEnabled
+                            isEnabled: enhancementService.isEnhancementEnabled && enhancementService.arePromptTriggersEnabled,
+                            isPromptEnabled: { $0.isActive },
+                            onTogglePromptEnabled: { prompt, isOn in
+                                if let idx = enhancementService.triggerPrompts.firstIndex(where: { $0.id == prompt.id }) {
+                                    enhancementService.triggerPrompts[idx].isActive = isOn
+                                }
+                            }
                         )
                     }
                     .padding()
@@ -318,6 +324,8 @@ private struct ReorderablePromptGrid: View {
     let onDeletePrompt: ((CustomPrompt) -> Void)?
     let onAddNewPrompt: (() -> Void)?
     var isEnabled: Bool = true
+    var isPromptEnabled: ((CustomPrompt) -> Bool)? = nil
+    var onTogglePromptEnabled: ((CustomPrompt, Bool) -> Void)? = nil
     
     @State private var draggingItem: CustomPrompt?
     
@@ -334,6 +342,7 @@ private struct ReorderablePromptGrid: View {
                 
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(boundPrompts) { prompt in
+                        let promptEnabled = isPromptEnabled?(prompt) ?? true
                         prompt.promptIcon(
                             isSelected: selectedPromptId == prompt.id,
                             onTap: {
@@ -344,7 +353,7 @@ private struct ReorderablePromptGrid: View {
                             onEdit: onEditPrompt,
                             onDelete: onDeletePrompt
                         )
-                        .opacity(draggingItem?.id == prompt.id ? 0.3 : 1.0)
+                        .opacity((draggingItem?.id == prompt.id ? 0.3 : 1.0) * (promptEnabled ? 1.0 : 0.45))
                         .scaleEffect(draggingItem?.id == prompt.id ? 1.05 : 1.0)
                         .overlay(
                             RoundedRectangle(cornerRadius: 14)
@@ -356,6 +365,21 @@ private struct ReorderablePromptGrid: View {
                                 )
                         )
                         .animation(.easeInOut(duration: 0.15), value: draggingItem?.id == prompt.id)
+                        .overlay(alignment: .topTrailing) {
+                            if let onTogglePromptEnabled {
+                                Toggle(
+                                    "",
+                                    isOn: Binding(
+                                        get: { isPromptEnabled?(prompt) ?? true },
+                                        set: { onTogglePromptEnabled(prompt, $0) }
+                                    )
+                                )
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .scaleEffect(0.55)
+                                .padding(4)
+                            }
+                        }
                         .onDrag {
                             draggingItem = prompt
                             return NSItemProvider(object: prompt.id.uuidString as NSString)
