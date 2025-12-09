@@ -591,7 +591,7 @@
 // Settings - Updates
 "Updates" = "更新";
 "Check for Updates…" = "检查更新…";
-"HoAh does not check for updates automatically. Click the button above whenever you want to manually check for a new version." = "HoAh 不会自动检查更新。如需检查新版本，请点击上方按钮。";
+"HoAh checks for updates once at launch. Click the button above anytime to manually check for a new version." = "HoAh 会在启动时自动检查一次更新。如需手动检查新版本，可随时点击上方按钮。";
 "HoAh Homepage" = "吼蛙主页";
 
 // Enhancement Settings

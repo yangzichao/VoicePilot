@@ -342,7 +342,7 @@ struct SettingsView: View {
                             }
                             .buttonStyle(.bordered)
 
-                            Text(LocalizedStringKey("HoAh does not check for updates automatically. Click the button above whenever you want to manually check for a new version."))
+                            Text(LocalizedStringKey("HoAh checks for updates once at launch. Click the button above anytime to manually check for a new version."))
                                 .settingsDescription()
                                 
                             Link(destination: URL(string: "https://yangzichao.github.io/hoah-dictation/")!) {

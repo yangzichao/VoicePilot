@@ -20,6 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         menuBarManager?.applyActivationPolicy()
+        performAutomaticUpdateCheck()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -37,6 +38,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     
     @objc func checkForUpdates(_ sender: Any?) {
         updaterController.checkForUpdates(sender)
+    }
+    
+    private func performAutomaticUpdateCheck() {
+        // One-time check on launch; do not enable periodic background checks.
+        let updater = updaterController.updater
+        updater.automaticallyChecksForUpdates = false
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            self?.updaterController.updater.checkForUpdatesInBackground()
+        }
     }
 
     // Stash URL when app cold-starts to avoid spawning a new window/tab
