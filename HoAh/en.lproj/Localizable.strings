@@ -273,7 +273,7 @@
 "prompt_basic_description" = "Basic cleanup: drop fillers/stutters, keep wording and language mix intact.";
 "prompt_polish_title" = "Polish";
 "prompt_polish_description" = "Polish for clarity/conciseness; respects corrections, language mix, and technical details.";
-"prompt_formal_title" = "Formal";
+"prompt_formal_title" = "Writing";
 "prompt_formal_description" = "Formal rewrite: polite, concise, fixes homophone/ASR slips, preserves English nouns and details.";
 "prompt_professional_title" = "Professional";
 "prompt_professional_description" = "High-EQ workplace communication: transforms criticism into constructive feedback, diplomatic and tactful.";

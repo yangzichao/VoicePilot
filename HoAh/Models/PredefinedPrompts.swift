@@ -106,15 +106,15 @@ You are polishing a transcript for clarity, concision, and correctness without c
                 id: formalPromptId,
                 title: t("prompt_formal_title"),
                 promptText: """
-You rewrite the transcript into concise, formal, and polite written style while keeping the original meaning. Do NOT translate the main language; keep English proper nouns/terms exactly as spoken.
-- Input may be Chinese, English, or mixed. Preserve the primary language; keep English names, brands, technical terms, URLs, code, numbers, currencies, dates, measures unchanged.
+You rewrite the transcript into concise, formal, and polite written style while keeping the original meaning. For English-dominant input, translate non-English parts into natural English. For Chinese-dominant input, do NOT translate English names/brands/technical terms/code/URLs/numbers/dates/measures—keep them exactly as spoken.
+- 输入可能是中文、英文或混合：保持主语言一致；中文为主时，英文名称/技术术语/代码/URL/数字/日期/度量单位原样保留；英文为主时，可将非英文内容自然转换成英文。
 - Remove fillers/hesitations/stutters that do not affect meaning. Respect self-corrections: keep the final revision, drop the earlier wording.
 - If a word seems mistranscribed (homophones/near-homophones, ASR or IME mistakes), use context to replace it with the most plausible correct word; keep English proper nouns/terms exactly as spoken.
 - Fix grammar, punctuation, and sentence structure for best readability. Use formal tone and concise wording.
 - For Chinese input, watch for homophone or ASR mis-hearings (e.g., 同音字/近音字). Use context to replace mistranscribed words with the most plausible correct words; do not change English terms.
 - For English input, ensure clarity and formality; preserve English proper nouns as-is.
 - Do not invent or omit facts. If something is ambiguous, choose the most contextually likely wording without adding new information.
-- Output only the finalized formal text in the original language mix (with English nouns preserved).
+- Output only the finalized formal text in the chosen language consistency (with English nouns preserved where applicable). This mode should provide polished writing output.
 """,
                 icon: "doc.text.magnifyingglass",
                 description: t("prompt_formal_description"),

@@ -3,6 +3,28 @@
     <channel>
         <title>HoAh Releases</title>
         <item>
+            <title>3.1.2</title>
+            <pubDate>Tue, 10 Dec 2025 00:00:00 +0000</pubDate>
+            <sparkle:version>312</sparkle:version>
+            <sparkle:shortVersionString>3.1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+
+                <h3>What's New in Version 3.1.2</h3>
+                <ul>
+                    <li>Fixed AWS Bedrock integration with Bearer Token authentication support.</li>
+                    <li>Updated Bedrock models to use correct inference profile IDs.</li>
+                    <li>Added real connection testing for AWS Bedrock configuration.</li>
+                    <li>Improved model selection with validated preset models only.</li>
+                    <li>Enhanced response parsing for all Bedrock models including GPT-OSS.</li>
+                    <li>Fixed update check mechanism to properly detect new versions.</li>
+                </ul>
+
+            ]]></description>
+            <!-- Update this URL and the ED signature for each new release -->
+            <enclosure url="https://github.com/yangzichao/hoah-dictation/releases/download/v3.1.2/HoAh-3.1.2.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+        </item>
+        <item>
             <title>3.0.0</title>
             <pubDate>Thu, 09 Jan 2025 00:00:00 +0000</pubDate>
             <sparkle:version>300</sparkle:version>

@@ -276,7 +276,7 @@
 "prompt_basic_description" = "基础清理：去除口头填充/结巴，保持原有措辞和语言混排。";
 "prompt_polish_title" = "润色";
 "prompt_polish_description" = "增强清晰/简洁，尊重自我纠正，保留语言混排与技术细节。";
-"prompt_formal_title" = "正式";
+"prompt_formal_title" = "写作";
 "prompt_formal_description" = "正式书面化：礼貌精简，修正同音/ASR 误听，保留英文专有名词等细节。";
 "prompt_professional_title" = "高情商";
 "prompt_professional_description" = "职场高情商沟通：将批评转化为建设性反馈，委婉圆融，注重面子和和谐。";
