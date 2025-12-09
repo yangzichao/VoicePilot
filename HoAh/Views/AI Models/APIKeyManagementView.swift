@@ -8,6 +8,8 @@ struct APIKeyManagementView: View {
     @State private var isVerifying = false
     @State private var keyEntries: [CloudAPIKeyEntry] = []
     @State private var activeKeyId: UUID?
+    @State private var bedrockRegionSelection: String = "us-east-1"
+    @State private var bedrockModelSelection: String = ""
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -41,6 +43,7 @@ struct APIKeyManagementView: View {
             
             .onChange(of: aiService.selectedProvider) { oldValue, newValue in
                 reloadKeys()
+                syncBedrockRegionSelection()
             }
             
             // Model Selection
@@ -188,6 +191,27 @@ struct APIKeyManagementView: View {
                 .background(Color.secondary.opacity(0.03))
                 .cornerRadius(12)
             } else if aiService.selectedProvider == .awsBedrock {
+                let presetRegions = [
+                    "us-east-1",
+                    "us-east-2",
+                    "us-west-1",
+                    "us-west-2",
+                    "eu-west-1",
+                    "eu-central-1",
+                    "ap-southeast-1",
+                    "ap-northeast-1",
+                    "ap-south-1",
+                    "custom"
+                ]
+
+                let presetModels = [
+                    "anthropic.claude-sonnet-4-5-20250929-v1:0",
+                    "anthropic.claude-opus-4-5-20251101-v1:0",
+                    "openai.gpt-oss-safeguard-120b",
+                    "amazon.nova-pro-v1:0",
+                    "custom"
+                ]
+
                 VStack(alignment: .leading, spacing: 16) {
                     Text("AWS Bedrock Configuration")
                         .font(.headline)
@@ -196,11 +220,45 @@ struct APIKeyManagementView: View {
                         SecureField("API Key (bedrock-api-key-...)", text: $aiService.bedrockApiKey)
                             .textFieldStyle(.roundedBorder)
                         
-                        TextField("Region (e.g., us-east-1)", text: $aiService.bedrockRegion)
-                            .textFieldStyle(.roundedBorder)
+                        HStack {
+                            Picker("Region", selection: $bedrockRegionSelection) {
+                                ForEach(presetRegions, id: \.self) { region in
+                                    Text(region == "custom" ? "Custom…" : region).tag(region)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .onChange(of: bedrockRegionSelection) { _, newValue in
+                                if newValue != "custom" {
+                                    aiService.bedrockRegion = newValue
+                                }
+                            }
+                            
+                            if bedrockRegionSelection == "custom" {
+                                TextField("Enter region (e.g., us-west-2)", text: $aiService.bedrockRegion)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(maxWidth: 220)
+                            }
+                        }
                         
-                        TextField("Model ID (e.g., anthropic.claude-3-5-sonnet-20241022-v2:0)", text: $aiService.bedrockModelId)
-                            .textFieldStyle(.roundedBorder)
+                        HStack {
+                            Picker("Model", selection: $bedrockModelSelection) {
+                                ForEach(presetModels, id: \.self) { model in
+                                    Text(model == "custom" ? "Custom…" : model).tag(model)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .onChange(of: bedrockModelSelection) { _, newValue in
+                                if newValue != "custom" {
+                                    aiService.bedrockModelId = newValue
+                                }
+                            }
+                            
+                            if bedrockModelSelection == "custom" {
+                                TextField("Enter model ID", text: $aiService.bedrockModelId)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(maxWidth: 320)
+                            }
+                        }
                     }
                     
                     HStack {
@@ -406,6 +464,8 @@ struct APIKeyManagementView: View {
         }
         .onAppear {
             reloadKeys()
+            syncBedrockRegionSelection()
+            syncBedrockModelSelection()
         }
     }
     
@@ -417,6 +477,39 @@ struct APIKeyManagementView: View {
     private func reloadKeys() {
         keyEntries = aiService.currentKeyEntries()
         activeKeyId = CloudAPIKeyManager.shared.activeKey(for: aiService.selectedProvider.rawValue)?.id
+    }
+
+    private func syncBedrockRegionSelection() {
+        let presets = [
+            "us-east-1",
+            "us-east-2",
+            "us-west-1",
+            "us-west-2",
+            "eu-west-1",
+            "eu-central-1",
+            "ap-southeast-1",
+            "ap-northeast-1",
+            "ap-south-1"
+        ]
+        if presets.contains(aiService.bedrockRegion) {
+            bedrockRegionSelection = aiService.bedrockRegion
+        } else {
+            bedrockRegionSelection = "custom"
+        }
+    }
+
+    private func syncBedrockModelSelection() {
+        let presets = [
+            "anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "anthropic.claude-opus-4-5-20251101-v1:0",
+            "openai.gpt-oss-safeguard-120b",
+            "amazon.nova-pro-v1:0"
+        ]
+        if presets.contains(aiService.bedrockModelId) {
+            bedrockModelSelection = aiService.bedrockModelId
+        } else {
+            bedrockModelSelection = "custom"
+        }
     }
     
     private func maskKey(_ key: String) -> String {

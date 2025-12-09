@@ -1,6 +1,7 @@
 import Foundation
 
 enum AIProvider: String, CaseIterable {
+    case awsBedrock = "AWS Bedrock"
     case cerebras = "Cerebras"
     case groq = "GROQ"
     case gemini = "Gemini"
@@ -11,7 +12,6 @@ enum AIProvider: String, CaseIterable {
     case elevenLabs = "ElevenLabs"
     case soniox = "Soniox"
     case custom = "Custom"
-    case awsBedrock = "AWS Bedrock"
     
     
     var baseURL: String {
@@ -65,7 +65,7 @@ enum AIProvider: String, CaseIterable {
         case .openRouter:
             return "openai/gpt-oss-120b"
         case .awsBedrock:
-            return UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "meta.llama3-70b-instruct-v1:0"
+            return UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "anthropic.claude-3-5-sonnet-20240620-v1:0"
         }
     }
     
@@ -152,7 +152,7 @@ class AIService: ObservableObject {
     @Published var bedrockRegion: String = UserDefaults.standard.string(forKey: "AWSBedrockRegion") ?? "us-east-1" {
         didSet { userDefaults.set(bedrockRegion, forKey: "AWSBedrockRegion") }
     }
-    @Published var bedrockModelId: String = UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "meta.llama3-70b-instruct-v1:0" {
+    @Published var bedrockModelId: String = UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "anthropic.claude-3-5-sonnet-20240620-v1:0" {
         didSet { userDefaults.set(bedrockModelId, forKey: "AWSBedrockModelId") }
     }
     @Published var customBaseURL: String = UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? "" {
