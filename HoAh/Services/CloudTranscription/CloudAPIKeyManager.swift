@@ -73,8 +73,15 @@ final class CloudAPIKeyManager {
     @discardableResult
     func addKey(_ value: String, for providerKey: String) -> CloudAPIKeyEntry {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        let entry = CloudAPIKeyEntry(value: trimmed)
         var keys = keysByProvider[providerKey] ?? []
+        
+        if let existing = keys.first(where: { $0.value == trimmed }) {
+            activeIdByProvider[providerKey] = existing.id
+            persist(for: providerKey)
+            return existing
+        }
+        
+        let entry = CloudAPIKeyEntry(value: trimmed)
         keys.append(entry)
         keysByProvider[providerKey] = keys
         activeIdByProvider[providerKey] = entry.id
