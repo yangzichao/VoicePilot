@@ -122,6 +122,7 @@ class AIEnhancementService: ObservableObject {
         // Load prompts from UserDefaults (complex objects not in AppSettingsStore)
         let decodedActive = UserDefaults.standard.data(forKey: activePromptsKey).flatMap { try? JSONDecoder().decode([CustomPrompt].self, from: $0) }
         let decodedTrigger = UserDefaults.standard.data(forKey: triggerPromptsKey).flatMap { try? JSONDecoder().decode([CustomPrompt].self, from: $0) }
+        let shouldNormalizeDefaults = decodedTrigger == nil && UserDefaults.standard.data(forKey: legacyPromptsKey) == nil
         if let decodedActive, let decodedTrigger {
             self.activePrompts = decodedActive
             self.triggerPrompts = decodedTrigger
@@ -134,8 +135,6 @@ class AIEnhancementService: ObservableObject {
             self.activePrompts = []
             self.triggerPrompts = []
         }
-        
-        normalizeTriggerActivityDefaults()
 
         NotificationCenter.default.addObserver(
             self,
@@ -146,6 +145,10 @@ class AIEnhancementService: ObservableObject {
 
         initializePredefinedPrompts()
         relocalizePredefinedPromptTitles()
+
+        if shouldNormalizeDefaults {
+            normalizeTriggerActivityDefaults(shouldForceEnableDefaults: true)
+        }
 
         NotificationCenter.default.addObserver(
             self,
@@ -162,8 +165,11 @@ class AIEnhancementService: ObservableObject {
         
         // Subscribe to settings changes to trigger objectWillChange
         appSettings.$isAIEnhancementEnabled
-            .sink { [weak self] _ in
+            .sink { [weak self] isEnabled in
                 self?.objectWillChange.send()
+                if !isEnabled {
+                    self?.disableAllTriggerPrompts()
+                }
             }
             .store(in: &cancellables)
         
@@ -192,8 +198,11 @@ class AIEnhancementService: ObservableObject {
             .store(in: &cancellables)
         
         appSettings.$arePromptTriggersEnabled
-            .sink { [weak self] _ in
+            .sink { [weak self] isEnabled in
                 self?.objectWillChange.send()
+                if !isEnabled {
+                    self?.disableAllTriggerPrompts()
+                }
             }
             .store(in: &cancellables)
         
@@ -256,14 +265,25 @@ class AIEnhancementService: ObservableObject {
         relocalize(&triggerPrompts)
     }
 
-    /// Ensure trigger-word prompts default to enabled when no prior state exists,
-    /// so newly introduced or migrated prompts don't silently stay off.
-    private func normalizeTriggerActivityDefaults() {
+    /// Ensure trigger-word prompts default to enabled only on first launch (no prior state).
+    private func normalizeTriggerActivityDefaults(shouldForceEnableDefaults: Bool) {
+        guard shouldForceEnableDefaults else { return }
+        
         triggerPrompts = triggerPrompts.map { prompt in
             var updated = prompt
             if !updated.triggerWords.isEmpty && updated.isActive == false {
                 updated.isActive = true
             }
+            return updated
+        }
+    }
+
+    /// Disable all trigger prompts (used when master toggle or AI enhancement is turned off).
+    func disableAllTriggerPrompts() {
+        guard triggerPrompts.contains(where: { $0.isActive }) else { return }
+        triggerPrompts = triggerPrompts.map { prompt in
+            var updated = prompt
+            updated.isActive = false
             return updated
         }
     }

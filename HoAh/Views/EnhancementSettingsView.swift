@@ -63,6 +63,8 @@ struct EnhancementSettingsView: View {
                                         }
                                     } else {
                                         appSettings.isAIEnhancementEnabled = false
+                                        appSettings.arePromptTriggersEnabled = false
+                                        enhancementService.disableAllTriggerPrompts()
                                     }
                                 }
                             ))
@@ -167,29 +169,37 @@ struct EnhancementSettingsView: View {
                         Divider()
 
                         // Trigger-based prompts section
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Prompt Triggers")
-                                    .font(.headline)
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Prompt Triggers")
+                                        .font(.headline)
+                                    Text("Auto-activate prompts when their trigger words appear.")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
                                 Spacer()
+                                
                                 Toggle(
                                     "Enable Prompt Triggers",
                                     isOn: Binding(
                                         get: { appSettings.arePromptTriggersEnabled },
                                         set: { newValue in
-                                            appSettings.arePromptTriggersEnabled = newValue
-                                            if newValue && !appSettings.isAIEnhancementEnabled {
-                                                appSettings.isAIEnhancementEnabled = true
+                                            if newValue {
+                                                appSettings.arePromptTriggersEnabled = true
+                                                if !appSettings.isAIEnhancementEnabled {
+                                                    appSettings.isAIEnhancementEnabled = true
+                                                }
+                                            } else {
+                                                appSettings.arePromptTriggersEnabled = false
+                                                enhancementService.disableAllTriggerPrompts()
                                             }
                                         }
                                     )
                                 )
                                 .toggleStyle(.switch)
                             }
-                            
-                            Text("When enabled, these prompts auto-activate if their trigger words are present in your text.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
 
                             if !appSettings.isAIEnhancementEnabled {
                                 Text("Auto enhancement is off, so triggers are inactive until you turn it on.")
@@ -338,22 +348,53 @@ private struct ReorderablePromptGrid: View {
                     .font(.caption)
             } else {
                 let columns = [
-                    GridItem(.adaptive(minimum: 80, maximum: 100), spacing: 36)
+                    GridItem(.adaptive(minimum: 140, maximum: 180), spacing: 24)
                 ]
                 
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(boundPrompts) { prompt in
                         let promptEnabled = isPromptEnabled?(prompt) ?? true
-                        prompt.promptIcon(
-                            isSelected: selectedPromptId == prompt.id,
-                            onTap: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    onPromptSelected(prompt)
-                                }
-                            },
-                            onEdit: onEditPrompt,
-                            onDelete: onDeletePrompt
-                        )
+                        VStack(spacing: 10) {
+                            prompt.promptIcon(
+                                isSelected: selectedPromptId == prompt.id,
+                                onTap: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        onPromptSelected(prompt)
+                                    }
+                                },
+                                onEdit: onEditPrompt,
+                                onDelete: onDeletePrompt
+                            )
+                            .animation(.easeInOut(duration: 0.15), value: draggingItem?.id == prompt.id)
+                            .onDrag {
+                                draggingItem = prompt
+                                return NSItemProvider(object: prompt.id.uuidString as NSString)
+                            }
+                            .onDrop(
+                                of: [UTType.text],
+                                delegate: PromptDropDelegate(
+                                    item: prompt,
+                                    prompts: $boundPrompts,
+                                    draggingItem: $draggingItem
+                                )
+                            )
+
+                            if let onTogglePromptEnabled {
+                                Toggle(
+                                    prompt.displayTitle,
+                                    isOn: Binding(
+                                        get: { isPromptEnabled?(prompt) ?? true },
+                                        set: { onTogglePromptEnabled(prompt, $0) }
+                                    )
+                                )
+                                .toggleStyle(.switch)
+                                .font(.caption)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .disabled(!isEnabled)
+                                .tint(.accentColor)
+                            }
+                        }
                         .opacity((draggingItem?.id == prompt.id ? 0.3 : 1.0) * (promptEnabled ? 1.0 : 0.45))
                         .scaleEffect(draggingItem?.id == prompt.id ? 1.05 : 1.0)
                         .overlay(
@@ -364,34 +405,6 @@ private struct ReorderablePromptGrid: View {
                                     : Color.clear,
                                     lineWidth: 1
                                 )
-                        )
-                        .animation(.easeInOut(duration: 0.15), value: draggingItem?.id == prompt.id)
-                        .overlay(alignment: .topTrailing) {
-                            if let onTogglePromptEnabled {
-                                Toggle(
-                                    "",
-                                    isOn: Binding(
-                                        get: { isPromptEnabled?(prompt) ?? true },
-                                        set: { onTogglePromptEnabled(prompt, $0) }
-                                    )
-                                )
-                                .toggleStyle(.switch)
-                                .labelsHidden()
-                                .scaleEffect(0.55)
-                                .padding(4)
-                            }
-                        }
-                        .onDrag {
-                            draggingItem = prompt
-                            return NSItemProvider(object: prompt.id.uuidString as NSString)
-                        }
-                        .onDrop(
-                            of: [UTType.text],
-                            delegate: PromptDropDelegate(
-                                item: prompt,
-                                prompts: $boundPrompts,
-                                draggingItem: $draggingItem
-                            )
                         )
                     }
                     
