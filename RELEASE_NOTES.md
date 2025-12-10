@@ -1,15 +1,14 @@
-# HoAh 3.0 正式版更新
+# What's New in Version 3.1.3
 
-## 1. 全面原生中文支持 (Complete Chinese Localization)
-*   **全界面汉化**：实现了菜单栏、迷你录音窗 (Mini Recorder)、刘海录音窗 (Notch Recorder) 以及欢迎页面的全方位中文本地化。
-*   **细节打磨**：无论是动态的 AI 模型名称，还是录音状态提示 ("正在转录"、"正在增强")，均已完美支持中文显示，带来原生的使用体验。
+### ✨ UI/UX Improvements
+- **Redesigned Enhancement Settings**: Split the "Enhancement Modes" section into two distinct cards ("Default Auto-Enhancement" and "Smart Triggers") for better visual hierarchy and clarity.
+- **Improved Trigger Toggle**: The "Prompt Triggers" switch is now cleaner and positioned in the header, fixing previous layout issues.
 
-## 2. 智能场景与个性化 AI (Smart Scenes & Personalized AI)
-*   **Power Mode 正式升级为 Smart Scenes (智能场景)**：更加智能的上下文感知，不再依赖单一模式，支持全局 AI 增强。
-*   **用户画像 (User Profile)**：新增用户画像设置，您可以提供个人背景（如职位、技术栈等），让 AI 的回答更加懂你，量身定制。
-*   **新提示词**：新增 "Terminal" (终端) 预设，专门用于生成安全、准确的 Shell 命令；同时增强了 "Formal" 等现有模式。
+### 🐛 Bug Fixes
+- **Accessibility Permissions**: Fixed an issue where the permission screen wouldn't automatically refresh after granting accessibility access. It now detects changes instantly.
 
-## 3. 全新引导与交互优化 (New Onboarding & Polish)
-*   **重构引导流程**：首次启动即可选择语言，并直观地选择本地 Whisper 模型或云端 Scribe 模型。
-*   **菜单栏优化**：调整了菜单布局，将“设置”移至更顺手的位置，并支持直接配置快捷键。
-*   **体验改进**：移除过时的 AppleScript 粘贴方式，统一使用更稳定的粘贴逻辑；不仅支持自动检测语言，还加入了 Launch at Login (登录自启) 的原生支持。
+### 📝 Documentation
+- **Website Updates**:
+  - Automated "Download" button to always fetch the latest release.
+  - Added GitHub link to the site header.
+  - Improved header layout and styling.
