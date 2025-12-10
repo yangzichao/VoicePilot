@@ -260,7 +260,27 @@ class AIService: ObservableObject {
         #endif
         
         refreshAPIKeyState()
+        refreshAPIKeyState()
         loadSavedOpenRouterModels()
+        
+        // Listen for external API key changes (e.g. from APIKeyManagementView)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAPIKeyChanged),
+            name: .aiProviderKeyChanged,
+            object: nil
+        )
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleAPIKeyChanged() {
+        Task { @MainActor in
+            self.refreshAPIKeyState()
+            self.objectWillChange.send()
+        }
     }
     
     /// Migrates any misplaced transcription provider API keys from AIService storage

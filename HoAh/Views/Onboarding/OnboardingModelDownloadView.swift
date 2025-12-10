@@ -9,12 +9,18 @@ struct OnboardingModelDownloadView: View {
     @State private var isTurboDownloaded = false
     @State private var isTurboSelected = false
     @State private var showTutorial = false
+    @State private var hasQualifiedLocalModel = false
     
     private var canContinue: Bool {
-        isTurboDownloaded && isTurboSelected
+        (isTurboDownloaded && isTurboSelected) || hasQualifiedLocalModel
     }
     
     private let turboModel = PredefinedModels.models.first { $0.name == "ggml-large-v3-turbo-q5_0" } as! LocalModel
+    private let largeModelNames: Set<String> = [
+        "ggml-large-v3-turbo-q5_0",
+        "ggml-large-v3-turbo",
+        "ggml-large-v3"
+    ]
     
     var body: some View {
         ZStack {
@@ -156,6 +162,17 @@ struct OnboardingModelDownloadView: View {
     private func checkInitialState() {
         isTurboDownloaded = whisperState.availableModels.contains(where: { $0.name == turboModel.name })
         isTurboSelected = whisperState.currentTranscriptionModel?.name == turboModel.name
+        
+        if let currentName = whisperState.currentTranscriptionModel?.name,
+           whisperState.currentTranscriptionModel?.provider == .local,
+           largeModelNames.contains(currentName),
+           whisperState.availableModels.contains(where: { $0.name == currentName }) {
+            hasQualifiedLocalModel = true
+            // Edge case: already has a local large model; skip download gate.
+            withAnimation {
+                showTutorial = true
+            }
+        }
     }
     
     private func handleTurboSelection() {

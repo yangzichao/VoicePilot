@@ -87,6 +87,7 @@ final class CloudAPIKeyManager {
         activeIdByProvider[providerKey] = entry.id
         
         persist(for: providerKey)
+        NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
         return entry
     }
     
@@ -94,7 +95,9 @@ final class CloudAPIKeyManager {
         guard let keys = keysByProvider[providerKey],
               keys.contains(where: { $0.id == id }) else { return }
         activeIdByProvider[providerKey] = id
+        activeIdByProvider[providerKey] = id
         persist(for: providerKey)
+        NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
     
     @discardableResult
@@ -105,7 +108,9 @@ final class CloudAPIKeyManager {
             // Only one key, nothing to rotate but treat as success so caller does not fail prematurely
             if let current = activeKey(for: providerKey) {
                 activeIdByProvider[providerKey] = current.id
+                activeIdByProvider[providerKey] = current.id
                 persist(for: providerKey)
+                NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
                 return true
             }
             return false
@@ -116,7 +121,9 @@ final class CloudAPIKeyManager {
         let nextIndex = (currentIndex + 1) % keys.count
         let next = keys[nextIndex]
         activeIdByProvider[providerKey] = next.id
+        activeIdByProvider[providerKey] = next.id
         persist(for: providerKey)
+        NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
         return true
     }
     
@@ -134,7 +141,9 @@ final class CloudAPIKeyManager {
             keysByProvider[providerKey] = keys
             activeIdByProvider[providerKey] = keys[0].id
         }
+        }
         persist(for: providerKey)
+        NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
     
     func removeKey(id: UUID, for providerKey: String) {
@@ -149,12 +158,15 @@ final class CloudAPIKeyManager {
         }
         
         persist(for: providerKey)
+        NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
     
     func removeAllKeys(for providerKey: String) {
         keysByProvider[providerKey] = []
         activeIdByProvider[providerKey] = nil
+        activeIdByProvider[providerKey] = nil
         persist(for: providerKey)
+        NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
     
     // MARK: - Persistence and migration

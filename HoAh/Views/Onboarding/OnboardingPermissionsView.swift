@@ -402,6 +402,11 @@ struct OnboardingPermissionsView: View {
     }
 
     private func openAccessibilitySettings() {
+        // Try to deep-link into System Settings, while also triggering the AX prompt as a fallback.
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
+
         let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
         AXIsProcessTrustedWithOptions(options)
     }
