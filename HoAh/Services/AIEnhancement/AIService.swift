@@ -11,7 +11,6 @@ enum AIProvider: String, CaseIterable {
     case anthropic = "Anthropic"
     case openAI = "OpenAI"
     case openRouter = "OpenRouter"
-    case mistral = "Mistral"
     case custom = "Custom"
     
     
@@ -29,8 +28,6 @@ enum AIProvider: String, CaseIterable {
             return "https://api.openai.com/v1/chat/completions"
         case .openRouter:
             return "https://openrouter.ai/api/v1/chat/completions"
-        case .mistral:
-            return "https://api.mistral.ai/v1/chat/completions"
         case .custom:
             return UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? ""
         case .awsBedrock:
@@ -51,8 +48,6 @@ enum AIProvider: String, CaseIterable {
             return "claude-sonnet-4-5"
         case .openAI:
             return "gpt-5.1"
-        case .mistral:
-            return "mistral-large-latest"
         case .custom:
             return UserDefaults.standard.string(forKey: "customProviderModel") ?? ""
         case .openRouter:
@@ -103,13 +98,6 @@ enum AIProvider: String, CaseIterable {
                 "gpt-5-nano",
                 "gpt-4.1",
                 "gpt-4.1-mini"
-            ]
-        case .mistral:
-            return [
-                "mistral-large-latest",
-                "mistral-medium-latest",
-                "mistral-small-latest",
-                "mistral-saba-latest"
             ]
         case .custom:
             return []
@@ -476,8 +464,6 @@ class AIService: ObservableObject {
         switch selectedProvider {
         case .anthropic:
             verifyAnthropicAPIKey(key, completion: completion)
-        case .mistral:
-            verifyMistralAPIKey(key, completion: completion)
         default:
             verifyOpenAICompatibleAPIKey(key, completion: completion)
         }
@@ -601,34 +587,6 @@ class AIService: ObservableObject {
         }.resume()
     }
     
-    private func verifyMistralAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
-        let url = URL(string: "https://api.mistral.ai/v1/models")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(false, error.localizedDescription)
-                return
-            }
-            
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 200 {
-                    completion(true, nil)
-                } else {
-                    if let data = data, let body = String(data: data, encoding: .utf8) {
-                        completion(false, body)
-                    } else {
-                        completion(false, nil)
-                    }
-                }
-            } else {
-                completion(false, nil)
-            }
-        }.resume()
-    }
-
     func verifyBedrockConnection(apiKey: String, region: String, modelId: String, completion: @escaping (Bool, String?) -> Void) {
         guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               !region.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,

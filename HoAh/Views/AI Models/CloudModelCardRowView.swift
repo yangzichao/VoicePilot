@@ -31,8 +31,6 @@ struct CloudModelCardView: View {
             return "GROQ"
         case .elevenLabs:
             return "ElevenLabs"
-        case .mistral:
-            return "Mistral"
         case .gemini:
             return "Gemini"
         case .soniox:
@@ -385,7 +383,7 @@ struct CloudModelCardView: View {
         
         // Verify the API key based on the provider type
         switch model.provider {
-        case .groq, .mistral, .gemini:
+        case .groq, .gemini:
             // For transcription providers, save key directly (no AIProvider mapping needed)
             handleVerificationResult(isValid: true, errorMessage: nil)
         case .elevenLabs:

@@ -629,8 +629,6 @@ struct APIKeyManagementView: View {
                                     URL(string: "https://makersuite.google.com/app/apikey")!
                                 case .anthropic:
                                     URL(string: "https://console.anthropic.com/settings/keys")!
-                                case .mistral:
-                                    URL(string: "https://console.mistral.ai/api-keys")!
                                 case .custom:
                                     URL(string: "")! // not used
                                 case .openRouter:

@@ -182,7 +182,6 @@ final class CloudAPIKeyManager {
         let legacyProviders = [
             "GROQ",
             "ElevenLabs",
-            "Mistral",
             "Gemini",
             "Soniox",
             "Anthropic",
