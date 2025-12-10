@@ -144,92 +144,59 @@ class AIService: ObservableObject {
     // AWS Bedrock credentials/config - runtime state
     @Published var bedrockApiKey: String = ""
     
-    // Legacy storage for backward compatibility during migration
-    private var legacyBedrockRegion: String = UserDefaults.standard.string(forKey: "AWSBedrockRegion") ?? "us-east-1"
-    private var legacyBedrockModelId: String = UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
-    private var legacyCustomBaseURL: String = UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? ""
-    private var legacyCustomModel: String = UserDefaults.standard.string(forKey: "customProviderModel") ?? ""
-    private var legacySelectedProvider: AIProvider
-    private var legacySelectedModels: [AIProvider: String] = [:]
-    
-    /// AWS Bedrock region - reads from AppSettingsStore if available
+    /// AWS Bedrock region - reads from AppSettingsStore
     var bedrockRegion: String {
-        get { appSettings?.bedrockRegion ?? legacyBedrockRegion }
+        get { appSettings?.bedrockRegion ?? "us-east-1" }
         set {
             objectWillChange.send()
-            if let appSettings = appSettings {
-                appSettings.bedrockRegion = newValue
-            } else {
-                legacyBedrockRegion = newValue
-                userDefaults.set(newValue, forKey: "AWSBedrockRegion")
-            }
+            appSettings?.bedrockRegion = newValue
         }
     }
     
-    /// AWS Bedrock model ID - reads from AppSettingsStore if available
+    /// AWS Bedrock model ID - reads from AppSettingsStore
     var bedrockModelId: String {
-        get { appSettings?.bedrockModelId ?? legacyBedrockModelId }
+        get { appSettings?.bedrockModelId ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0" }
         set {
             objectWillChange.send()
-            if let appSettings = appSettings {
-                appSettings.bedrockModelId = newValue
-            } else {
-                legacyBedrockModelId = newValue
-                userDefaults.set(newValue, forKey: "AWSBedrockModelId")
-            }
+            appSettings?.bedrockModelId = newValue
         }
     }
     
-    /// Custom provider base URL - reads from AppSettingsStore if available
+    /// Custom provider base URL - reads from AppSettingsStore
     var customBaseURL: String {
-        get { appSettings?.customProviderBaseURL ?? legacyCustomBaseURL }
+        get { appSettings?.customProviderBaseURL ?? "" }
         set {
             objectWillChange.send()
-            if let appSettings = appSettings {
-                appSettings.customProviderBaseURL = newValue
-            } else {
-                legacyCustomBaseURL = newValue
-                userDefaults.set(newValue, forKey: "customProviderBaseURL")
-            }
+            appSettings?.customProviderBaseURL = newValue
         }
     }
     
-    /// Custom provider model - reads from AppSettingsStore if available
+    /// Custom provider model - reads from AppSettingsStore
     var customModel: String {
-        get { appSettings?.customProviderModel ?? legacyCustomModel }
+        get { appSettings?.customProviderModel ?? "" }
         set {
             objectWillChange.send()
-            if let appSettings = appSettings {
-                appSettings.customProviderModel = newValue
-            } else {
-                legacyCustomModel = newValue
-                userDefaults.set(newValue, forKey: "customProviderModel")
-            }
+            appSettings?.customProviderModel = newValue
         }
     }
     
-    /// Selected AI provider - reads from AppSettingsStore if available
+    /// Selected AI provider - reads from AppSettingsStore
     var selectedProvider: AIProvider {
         get {
             if let appSettings = appSettings {
                 return AIProvider(rawValue: appSettings.selectedAIProvider) ?? .gemini
             }
-            return legacySelectedProvider
+            return .gemini
         }
         set {
             objectWillChange.send()
-            if let appSettings = appSettings {
-                appSettings.selectedAIProvider = newValue.rawValue
-            } else {
-                legacySelectedProvider = newValue
-                userDefaults.set(newValue.rawValue, forKey: "selectedAIProvider")
-            }
+            appSettings?.selectedAIProvider = newValue.rawValue
             refreshAPIKeyState()
             NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
         }
     }
     
-    /// Selected models per provider - reads from AppSettingsStore if available
+    /// Selected models per provider - reads from AppSettingsStore
     private var selectedModels: [AIProvider: String] {
         get {
             if let appSettings = appSettings {
@@ -241,7 +208,7 @@ class AIService: ObservableObject {
                 }
                 return result
             }
-            return legacySelectedModels
+            return [:]
         }
         set {
             objectWillChange.send()
@@ -251,8 +218,6 @@ class AIService: ObservableObject {
                     stringDict[provider.rawValue] = model
                 }
                 appSettings.selectedModels = stringDict
-            } else {
-                legacySelectedModels = newValue
             }
         }
     }
@@ -295,14 +260,6 @@ class AIService: ObservableObject {
     }
     
     init() {
-        // Initialize legacy provider from UserDefaults
-        if let savedProvider = userDefaults.string(forKey: "selectedAIProvider"),
-           let provider = AIProvider(rawValue: savedProvider) {
-            self.legacySelectedProvider = provider
-        } else {
-            self.legacySelectedProvider = .gemini
-        }
-        
         // Migration: Check for misplaced transcription provider API keys
         migrateTranscriptionProviderKeys()
         
@@ -315,8 +272,6 @@ class AIService: ObservableObject {
         #endif
         
         refreshAPIKeyState()
-        
-        loadSavedModelSelections()
         loadSavedOpenRouterModels()
     }
     
@@ -350,7 +305,6 @@ class AIService: ObservableObject {
            transcriptionProviders.contains(savedProvider) {
             print("⚠️ Migration: Selected provider was \(savedProvider), resetting to Gemini.")
             userDefaults.set(AIProvider.gemini.rawValue, forKey: "selectedAIProvider")
-            legacySelectedProvider = .gemini
         }
     }
     
@@ -400,15 +354,6 @@ class AIService: ObservableObject {
         refreshAPIKeyState()
     }
     
-    private func loadSavedModelSelections() {
-        for provider in AIProvider.allCases {
-            let key = "\(provider.rawValue)SelectedModel"
-            if let savedModel = userDefaults.string(forKey: key), !savedModel.isEmpty {
-                legacySelectedModels[provider] = savedModel
-            }
-        }
-    }
-    
     private func loadSavedOpenRouterModels() {
         if let savedModels = userDefaults.array(forKey: "openRouterModels") as? [String] {
             openRouterModels = savedModels
@@ -456,11 +401,6 @@ class AIService: ObservableObject {
             var models = appSettings.selectedModels
             models[selectedProvider.rawValue] = model
             appSettings.selectedModels = models
-        } else {
-            // Legacy path
-            legacySelectedModels[selectedProvider] = model
-            let key = "\(selectedProvider.rawValue)SelectedModel"
-            userDefaults.set(model, forKey: key)
         }
         
         objectWillChange.send()

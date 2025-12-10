@@ -153,7 +153,7 @@ struct ConfigurationView: View {
                 VStack(spacing: 20) {
                     nameSection
                     triggerSection
-                    transcriptionSection
+
                     aiSection
                     advancedSection
                     saveSection
@@ -248,7 +248,7 @@ struct ConfigurationView: View {
     private var triggerSection: some View {
         VStack(spacing: 16) {
             SectionHeader(title: NSLocalizedString("When to Trigger", comment: "Section header"))
-            Text("Add at least one app or website trigger; otherwise this smart scene stays inactive.")
+            Text(LocalizedStringKey("Add at least one app or website trigger; otherwise this smart scene stays inactive."))
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -388,27 +388,7 @@ struct ConfigurationView: View {
         .padding(.horizontal)
     }
 
-    private var transcriptionSection: some View {
-        VStack(spacing: 16) {
-            SectionHeader(title: NSLocalizedString("Transcription", comment: "Section header"))
-            let currentModelName = whisperState.currentTranscriptionModel?.displayName ?? "Uses current app setting"
-            let currentLanguage = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
-            VStack(alignment: .leading, spacing: 6) {
-                Text(NSLocalizedString("Uses your current transcription settings", comment: "Description for transcription settings"))
-                    .font(.subheadline)
-                    .foregroundColor(.primary)
-                Text("Model: \(currentModelName) • Language: \(currentLanguage == "auto" ? "Auto-detect" : currentLanguage)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(CardBackground(isSelected: false))
-        }
-        .padding()
-        .background(CardBackground(isSelected: false))
-        .padding(.horizontal)
-    }
+
 
     private var aiSection: some View {
         VStack(spacing: 16) {

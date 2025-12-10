@@ -127,11 +127,11 @@ struct AudioCleanupSettingsView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .disabled(isPerformingCleanup)
-                .alert("Audio Cleanup", isPresented: $isShowingConfirmation) {
-                    Button("Cancel", role: .cancel) { }
+                .alert(NSLocalizedString("Audio Cleanup", comment: ""), isPresented: $isShowingConfirmation) {
+                    Button(LocalizedStringKey("Cancel"), role: .cancel) { }
                     
                     if cleanupInfo.fileCount > 0 {
-                        Button("Delete \(cleanupInfo.fileCount) Files", role: .destructive) {
+                        Button(String(format: NSLocalizedString("Delete %lld Files", comment: ""), cleanupInfo.fileCount), role: .destructive) {
                             Task {
                                 // Update UI state
                                 await MainActor.run {
@@ -156,21 +156,21 @@ struct AudioCleanupSettingsView: View {
                 } message: {
                     VStack(alignment: .leading, spacing: 8) {
                         if cleanupInfo.fileCount > 0 {
-                            Text("This will delete \(cleanupInfo.fileCount) audio files older than \(audioRetentionPeriod) days.")
-                            Text("Total size to be freed: \(AudioCleanupManager.shared.formatFileSize(cleanupInfo.totalSize))")
-                            Text("The text transcripts will be preserved.")
+                            Text(String(format: NSLocalizedString("This will delete %lld audio files older than %lld days.", comment: ""), cleanupInfo.fileCount, audioRetentionPeriod))
+                            Text(String(format: NSLocalizedString("Total size to be freed: %@", comment: ""), AudioCleanupManager.shared.formatFileSize(cleanupInfo.totalSize)))
+                            Text(LocalizedStringKey("The text transcripts will be preserved."))
                         } else {
-                            Text("No audio files found that are older than \(audioRetentionPeriod) days.")
+                            Text(String(format: NSLocalizedString("No audio files found that are older than %lld days.", comment: ""), audioRetentionPeriod))
                         }
                     }
                 }
-                .alert("Cleanup Complete", isPresented: $showResultAlert) {
-                    Button("OK", role: .cancel) { }
+                .alert(NSLocalizedString("Cleanup Complete", comment: ""), isPresented: $showResultAlert) {
+                    Button(LocalizedStringKey("OK"), role: .cancel) { }
                 } message: {
                     if cleanupResult.errorCount > 0 {
-                        Text("Successfully deleted \(cleanupResult.deletedCount) audio files. Failed to delete \(cleanupResult.errorCount) files.")
+                        Text(String(format: NSLocalizedString("Successfully deleted %lld audio files. Failed to delete %lld files.", comment: ""), cleanupResult.deletedCount, cleanupResult.errorCount))
                     } else {
-                        Text("Successfully deleted \(cleanupResult.deletedCount) audio files.")
+                        Text(String(format: NSLocalizedString("Successfully deleted %lld audio files.", comment: ""), cleanupResult.deletedCount))
                     }
                 }
             }

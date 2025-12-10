@@ -410,7 +410,7 @@ struct TriggerWordItemView: View {
                     .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.borderless)
-            .help("Remove word")
+            .help(NSLocalizedString("Remove word", comment: ""))
             .onHover { hover in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isHovered = hover

@@ -62,7 +62,7 @@ struct AudioTranscribeView: View {
         VStack(spacing: 16) {
             if isAudioFileSelected {
                 VStack(spacing: 16) {
-                    Text("Audio file selected: \(selectedAudioURL?.lastPathComponent ?? "")")
+                    Text(String(format: NSLocalizedString("Audio file selected: %@", comment: ""), selectedAudioURL?.lastPathComponent ?? ""))
                         .font(.headline)
                     
                     // AI Enhancement Settings

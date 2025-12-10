@@ -8,6 +8,7 @@ struct EmojiPickerView: View {
     @State private var isAddingCustomEmoji: Bool = false
     @FocusState private var isEmojiTextFieldFocused: Bool
     @State private var inputFeedbackMessage: String = ""
+    @State private var isErrorFeedback: Bool = false
     @State private var showingEmojiInUseAlert = false
     @State private var emojiForAlert: String? = nil
     private let columns: [GridItem] = [GridItem(.adaptive(minimum: 44), spacing: 10)]
@@ -56,40 +57,45 @@ struct EmojiPickerView: View {
                             .focused($isEmojiTextFieldFocused)
                             .onChange(of: newEmojiText) { _, newValue in
                                 inputFeedbackMessage = ""
+                                isErrorFeedback = false
                                 let cleaned = newValue.firstValidEmojiCharacter()
                                 if newEmojiText != cleaned {
                                     newEmojiText = cleaned
                                 }
                                 if !newEmojiText.isEmpty && emojiManager.allEmojis.contains(newEmojiText) {
-                                    inputFeedbackMessage = "Emoji already exists!"
+                                    inputFeedbackMessage = NSLocalizedString("Emoji already exists!", comment: "")
+                                    isErrorFeedback = true
                                 } else if !newEmojiText.isEmpty && !newEmojiText.isValidEmoji {
-                                    inputFeedbackMessage = "Invalid emoji."
+                                    inputFeedbackMessage = NSLocalizedString("Invalid emoji.", comment: "")
+                                    isErrorFeedback = true
                                 } else {
                                     inputFeedbackMessage = ""
+                                    isErrorFeedback = false
                                 }
                             }
                             .onSubmit(attemptAddCustomEmoji)
 
-                        Button("Add") {
+                        Button(NSLocalizedString("Add", comment: "")) {
                             attemptAddCustomEmoji()
                         }
                         .buttonStyle(.borderedProminent)
                         .disabled(newEmojiText.isEmpty || !newEmojiText.isValidEmoji || emojiManager.allEmojis.contains(newEmojiText))
 
-                        Button("Cancel") {
+                        Button(NSLocalizedString("Cancel", comment: "")) {
                             isAddingCustomEmoji = false
                             newEmojiText = ""
                             inputFeedbackMessage = ""
+                            isErrorFeedback = false
                         }
                         .buttonStyle(.bordered)
                     }
                     if !inputFeedbackMessage.isEmpty {
                         Text(inputFeedbackMessage)
                             .font(.caption)
-                            .foregroundColor(inputFeedbackMessage == "Emoji already exists!" || inputFeedbackMessage == "Invalid emoji." ? .red : .secondary)
+                            .foregroundColor(isErrorFeedback ? .red : .secondary)
                             .transition(.opacity)
                     }
-                    Text("Tip: Use ⌃⌘Space for emoji picker.")
+                    Text(LocalizedStringKey("Tip: Use ⌃⌘Space for emoji picker."))
                         .font(.caption2)
                         .foregroundColor(.secondary)
                         .padding(.top, 2)
@@ -101,35 +107,40 @@ struct EmojiPickerView: View {
         .padding()
         .background(.regularMaterial)
         .frame(minWidth: 260, idealWidth: 300, maxWidth: 320, minHeight: 150, idealHeight: 280, maxHeight: 350)
-        .alert("Emoji in Use", isPresented: $showingEmojiInUseAlert, presenting: emojiForAlert) { emojiStr in
-            Button("OK", role: .cancel) { }
+        .alert(NSLocalizedString("Emoji in Use", comment: ""), isPresented: $showingEmojiInUseAlert, presenting: emojiForAlert) { emojiStr in
+            Button(NSLocalizedString("OK", comment: ""), role: .cancel) { }
         } message: { emojiStr in
-            Text("The emoji \"\(emojiStr)\" is currently used by one or more Smart Scenes and cannot be removed.")
+            Text(String(format: NSLocalizedString("The emoji \"%@\" is currently used by one or more Smart Scenes and cannot be removed.", comment: ""), emojiStr))
         }
     }
 
     private func attemptAddCustomEmoji() {
         let trimmedEmoji = newEmojiText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedEmoji.isEmpty else {
-            inputFeedbackMessage = "Emoji cannot be empty."
+            inputFeedbackMessage = NSLocalizedString("Emoji cannot be empty.", comment: "")
+            isErrorFeedback = true
             return
         }
         guard trimmedEmoji.isValidEmoji else {
-            inputFeedbackMessage = "Invalid emoji character."
+            inputFeedbackMessage = NSLocalizedString("Invalid emoji character.", comment: "")
+            isErrorFeedback = true
             return
         }
         guard !emojiManager.allEmojis.contains(trimmedEmoji) else {
-            inputFeedbackMessage = "Emoji already exists!"
+            inputFeedbackMessage = NSLocalizedString("Emoji already exists!", comment: "")
+            isErrorFeedback = true
             return
         }
 
         if emojiManager.addCustomEmoji(trimmedEmoji) {
             selectedEmoji = trimmedEmoji
             inputFeedbackMessage = ""
+            isErrorFeedback = false
             isAddingCustomEmoji = false
             newEmojiText = ""
         } else {
-            inputFeedbackMessage = "Could not add emoji."
+            inputFeedbackMessage = NSLocalizedString("Could not add emoji.", comment: "")
+            isErrorFeedback = true
         }
     }
 
@@ -192,7 +203,7 @@ private struct AddEmojiButton: View {
 
     var body: some View {
         Button(action: action) {
-            Label("Add Emoji", systemImage: "plus.circle.fill")
+            Label(NSLocalizedString("Add Emoji", comment: ""), systemImage: "plus.circle.fill")
                 .font(.title2)
                 .labelStyle(.iconOnly)
                 .foregroundColor(.accentColor)
@@ -207,7 +218,7 @@ private struct AddEmojiButton: View {
                 )
         }
         .buttonStyle(.plain)
-        .help("Add custom emoji")
+        .help(NSLocalizedString("Add custom emoji", comment: ""))
     }
 }
 

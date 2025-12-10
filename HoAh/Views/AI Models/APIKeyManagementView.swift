@@ -18,10 +18,10 @@ struct APIKeyManagementView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Header with explanation
             VStack(alignment: .leading, spacing: 4) {
-                Text("AI Enhancement Provider Configuration")
+                Text(LocalizedStringKey("AI Enhancement Provider Configuration"))
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                Text("Configure LLM providers for post-processing transcribed text. For transcription models, use the AI Models tab.")
+                Text(LocalizedStringKey("Configure LLM providers for post-processing transcribed text. For transcription models, use the AI Models tab."))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -30,7 +30,7 @@ struct APIKeyManagementView: View {
             
             // Provider Selection - AI Enhancement Providers Only
             HStack {
-                Picker("AI Enhancement Provider", selection: $aiService.selectedProvider) {
+                Picker(LocalizedStringKey("AI Enhancement Provider"), selection: $aiService.selectedProvider) {
                     ForEach(AIProvider.allCases, id: \.self) { provider in
                         Text(provider.rawValue).tag(provider)
                     }
@@ -43,10 +43,9 @@ struct APIKeyManagementView: View {
                         Circle()
                             .fill(Color.green)
                             .frame(width: 8, height: 8)
-                        Text("Connected to")
+                        Text(String(format: NSLocalizedString("Connected to %@", comment: "Connected to provider"), aiService.selectedProvider.rawValue))
                             .font(.caption)
-                        Text(aiService.selectedProvider.rawValue)
-                            .font(.caption.bold())
+                            .lineLimit(1)
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -65,10 +64,10 @@ struct APIKeyManagementView: View {
             if aiService.selectedProvider == .openRouter {
                 HStack {
                     if aiService.availableModels.isEmpty {
-                        Text("No models loaded")
+                        Text(LocalizedStringKey("No models loaded"))
                             .foregroundColor(.secondary)
                     } else {
-                        Picker("Model", selection: Binding(
+                        Picker(LocalizedStringKey("Model"), selection: Binding(
                             get: { aiService.currentModel },
                             set: { aiService.selectModel($0) }
                         )) {
@@ -88,12 +87,12 @@ struct APIKeyManagementView: View {
                         Image(systemName: "arrow.clockwise")
                     }
                     .buttonStyle(.borderless)
-                    .help("Refresh models")
+                    .help(NSLocalizedString("Refresh models", comment: ""))
                 }
             } else if !aiService.availableModels.isEmpty &&
                         aiService.selectedProvider != .custom {
                 HStack {
-                    Picker("Enhancement Model", selection: Binding(
+                    Picker(LocalizedStringKey("Enhancement Model"), selection: Binding(
                         get: { aiService.currentModel },
                         set: { aiService.selectModel($0) }
                     )) {
@@ -123,20 +122,20 @@ struct APIKeyManagementView: View {
                     // Configuration Fields
                     VStack(alignment: .leading, spacing: 8) {
                         if !aiService.isAPIKeyValid {
-                            TextField("API Endpoint URL (e.g., https://api.example.com/v1/chat/completions)", text: $aiService.customBaseURL)
+                            TextField(NSLocalizedString("API Endpoint URL (e.g., https://api.example.com/v1/chat/completions)", comment: ""), text: $aiService.customBaseURL)
                                 .textFieldStyle(.roundedBorder)
                             
-                            TextField("Model Name (e.g., gpt-4o-mini, claude-3-5-sonnet-20240620)", text: $aiService.customModel)
+                            TextField(NSLocalizedString("Model Name (e.g., gpt-4o-mini, claude-3-5-sonnet-20240620)", comment: ""), text: $aiService.customModel)
                                 .textFieldStyle(.roundedBorder)
                         } else {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("API Endpoint URL")
+                                Text(LocalizedStringKey("API Endpoint URL"))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 Text(aiService.customBaseURL)
                                     .font(.system(.body, design: .monospaced))
                                 
-                                Text("Model")
+                                Text(LocalizedStringKey("Model"))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 Text(aiService.customModel)
@@ -145,7 +144,7 @@ struct APIKeyManagementView: View {
                         }
                         
                         if aiService.isAPIKeyValid {
-                            Text("API Key")
+                            Text(LocalizedStringKey("API Key"))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             
@@ -158,17 +157,17 @@ struct APIKeyManagementView: View {
                                 Button(action: {
                                     aiService.clearAPIKey()
                                 }) {
-                                    Label("Remove Key", systemImage: "trash")
+                                    Label(NSLocalizedString("Remove Key", comment: ""), systemImage: "trash")
                                         .foregroundColor(.red)
                                 }
                                 .buttonStyle(.borderless)
                             }
                         } else {
-                            Text("Enter your API Key")
+                            Text(LocalizedStringKey("Enter your API Key"))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             
-                            SecureField("API Key", text: $apiKey)
+                            SecureField(NSLocalizedString("API Key", comment: ""), text: $apiKey)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.system(.body, design: .monospaced))
                             
@@ -178,7 +177,7 @@ struct APIKeyManagementView: View {
                                 aiService.saveAPIKey(apiKey) { success, errorMessage in
                                     isVerifying = false
                                     if !success {
-                                        alertMessage = errorMessage ?? "Verification failed"
+                                        alertMessage = errorMessage ?? NSLocalizedString("Verification failed", comment: "")
                                         showAlert = true
                                     }
                                     apiKey = ""
@@ -192,7 +191,7 @@ struct APIKeyManagementView: View {
                                     } else {
                                         Image(systemName: "checkmark.circle.fill")
                                     }
-                                    Text("Verify and Save")
+                                    Text(LocalizedStringKey("Verify and Save"))
                                 }
                             }
                                 .disabled(aiService.customBaseURL.isEmpty || aiService.customModel.isEmpty || apiKey.isEmpty)
@@ -237,13 +236,13 @@ struct APIKeyManagementView: View {
                 ]
 
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("AWS Bedrock Configuration")
+                    Text(LocalizedStringKey("AWS Bedrock Configuration"))
                         .font(.headline)
                     
                     // API Keys Management Section
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("🔑 API Keys")
+                            Text("🔑 \(NSLocalizedString("API Keys", comment: ""))")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                             Spacer()
@@ -259,7 +258,7 @@ struct APIKeyManagementView: View {
                         }
                         
                         if keyEntries.isEmpty {
-                            Text("No API keys added yet. Add one below.")
+                            Text(LocalizedStringKey("No API keys added yet. Add one below."))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         } else {
@@ -272,7 +271,7 @@ struct APIKeyManagementView: View {
                                             .foregroundColor(isActive ? .primary : .secondary)
                                         
                                         if let lastUsed = entry.lastUsedAt {
-                                            Text("Last used \(relativeDate(lastUsed))")
+                                            Text(String(format: NSLocalizedString("Last used %@", comment: ""), relativeDate(lastUsed)))
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                         }
@@ -280,11 +279,11 @@ struct APIKeyManagementView: View {
                                         Spacer()
                                         
                                         if isActive {
-                                            Label("Active", systemImage: "checkmark.circle.fill")
+                                            Label(NSLocalizedString("Active", comment: ""), systemImage: "checkmark.circle.fill")
                                                 .font(.caption)
                                                 .foregroundColor(.green)
                                         } else {
-                                            Button("Use") {
+                                            Button(NSLocalizedString("Use", comment: "")) {
                                                 aiService.selectAPIKey(id: entry.id)
                                                 reloadKeys()
                                             }
@@ -312,11 +311,11 @@ struct APIKeyManagementView: View {
                         Divider()
                         
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Add New API Key")
+                            Text(LocalizedStringKey("Add New API Key"))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             
-                            SecureField("API Key (ABSKQmVkcm9ja0FQSUtleS1...)", text: $apiKey)
+                            SecureField(NSLocalizedString("API Key (ABSKQmVkcm9ja0FQSUtleS1...)", comment: ""), text: $apiKey)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.system(.body, design: .monospaced))
                             
@@ -336,9 +335,9 @@ struct APIKeyManagementView: View {
                                             CloudAPIKeyManager.shared.selectKey(id: entry.id, for: aiService.selectedProvider.rawValue)
                                             apiKey = ""
                                             reloadKeys()
-                                            alertMessage = "✅ API Key verified and saved successfully!"
+                                            alertMessage = NSLocalizedString("API Key verified and saved successfully!", comment: "")
                                         } else {
-                                            alertMessage = "❌ " + (message ?? "Verification failed.")
+                                            alertMessage = "❌ " + (message ?? NSLocalizedString("Connection failed.", comment: ""))
                                         }
                                         showAlert = true
                                     }
@@ -351,7 +350,7 @@ struct APIKeyManagementView: View {
                                         } else {
                                             Image(systemName: "checkmark.circle.fill")
                                         }
-                                        Text("Verify and Save")
+                                        Text(LocalizedStringKey("Verify and Save"))
                                     }
                                 }
                                 .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -362,7 +361,7 @@ struct APIKeyManagementView: View {
                                     aiService.clearAPIKey()
                                     reloadKeys()
                                 } label: {
-                                    Label("Remove All", systemImage: "trash")
+                                    Label(NSLocalizedString("Remove All", comment: ""), systemImage: "trash")
                                 }
                                 .buttonStyle(.borderless)
                                 .foregroundColor(.red)
@@ -377,7 +376,7 @@ struct APIKeyManagementView: View {
                     // Configuration Section (Region + Model)
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("🌍 Current Configuration")
+                            Text("🌍 \(NSLocalizedString("Current Configuration", comment: ""))")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                             Spacer()
@@ -386,21 +385,21 @@ struct APIKeyManagementView: View {
                                     Circle()
                                         .fill(Color.green)
                                         .frame(width: 8, height: 8)
-                                    Text("Connected")
+                                    Text(LocalizedStringKey("Connected"))
                                         .font(.caption)
                                         .foregroundColor(.green)
                                 }
                             }
                         }
                         
-                        Text("Applies to the active API key above")
+                        Text(LocalizedStringKey("Applies to the active API key above"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
                         HStack {
-                            Picker("Region", selection: $bedrockRegionSelection) {
+                            Picker(LocalizedStringKey("Region"), selection: $bedrockRegionSelection) {
                                 ForEach(presetRegions, id: \.self) { region in
-                                    Text(region == "custom" ? "Custom…" : region).tag(region)
+                                    Text(region == "custom" ? NSLocalizedString("Custom…", comment: "") : region).tag(region)
                                 }
                             }
                             .pickerStyle(.menu)
@@ -411,13 +410,13 @@ struct APIKeyManagementView: View {
                             }
                             
                             if bedrockRegionSelection == "custom" {
-                                TextField("Enter region (e.g., us-west-2)", text: $aiService.bedrockRegion)
+                                TextField(NSLocalizedString("Enter region (e.g., us-west-2)", comment: ""), text: $aiService.bedrockRegion)
                                     .textFieldStyle(.roundedBorder)
                                     .frame(maxWidth: 220)
                             }
                         }
                         
-                        Picker("Model", selection: $bedrockModelSelection) {
+                        Picker(LocalizedStringKey("Model"), selection: $bedrockModelSelection) {
                             ForEach(presetModels, id: \.self) { model in
                                 Text(model).tag(model)
                             }
@@ -430,7 +429,7 @@ struct APIKeyManagementView: View {
                         HStack {
                             Button(action: {
                                 guard let activeKey = CloudAPIKeyManager.shared.activeKey(for: aiService.selectedProvider.rawValue) else {
-                                    alertMessage = "⚠️ Please add and select an API key first."
+                                    alertMessage = "⚠️ " + NSLocalizedString("Please add and select an API key first.", comment: "")
                                     showAlert = true
                                     return
                                 }
@@ -449,9 +448,9 @@ struct APIKeyManagementView: View {
                                             region: aiService.bedrockRegion,
                                             modelId: aiService.bedrockModelId
                                         )
-                                        alertMessage = "✅ Connection successful! Configuration saved."
+                                        alertMessage = NSLocalizedString("Connection successful! Configuration saved.", comment: "")
                                     } else {
-                                        alertMessage = "❌ " + (message ?? "Connection failed.")
+                                        alertMessage = "❌ " + (message ?? NSLocalizedString("Connection failed.", comment: ""))
                                     }
                                     showAlert = true
                                 }
@@ -464,7 +463,7 @@ struct APIKeyManagementView: View {
                                     } else {
                                         Image(systemName: "bolt.horizontal.circle.fill")
                                     }
-                                    Text(isVerifying ? "Testing..." : "Test Connection")
+                                    Text(isVerifying ? NSLocalizedString("Testing...", comment: "") : NSLocalizedString("Test Connection", comment: ""))
                                 }
                             }
                             .disabled(keyEntries.isEmpty || isVerifying)
@@ -478,7 +477,7 @@ struct APIKeyManagementView: View {
                             Image(systemName: "info.circle")
                                 .font(.caption)
                                 .foregroundColor(.blue)
-                            Text("The same API key works across all regions and models")
+                            Text(LocalizedStringKey("The same API key works across all regions and models"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -509,7 +508,7 @@ struct APIKeyManagementView: View {
                     }
                     
                     if keyEntries.isEmpty {
-                        Text("No keys added yet for \(aiService.selectedProvider.rawValue). Add one below.")
+                        Text(String(format: NSLocalizedString("No keys added yet for %@. Add one below.", comment: ""), aiService.selectedProvider.rawValue))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else {
@@ -522,7 +521,7 @@ struct APIKeyManagementView: View {
                                         .foregroundColor(isActive ? .primary : .secondary)
                                     
                                     if let lastUsed = entry.lastUsedAt {
-                                        Text("Last used \(relativeDate(lastUsed))")
+                                        Text(String(format: NSLocalizedString("Last used %@", comment: ""), relativeDate(lastUsed)))
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
@@ -530,11 +529,11 @@ struct APIKeyManagementView: View {
                                     Spacer()
                                     
                                     if isActive {
-                                        Label("Active", systemImage: "checkmark.circle.fill")
+                                        Label(NSLocalizedString("Active", comment: ""), systemImage: "checkmark.circle.fill")
                                             .font(.caption)
                                             .foregroundColor(.green)
                                     } else {
-                                        Button("Use") {
+                                        Button(NSLocalizedString("Use", comment: "")) {
                                             aiService.selectAPIKey(id: entry.id)
                                             reloadKeys()
                                         }
@@ -562,11 +561,11 @@ struct APIKeyManagementView: View {
                     Divider()
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Add New API Key")
+                        Text(LocalizedStringKey("Add New API Key"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
-                        SecureField("API Key", text: $apiKey)
+                        SecureField(NSLocalizedString("API Key", comment: ""), text: $apiKey)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .font(.system(.body, design: .monospaced))
                         
@@ -576,7 +575,7 @@ struct APIKeyManagementView: View {
                                 aiService.saveAPIKey(apiKey) { success, errorMessage in
                                     isVerifying = false
                                     if !success {
-                                        alertMessage = errorMessage ?? "Verification failed"
+                                        alertMessage = errorMessage ?? NSLocalizedString("Verification failed", comment: "")
                                         showAlert = true
                                     }
                                     apiKey = ""
@@ -591,7 +590,7 @@ struct APIKeyManagementView: View {
                                     } else {
                                         Image(systemName: "checkmark.circle.fill")
                                     }
-                                    Text("Verify and Save")
+                                    Text(LocalizedStringKey("Verify and Save"))
                                 }
                             }
                             .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -602,7 +601,7 @@ struct APIKeyManagementView: View {
                                 aiService.clearAPIKey()
                                 reloadKeys()
                             } label: {
-                                Label("Remove All", systemImage: "trash")
+                                Label(NSLocalizedString("Remove All", comment: ""), systemImage: "trash")
                             }
                             .buttonStyle(.borderless)
                             .foregroundColor(.red)
@@ -611,7 +610,7 @@ struct APIKeyManagementView: View {
                     }
                     
                     HStack(spacing: 8) {
-                        Text((aiService.selectedProvider == .groq || aiService.selectedProvider == .gemini || aiService.selectedProvider == .cerebras) ? "Free" : "Paid")
+                        Text((aiService.selectedProvider == .groq || aiService.selectedProvider == .gemini || aiService.selectedProvider == .cerebras) ? NSLocalizedString("Free", comment: "") : NSLocalizedString("Paid", comment: ""))
                             .font(.caption2)
                             .foregroundColor(.secondary)
                             .padding(.horizontal, 6)
@@ -644,7 +643,7 @@ struct APIKeyManagementView: View {
                                 NSWorkspace.shared.open(url)
                             } label: {
                                 HStack(spacing: 4) {
-                                    Text("Get API Key")
+                                    Text(LocalizedStringKey("Get API Key"))
                                         .foregroundColor(.accentColor)
                                     Image(systemName: "arrow.up.right")
                                         .font(.caption)
@@ -657,8 +656,8 @@ struct APIKeyManagementView: View {
                 }
             }
         }
-        .alert("Error", isPresented: $showAlert) {
-            Button("OK", role: .cancel) { }
+        .alert(NSLocalizedString("Error", comment: ""), isPresented: $showAlert) {
+            Button(NSLocalizedString("OK", comment: ""), role: .cancel) { }
         } message: {
             Text(alertMessage)
         }

@@ -62,7 +62,7 @@ struct TranscriptionResultView: View {
             }
             
             HStack {
-                Text("Duration: \(formatDuration(transcription.duration))")
+                Text(String(format: NSLocalizedString("Duration: %@", comment: ""), formatDuration(transcription.duration)))
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Spacer()

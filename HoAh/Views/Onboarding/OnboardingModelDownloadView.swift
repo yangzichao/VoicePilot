@@ -163,7 +163,7 @@ struct OnboardingModelDownloadView: View {
             
             HStack {
                 Spacer()
-                Button(action: {}) {
+                Button(action: handleScribeLater) {
                     Text(LocalizedStringKey("onboarding_model_scribe_later"))
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.9))
@@ -203,14 +203,13 @@ struct OnboardingModelDownloadView: View {
                 Button(action: handleAppleSelection) {
                     Text(LocalizedStringKey("onboarding_model_apple_use_anyway"))
                         .font(.subheadline.bold())
-                        .foregroundColor(isAppleAvailableCached ? .black : .white.opacity(0.7))
+                        .foregroundColor(isAppleAvailableCached ? .black : .white.opacity(0.9))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
                         .background(isAppleAvailableCached ? Color.white : Color.white.opacity(0.2))
                         .cornerRadius(20)
                 }
                 .buttonStyle(ScaleButtonStyle())
-                .disabled(!isAppleAvailableCached)
             }
         }
         .padding(20)
@@ -264,16 +263,23 @@ struct OnboardingModelDownloadView: View {
     }
     
     private func handleAppleSelection() {
-        guard isAppleAvailableCached,
-              let appleModel = whisperState.allAvailableModels.first(where: { $0.provider == .nativeApple }) else {
-            return
-        }
-        
         Task {
-            await whisperState.setDefaultTranscriptionModel(appleModel)
-            withAnimation {
-                hasSelectedAnyModel = true
+            if let appleModel = await whisperState.allAvailableModels.first(where: { $0.provider == .nativeApple }) {
+                await whisperState.setDefaultTranscriptionModel(appleModel)
             }
+            await MainActor.run {
+                withAnimation {
+                    hasSelectedAnyModel = true
+                    showTutorial = true
+                }
+            }
+        }
+    }
+    
+    private func handleScribeLater() {
+        withAnimation {
+            hasSelectedAnyModel = true
+            showTutorial = true
         }
     }
 }

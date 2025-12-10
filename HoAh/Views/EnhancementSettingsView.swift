@@ -35,17 +35,17 @@ struct EnhancementSettingsView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
-                                    Text("Enable Auto Enhancement")
+                                    Text(LocalizedStringKey("Enable Auto Enhancement"))
                                         .font(.headline)
                                      
                                     InfoTip(
-                                        title: "AI Enhancement",
-                                        message: "AI enhancement lets you pass the transcribed audio through LLMS to post-process using different prompts suitable for different use cases like e-mails, summary, writing, etc.",
+                                        title: NSLocalizedString("AI Enhancement", comment: ""),
+                                        message: NSLocalizedString("AI enhancement lets you pass the transcribed audio through LLMs to post-process using different prompts suitable for different use cases like e-mails, summary, writing, etc.", comment: ""),
                                         learnMoreURL: "https://www.youtube.com/@tryvoiceink/videos"
                                     )
                                 }
                                 
-                                Text("Automatically apply AI-powered enhancement after each transcription")
+                                Text(LocalizedStringKey("Automatically apply AI-powered enhancement after each transcription"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -81,10 +81,10 @@ struct EnhancementSettingsView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Toggle("Clipboard Context", isOn: $appSettings.useClipboardContext)
+                            Toggle(LocalizedStringKey("Clipboard Context"), isOn: $appSettings.useClipboardContext)
                                 .toggleStyle(.switch)
                                 .disabled(!appSettings.isAIEnhancementEnabled)
-                            Text("Use text from clipboard to understand the context")
+                            Text(LocalizedStringKey("Use text from clipboard to understand the context"))
                                 .font(.caption)
                                 .foregroundColor(appSettings.isAIEnhancementEnabled ? .secondary : .secondary.opacity(0.5))
                         }
@@ -100,7 +100,7 @@ struct EnhancementSettingsView: View {
                         }
                     } label: {
                         HStack {
-                            Text("AI Enhancement Provider Integration")
+                            Text(LocalizedStringKey("AI Enhancement Provider Integration"))
                                 .font(.headline)
                             
                             Spacer()
@@ -112,7 +112,13 @@ struct EnhancementSettingsView: View {
                                     .frame(width: 8, height: 8)
                                 
                                 if aiService.isAPIKeyValid {
-                                    Text("\(aiService.selectedProvider.rawValue) (\(NSLocalizedString("provider_status_ready", comment: "")))")
+                                    Text(
+                                        String(
+                                            format: NSLocalizedString("provider_status_with_name", comment: "Provider name with status"),
+                                            aiService.selectedProvider.rawValue,
+                                            NSLocalizedString("provider_status_ready", comment: "")
+                                        )
+                                    )
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 } else {
@@ -134,9 +140,9 @@ struct EnhancementSettingsView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Default Auto-Enhancement")
+                                Text(LocalizedStringKey("Default Auto-Enhancement"))
                                     .font(.headline)
-                                Text("Select the default AI behavior applied to every dictation.")
+                                Text(LocalizedStringKey("Select the default AI behavior applied to every dictation."))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -180,11 +186,15 @@ struct EnhancementSettingsView: View {
                         // Header with Master Toggle
                         HStack(alignment: .center) {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Prompt Triggers")
+                                Text(LocalizedStringKey("Prompt Triggers"))
                                     .font(.headline)
-                                Text("Automatically switch prompts when specific words are detected.")
+                                Text(LocalizedStringKey("Automatically switch prompts when specific words are detected."))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
+                                Text(LocalizedStringKey("Tap any card below to enable or disable it."))
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary.opacity(0.7))
+                                    .padding(.top, 1)
                             }
                             
                             Spacer()
@@ -214,7 +224,7 @@ struct EnhancementSettingsView: View {
                         Divider()
 
                         if !appSettings.isAIEnhancementEnabled {
-                            Text("Auto enhancement is off, so triggers are inactive until you turn it on.")
+                            Text(LocalizedStringKey("Auto enhancement is off, so triggers are inactive until you turn it on."))
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                                 .padding(.vertical, 4)
@@ -278,7 +288,12 @@ struct EnhancementSettingsView: View {
                             }
                             
                             HStack {
-                                Text("\(appSettings.userProfileContext.count) / 500")
+                                Text(
+                                    String(
+                                        format: NSLocalizedString("user_profile_character_count", comment: "character count for user profile"),
+                                        appSettings.userProfileContext.count
+                                    )
+                                )
                                     .font(.caption2)
                                     .foregroundColor(appSettings.userProfileContext.count > 500 ? .red : .secondary)
                                 
@@ -366,12 +381,23 @@ private struct ReorderablePromptGrid: View {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(boundPrompts) { prompt in
                         let promptEnabled = isPromptEnabled?(prompt) ?? true
+                        let isTriggerMode = onTogglePromptEnabled != nil
+                        // In trigger mode, "Usage" means "Enabled", so we treat enabled items as visually selected.
+                        // In default mode, "Usage" means "Selected as default", so we check IDs.
+                        let isSelected = isTriggerMode ? promptEnabled : (selectedPromptId == prompt.id)
+
                         VStack(spacing: 10) {
                             prompt.promptIcon(
-                                isSelected: selectedPromptId == prompt.id,
+                                isSelected: isSelected,
                                 onTap: {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        onPromptSelected(prompt)
+                                    if let onToggle = onTogglePromptEnabled {
+                                        // Trigger Mode: Toggle enabled state
+                                        onToggle(prompt, !promptEnabled)
+                                    } else {
+                                        // Default Mode: Select as default
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                            onPromptSelected(prompt)
+                                        }
                                     }
                                 },
                                 onEdit: onEditPrompt,
@@ -390,23 +416,7 @@ private struct ReorderablePromptGrid: View {
                                     draggingItem: $draggingItem
                                 )
                             )
-
-                            if let onTogglePromptEnabled {
-                                Toggle(
-                                    prompt.displayTitle,
-                                    isOn: Binding(
-                                        get: { isPromptEnabled?(prompt) ?? true },
-                                        set: { onTogglePromptEnabled(prompt, $0) }
-                                    )
-                                )
-                                .toggleStyle(.switch)
-                                .controlSize(.mini)
-                                .font(.caption)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .disabled(!isEnabled)
-                                .tint(.accentColor)
-                            }
+                            // Toggle removed: Card tap now handles toggling
                         }
                         .opacity((draggingItem?.id == prompt.id ? 0.3 : 1.0) * (promptEnabled ? 1.0 : 0.45))
                         .scaleEffect(draggingItem?.id == prompt.id ? 1.05 : 1.0)
@@ -425,7 +435,7 @@ private struct ReorderablePromptGrid: View {
                         CustomPrompt.addNewButton {
                             onAddNewPrompt()
                         }
-                        .help("Add new prompt")
+                        .help(NSLocalizedString("Add new prompt", comment: ""))
                         .onDrop(
                             of: [UTType.text],
                             delegate: PromptEndDropDelegate(

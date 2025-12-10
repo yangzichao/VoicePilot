@@ -5,6 +5,7 @@ struct OnboardingTutorialView: View {
     @Binding var hasCompletedOnboarding: Bool
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     @EnvironmentObject private var whisperState: WhisperState
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @State private var scale: CGFloat = 0.8
     @State private var opacity: CGFloat = 0
 
@@ -91,10 +92,6 @@ struct OnboardingTutorialView: View {
                                     .cornerRadius(25)
                             }
                             .buttonStyle(ScaleButtonStyle())
-                            
-                            SkipButton(text: NSLocalizedString("onboarding_tutorial_skip", comment: "")) {
-                                hasCompletedOnboarding = true
-                            }
                         }
                         .padding(60)
                         .frame(width: geometry.size.width * 0.5)
@@ -118,17 +115,20 @@ struct OnboardingTutorialView: View {
     
     // Static example based on README scenario
     private var exampleCard: some View {
-        let rawChinese = "“那个……我觉得就是，嗯，今天下午的那个 meeting 吧，可能得推迟一下，因为那个…… PPT 还没做完，data 还有点问题。”"
-        let rawEnglish = "\"Um… I think we might need to postpone this afternoon's meeting, because the slides aren't finished and some of the data is still wrong.\""
-        let baseChinese = "那个……我觉得就是，嗯，今天下午的那个 meeting 吧，可能得推迟一下，因为那个…… PPT 还没做完，data 还有点问题。"
-        let baseEnglish = "Um… I think we might need to postpone this afternoon's meeting, because the slides aren't finished and some of the data is still wrong."
-        let polishChinese = "我觉得今天下午的 meeting 可能得推迟一下，因为 PPT 还没做完，data 还有点问题。"
-        let polishEnglish = "I think we should postpone this afternoon's meeting because the slides aren't finished and some of the data still needs fixing."
-        let emailChinese = "主题：关于推迟今日 Meeting 的通知\n正文：大家好，由于 PPT 尚未定稿且 data 需进一步核实，建议推迟原定于今天下午的 Meeting。确认时间后将另行通知。"
-        let emailEnglish = "Subject: Request to postpone today's meeting\nBody: Hi everyone, since the slides are not finalized and some of the data still needs verification, I'd like to postpone this afternoon's meeting. I'll send an updated time once it's confirmed."
-
-        let isChineseInterface = Locale.current.identifier.hasPrefix("zh")
+        let interfaceIdentifier = localizationManager.locale.identifier.lowercased()
+        let isChineseInterface = interfaceIdentifier.hasPrefix("zh")
         
+        // English-only example
+        let rawEnglish = "\"Um, so, like, like, I kinda think we should maybe push back the 3pm meeting? The slides aren't really done and some numbers are, uh, off, I guess, like, yeah.\""
+        // Base transcription should stay faithful to the raw speech (including filler words)
+        let baseEnglish = "Um, I think we should maybe push back the 3pm meeting because the slides aren't done and some numbers are off."
+        let polishEnglish = "Let's postpone the 3pm meeting. The slides aren't finished yet and some figures still need correction."
+        
+        // Chinese interface uses a mixed CH-EN example
+        let rawChinese = "“呃…我觉得、那个，今天下午的 meeting maybe 要推一下？slides 还没弄完，numbers 也有点不对，嗯…”"
+        let baseChinese = "我觉得今天下午的 meeting 可能要推一下，slides 还没弄完，numbers 也有点不对。"
+        let polishChinese = "今天下午的会议建议延期，幻灯片尚未完成，数据也需要修正。"
+
         return VStack(alignment: .leading, spacing: 16) {
             Text(LocalizedStringKey("onboarding_tutorial_example_title"))
                 .font(.system(size: 22, weight: .semibold, design: .rounded))
@@ -163,18 +163,7 @@ struct OnboardingTutorialView: View {
                 Text(isChineseInterface ? polishChinese : polishEnglish)
                     .font(.system(size: 15, weight: .regular, design: .rounded))
                     .foregroundColor(.white.opacity(0.9))
-                
-                Text(LocalizedStringKey("onboarding_tutorial_example_email_label"))
-                    .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.9))
-                Text(isChineseInterface ? emailChinese : emailEnglish)
-                    .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .foregroundColor(.white.opacity(0.9))
             }
-            
-            Text(LocalizedStringKey("onboarding_tutorial_summary"))
-            .font(.system(size: 13, weight: .regular, design: .rounded))
-            .foregroundColor(.white.opacity(0.8))
         }
         .padding(24)
         .background(Color.black.opacity(0.35))

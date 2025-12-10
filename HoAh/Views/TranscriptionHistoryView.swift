@@ -147,7 +147,8 @@ struct TranscriptionHistoryView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This action cannot be undone. Are you sure you want to delete \(selectedTranscriptions.count) item\(selectedTranscriptions.count == 1 ? "" : "s")?")
+            let pluralSuffix = selectedTranscriptions.count == 1 ? "" : "s"
+            Text(String(format: NSLocalizedString("This action cannot be undone. Are you sure you want to delete %lld item%@?", comment: ""), selectedTranscriptions.count, pluralSuffix))
         }
         .sheet(isPresented: $showAnalysisView) {
             if !selectedTranscriptions.isEmpty {

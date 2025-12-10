@@ -117,22 +117,22 @@ struct LanguageSelectionView: View {
     
     private var languageSelectionSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Transcription Language")
+            Text(LocalizedStringKey("Transcription Language"))
                 .font(.headline)
 
             if let currentModel = whisperState.currentTranscriptionModel
             {
                 if languageSelectionDisabled() {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Language: Autodetected")
+                        Text(LocalizedStringKey("Language: Autodetected"))
                             .font(.subheadline)
                             .foregroundColor(.primary)
 
-                        Text("Current model: \(currentModel.displayName)")
+                        Text(String(format: NSLocalizedString("Current model: %@", comment: ""), currentModel.displayName))
                             .font(.caption)
                             .foregroundColor(.secondary)
 
-                        Text("The transcription language is automatically detected by the model.")
+                        Text(LocalizedStringKey("The transcription language is automatically detected by the model."))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -160,13 +160,11 @@ struct LanguageSelectionView: View {
                         }
                         .pickerStyle(MenuPickerStyle())
 
-                        Text("Current model: \(currentModel.displayName)")
+                        Text(String(format: NSLocalizedString("Current model: %@", comment: ""), currentModel.displayName))
                             .font(.caption)
                             .foregroundColor(.secondary)
 
-                        Text(
-                            "This model supports multiple languages. Select a specific language or auto-detect(if available)"
-                        )
+                        Text(LocalizedStringKey("This model supports multiple languages. Select a specific language or auto-detect(if available)"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     }
@@ -181,17 +179,15 @@ struct LanguageSelectionView: View {
                 } else {
                     // For English-only models, force set language to English
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Language: English")
+                        Text(LocalizedStringKey("Language: English"))
                             .font(.subheadline)
                             .foregroundColor(.primary)
 
-                        Text("Current model: \(currentModel.displayName)")
+                        Text(String(format: NSLocalizedString("Current model: %@", comment: ""), currentModel.displayName))
                             .font(.caption)
                             .foregroundColor(.secondary)
 
-                        Text(
-                            "This is an English-optimized model and only supports English transcription."
-                        )
+                        Text(LocalizedStringKey("This is an English-optimized model and only supports English transcription."))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     }
