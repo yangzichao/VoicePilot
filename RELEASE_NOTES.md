@@ -1,11 +1,10 @@
-# What's New in Version 3.1.4
+# What's New in Version 3.1.5
 
-### 🌍 Localization
-- **"New Prompt" View**: Fixed localization issues where English text persisted in non-English locales. Now fully localized for all supported languages.
+### ✨ New Features
+- **Selected Text Context Toggle**: Added a new toggle in AI Enhancement settings to give you explicit control over whether currently selected text is used as context. Defaults to OFF.
 
-### 🧹 Refactoring
-- **Simplified UI**: Removed the "Start with a Predefined Template" feature from the Prompt Editor to streamline the interface.
+### 🚀 Improvements
+- **Auto-Detect Language Enforcement**: Enforced "Auto Detect" language for Gemini and other AI models to strictly prevent unwanted translation to English. The AI will now transcribe in the original language of the audio.
 
 ### 🐛 Bug Fixes
-- **Stability**: Resolved a crash in the Audio Cleanup Manager.
-- **Concurrency**: Fixed potential concurrency issues in Custom Sound Manager to ensure smoother operation.
+- **Language Logic**: Decoupled the App Interface Language from the Transcription Language. Selecting a UI language (e.g., Chinese) no longer forces the transcription model to that language; it remains on "Auto Detect" by default.

@@ -3,6 +3,22 @@
     <channel>
         <title>HoAh Releases</title>
         <item>
+            <title>3.1.5</title>
+            <pubDate>Thu, 12 Dec 2025 01:00:00 +0000</pubDate>
+            <sparkle:version>315</sparkle:version>
+            <sparkle:shortVersionString>3.1.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h3>What's New in Version 3.1.5</h3>
+                <ul>
+                    <li><strong>Feature:</strong> Added "Selected Text Context" toggle in AI Enhancement settings. Users now have explicit control over whether selected text is used as context.</li>
+                    <li><strong>Improvement:</strong> Enforced "Auto Detect" language for AI models (Gemini) to prevent unwanted translation to English.</li>
+                    <li><strong>Fix:</strong> Decoupled App Interface Language from Transcription Language to ensure transcription defaults to "Auto".</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/yangzichao/hoah-dictation/releases/download/v3.1.5/HoAh-3.1.5.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+        </item>
+        <item>
             <title>3.1.4</title>
             <pubDate>Thu, 12 Dec 2025 00:00:00 +0000</pubDate>
             <sparkle:version>314</sparkle:version>
