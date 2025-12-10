@@ -313,7 +313,7 @@ class AIService: ObservableObject {
         self.appSettings = appSettings
         
         // Subscribe to settings changes
-        appSettings.$selectedAIProvider
+        appSettings.selectedAIProviderPublisher
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
                 self?.refreshAPIKeyState()
@@ -344,7 +344,7 @@ class AIService: ObservableObject {
             }
             .store(in: &cancellables)
         
-        appSettings.$selectedModels
+        appSettings.selectedModelsPublisher
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }

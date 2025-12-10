@@ -253,7 +253,7 @@ struct HoAhApp: App {
                 
                 // Configure AI services with centralized settings
                 aiService.configure(with: appSettings)
-                enhancementService.configure(appSettings: appSettings)
+                enhancementService.configure(with: appSettings)
                 
                 // Configure coordinator with service references
                 settingsCoordinator.configure(

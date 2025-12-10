@@ -87,7 +87,7 @@ class SettingsCoordinator: ObservableObject {
             .store(in: &cancellables)
         
         // Language - affects localization
-        store.$appInterfaceLanguage
+        store.appInterfaceLanguagePublisher
             .sink { [weak self] language in
                 self?.handleLanguageChange(language)
             }
@@ -113,21 +113,21 @@ class SettingsCoordinator: ObservableObject {
         // Pause media - no side effects needed (services read directly)
         
         // AI Enhancement - affects notifications
-        store.$isAIEnhancementEnabled
+        store.isAIEnhancementEnabledPublisher
             .sink { [weak self] enabled in
                 self?.handleAIEnhancementChange(enabled)
             }
             .store(in: &cancellables)
         
         // Selected Prompt - affects notifications
-        store.$selectedPromptId
+        store.selectedPromptIdPublisher
             .sink { [weak self] promptId in
                 self?.handlePromptChange(promptId)
             }
             .store(in: &cancellables)
         
         // AI Provider - affects notifications
-        store.$selectedAIProvider
+        store.selectedAIProviderPublisher
             .sink { [weak self] provider in
                 self?.handleAIProviderChange(provider)
             }

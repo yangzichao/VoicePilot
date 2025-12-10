@@ -3,8 +3,9 @@ DEPS_DIR := $(HOME)/HoAh-Dependencies
 WHISPER_CPP_DIR := $(DEPS_DIR)/whisper.cpp
 FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 
-.PHONY: all clean whisper setup build check healthcheck help dev run reset-onboarding
+.PHONY: all clean whisper setup build check healthcheck help dev run reset-onboarding archive-mas export-mas
 DMG_VERSION ?= 3.0.0
+MAS_VERSION ?= 3.1.3
 
 # Default target
 all: check build
@@ -81,6 +82,15 @@ dmg:
 release-dmg:
 	@bash scripts/packaging/sign_and_notarize.sh $(DMG_VERSION)
 
+# Mac App Store targets
+archive-mas:
+	@echo "Building Mac App Store archive..."
+	@bash scripts/packaging/build_mas_archive.sh $(MAS_VERSION)
+
+export-mas:
+	@echo "Exporting Mac App Store package..."
+	@bash scripts/packaging/export_mas.sh
+
 # Help
 help:
 	@echo "Available targets:"
@@ -93,4 +103,6 @@ help:
 	@echo "  reset-onboarding   Clear onboarding flag so next launch shows first-time experience"
 	@echo "  all                Run full build process (default)"
 	@echo "  clean              Remove build artifacts"
+	@echo "  archive-mas        Build Mac App Store archive"
+	@echo "  export-mas         Export Mac App Store package (.pkg)"
 	@echo "  help               Show this help message"

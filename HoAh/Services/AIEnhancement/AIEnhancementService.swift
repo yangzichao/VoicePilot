@@ -160,11 +160,11 @@ class AIEnhancementService: ObservableObject {
     
     /// Configure with AppSettingsStore for centralized settings management
     /// - Parameter appSettings: The centralized settings store
-    func configure(appSettings: AppSettingsStore) {
+    func configure(with appSettings: AppSettingsStore) {
         self.appSettings = appSettings
         
         // Subscribe to settings changes to trigger objectWillChange
-        appSettings.$isAIEnhancementEnabled
+        appSettings.isAIEnhancementEnabledPublisher
             .sink { [weak self] isEnabled in
                 self?.objectWillChange.send()
                 if !isEnabled {
@@ -173,7 +173,7 @@ class AIEnhancementService: ObservableObject {
             }
             .store(in: &cancellables)
         
-        appSettings.$selectedPromptId
+        appSettings.selectedPromptIdPublisher
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }

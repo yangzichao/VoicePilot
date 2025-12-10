@@ -85,16 +85,18 @@ class MyService: ObservableObject {
 Smart Scenes can temporarily override settings without modifying user preferences:
 
 ```swift
-// Begin session
-appSettings.beginSmartSceneSession(sceneId: "scene-id")
+// Apply a temporary override (layer 2, non-persistent)
+let override = AppSettingsStore.SettingsOverride(
+    language: "zh-Hans",
+    isAIEnhancementEnabled: true,
+    selectedPromptId: somePromptId,
+    selectedAIProvider: "OpenAI",
+    selectedAIModel: "gpt-4o-mini"
+)
+appSettings.applySmartSceneOverride(override, sceneId: "scene-id")
 
-// End session (restores user settings)
-appSettings.endSmartSceneSession()
-
-// Check if override is active
-if appSettings.isSmartSceneOverrideActive {
-    // Use effectiveAIEnhancementEnabled instead of isAIEnhancementEnabled
-}
+// Clear the override and return to user settings
+appSettings.clearSmartSceneOverride()
 ```
 
 ## Best Practices

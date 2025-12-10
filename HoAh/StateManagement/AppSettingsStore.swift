@@ -5,11 +5,21 @@ import OSLog
 /// Central store for all application settings
 /// This is the single source of truth for user-configurable settings
 /// All UI components should read from and write to this store
-/// 
+///
 /// State Management Rule: To modify any application setting, update properties in this store.
 /// Do not use @AppStorage or direct UserDefaults access elsewhere in the app.
 @MainActor
 class AppSettingsStore: ObservableObject {
+    
+    // MARK: - Data Structures
+
+    struct SettingsOverride {
+        var language: String?
+        var isAIEnhancementEnabled: Bool?
+        var selectedPromptId: String?
+        var selectedAIProvider: String?
+        var selectedAIModel: String?
+    }
     
     // MARK: - Published Properties
     
@@ -20,11 +30,16 @@ class AppSettingsStore: ObservableObject {
         didSet { saveSettings() }
     }
     
+    // Storage for Interface Language
+    @Published private var _appInterfaceLanguage: String
+    
     /// Interface language: "system", "en", or "zh-Hans"
-    @Published var appInterfaceLanguage: String {
-        didSet { 
+    var appInterfaceLanguage: String {
+        get { activeOverride?.language ?? _appInterfaceLanguage }
+        set {
+            _appInterfaceLanguage = newValue
             validateLanguage()
-            saveSettings() 
+            saveSettings()
         }
     }
     
@@ -103,17 +118,29 @@ class AppSettingsStore: ObservableObject {
     
     // AI Enhancement Settings
     
+    // Storage for AI Enhancement
+    @Published private var _isAIEnhancementEnabled: Bool
+    
     /// Whether AI enhancement is enabled
-    @Published var isAIEnhancementEnabled: Bool {
-        didSet { 
+    var isAIEnhancementEnabled: Bool {
+        get { activeOverride?.isAIEnhancementEnabled ?? _isAIEnhancementEnabled }
+        set {
+            _isAIEnhancementEnabled = newValue
             handleAIEnhancementChange()
-            saveSettings() 
+            saveSettings()
         }
     }
     
+    // Storage for Selected Prompt ID
+    @Published private var _selectedPromptId: String?
+    
     /// Selected prompt ID (UUID string)
-    @Published var selectedPromptId: String? {
-        didSet { saveSettings() }
+    var selectedPromptId: String? {
+        get { activeOverride?.selectedPromptId ?? _selectedPromptId }
+        set {
+            _selectedPromptId = newValue
+            saveSettings()
+        }
     }
     
     /// Whether to use clipboard context in AI enhancement
@@ -141,16 +168,23 @@ class AppSettingsStore: ObservableObject {
     /// Currently active Smart Scene ID
     @Published var activeSmartSceneId: String? = nil
     
-    /// Whether Smart Scene is overriding user settings
-    @Published var isSmartSceneOverrideActive: Bool = false
+    /// Active override settings from Smart Scene (Layer 2)
+    @Published var activeOverride: SettingsOverride? = nil {
+        didSet { objectWillChange.send() }
+    }
     
     // AI Provider Settings
     
+    // Storage for Selected AI Provider
+    @Published private var _selectedAIProvider: String
+    
     /// Selected AI provider
-    @Published var selectedAIProvider: String {
-        didSet { 
+    var selectedAIProvider: String {
+        get { activeOverride?.selectedAIProvider ?? _selectedAIProvider }
+        set {
+            _selectedAIProvider = newValue
             validateProvider()
-            saveSettings() 
+            saveSettings()
         }
     }
     
@@ -174,28 +208,39 @@ class AppSettingsStore: ObservableObject {
         didSet { saveSettings() }
     }
     
+    // Storage for Selected Models
+    @Published private var _selectedModels: [String: String]
+    
     /// Selected models per provider (provider name -> model name)
-    @Published var selectedModels: [String: String] {
-        didSet { saveSettings() }
+    var selectedModels: [String: String] {
+        get {
+             // Synthesize override model into the map if present
+             if let overrideModel = activeOverride?.selectedAIModel, let provider = activeOverride?.selectedAIProvider {
+                 var models = _selectedModels
+                 models[provider] = overrideModel
+                 return models
+             }
+             return _selectedModels
+        }
+        set {
+            _selectedModels = newValue
+            saveSettings()
+        }
     }
     
     // MARK: - Computed Properties
-    
-    /// The effective AI enhancement state, considering Smart Scene overrides
-    /// Use this property in business logic instead of isAIEnhancementEnabled
-    var effectiveAIEnhancementEnabled: Bool {
-        if isSmartSceneOverrideActive {
-            // Smart Scene overrides user setting
-            // TODO: Read from Smart Scene config when implementing Smart Scene integration
-            return true
-        }
-        return isAIEnhancementEnabled
-    }
     
     /// Whether the recorder is properly configured with at least one hotkey
     var isRecorderConfigured: Bool {
         return selectedHotkey1 != "none" || selectedHotkey2 != "none"
     }
+
+    // Publishers for override-aware properties (use backing storage publishers)
+    var appInterfaceLanguagePublisher: Published<String>.Publisher { $_appInterfaceLanguage }
+    var isAIEnhancementEnabledPublisher: Published<Bool>.Publisher { $_isAIEnhancementEnabled }
+    var selectedPromptIdPublisher: Published<String?>.Publisher { $_selectedPromptId }
+    var selectedAIProviderPublisher: Published<String>.Publisher { $_selectedAIProvider }
+    var selectedModelsPublisher: Published<[String: String]>.Publisher { $_selectedModels }
     
     // MARK: - Storage
     
@@ -214,7 +259,7 @@ class AppSettingsStore: ObservableObject {
         
         // Initialize all @Published properties
         self.hasCompletedOnboarding = state.hasCompletedOnboarding
-        self.appInterfaceLanguage = state.appInterfaceLanguage
+        self._appInterfaceLanguage = state.appInterfaceLanguage // Initialize storage
         self.isMenuBarOnly = state.isMenuBarOnly
         self.isTranscribeAudioEnabled = state.isTranscribeAudioEnabled
         self.recorderType = state.recorderType
@@ -226,18 +271,18 @@ class AppSettingsStore: ObservableObject {
         self.isSoundFeedbackEnabled = state.isSoundFeedbackEnabled
         self.isSystemMuteEnabled = state.isSystemMuteEnabled
         self.isPauseMediaEnabled = state.isPauseMediaEnabled
-        self.isAIEnhancementEnabled = state.isAIEnhancementEnabled
-        self.selectedPromptId = state.selectedPromptId
+        self._isAIEnhancementEnabled = state.isAIEnhancementEnabled // Initialize storage
+        self._selectedPromptId = state.selectedPromptId // Initialize storage
         self.useClipboardContext = state.useClipboardContext
         self.useScreenCaptureContext = state.useScreenCaptureContext
         self.userProfileContext = state.userProfileContext
         self.arePromptTriggersEnabled = state.arePromptTriggersEnabled
-        self.selectedAIProvider = state.selectedAIProvider
+        self._selectedAIProvider = state.selectedAIProvider // Initialize storage
         self.bedrockRegion = state.bedrockRegion
         self.bedrockModelId = state.bedrockModelId
         self.customProviderBaseURL = state.customProviderBaseURL
         self.customProviderModel = state.customProviderModel
-        self.selectedModels = state.selectedModels
+        self._selectedModels = state.selectedModels // Initialize storage
         
         logger.info("AppSettingsStore initialized")
     }
@@ -310,7 +355,6 @@ class AppSettingsStore: ObservableObject {
         }
     }
 
-    
     // MARK: - Batch Update Methods
     
     /// Updates AI settings atomically to avoid intermediate invalid states
@@ -352,34 +396,31 @@ class AppSettingsStore: ObservableObject {
         logger.info("Hotkey settings updated: hotkey1=\(hotkey1), hotkey2=\(finalHotkey2)")
     }
     
-    // MARK: - Smart Scene Support
+    // MARK: - Smart Scene Management
     
-    /// Begins a Smart Scene session with configuration override
-    /// User's base settings remain unchanged and will be restored when session ends
-    /// - Parameters:
-    ///   - sceneId: Unique identifier for the Smart Scene
-    ///   - config: Smart Scene configuration (applied by Coordinator)
-    func beginSmartSceneSession(sceneId: String) {
-        logger.info("Beginning Smart Scene session: \(sceneId)")
+    /// Applies a temporary override for Smart Scenes (Layer 2)
+    /// This does NOT modify persistent settings
+    func applySmartSceneOverride(_ override: SettingsOverride, sceneId: String) {
+        logger.info("Applying Smart Scene override: \(sceneId)")
+        self.activeOverride = override
+        self.activeSmartSceneId = sceneId
         
-        activeSmartSceneId = sceneId
-        isSmartSceneOverrideActive = true
-        
-        // Note: Smart Scene config is applied by Coordinator
-        // User's base settings remain unchanged
+        // Notify changes that might be observed via non-binding paths
+        if override.language != nil {
+            NotificationCenter.default.post(name: .languageDidChange, object: nil)
+        }
     }
     
-    /// Ends the Smart Scene session and restores user settings
-    /// User settings are automatically restored since they were never changed
-    func endSmartSceneSession() {
+    /// Clears the temporary override (Layer 2)
+    func clearSmartSceneOverride() {
         guard let sceneId = activeSmartSceneId else { return }
+        logger.info("Clearing Smart Scene override: \(sceneId)")
         
-        logger.info("Ending Smart Scene session: \(sceneId)")
+        self.activeOverride = nil
+        self.activeSmartSceneId = nil
         
-        activeSmartSceneId = nil
-        isSmartSceneOverrideActive = false
-        
-        // User settings are automatically restored (they were never changed)
+        // Notify to clear any language overrides
+        NotificationCenter.default.post(name: .languageDidChange, object: nil)
     }
     
     // MARK: - Private Methods
@@ -399,11 +440,11 @@ class AppSettingsStore: ObservableObject {
     }
     
     /// Applies state to all published properties
-    /// Note: This is called during initialization, so didSet handlers won't trigger saves
+    /// Note: This updates storage properties directly to avoid triggering saveSettings() multiple times via setters
     /// - Parameter state: The state to apply
     private func applyState(_ state: AppSettingsState) {
         hasCompletedOnboarding = state.hasCompletedOnboarding
-        appInterfaceLanguage = state.appInterfaceLanguage
+        _appInterfaceLanguage = state.appInterfaceLanguage // Storage
         isMenuBarOnly = state.isMenuBarOnly
         isTranscribeAudioEnabled = state.isTranscribeAudioEnabled
         recorderType = state.recorderType
@@ -415,19 +456,21 @@ class AppSettingsStore: ObservableObject {
         isSoundFeedbackEnabled = state.isSoundFeedbackEnabled
         isSystemMuteEnabled = state.isSystemMuteEnabled
         isPauseMediaEnabled = state.isPauseMediaEnabled
-        isAIEnhancementEnabled = state.isAIEnhancementEnabled
-        selectedPromptId = state.selectedPromptId
+        _isAIEnhancementEnabled = state.isAIEnhancementEnabled // Storage
+        _selectedPromptId = state.selectedPromptId // Storage
         useClipboardContext = state.useClipboardContext
         useScreenCaptureContext = state.useScreenCaptureContext
         userProfileContext = state.userProfileContext
         arePromptTriggersEnabled = state.arePromptTriggersEnabled
-        selectedAIProvider = state.selectedAIProvider
+        _selectedAIProvider = state.selectedAIProvider // Storage
         bedrockRegion = state.bedrockRegion
         bedrockModelId = state.bedrockModelId
         customProviderBaseURL = state.customProviderBaseURL
         customProviderModel = state.customProviderModel
-        selectedModels = state.selectedModels
+        _selectedModels = state.selectedModels // Storage
     }
+    
+    // MARK: - Persistence
     
     /// Saves current settings to storage
     private func saveSettings() {
@@ -436,11 +479,11 @@ class AppSettingsStore: ObservableObject {
     }
     
     /// Creates an AppSettingsState from current property values
-    /// - Returns: Current state snapshot
+    /// - Returns: Current state snapshot using underlying STORAGE values (ignoring overrides)
     private func currentState() -> AppSettingsState {
         return AppSettingsState(
             hasCompletedOnboarding: hasCompletedOnboarding,
-            appInterfaceLanguage: appInterfaceLanguage,
+            appInterfaceLanguage: _appInterfaceLanguage,
             isMenuBarOnly: isMenuBarOnly,
             isTranscribeAudioEnabled: isTranscribeAudioEnabled,
             recorderType: recorderType,
@@ -452,18 +495,18 @@ class AppSettingsStore: ObservableObject {
             isSoundFeedbackEnabled: isSoundFeedbackEnabled,
             isSystemMuteEnabled: isSystemMuteEnabled,
             isPauseMediaEnabled: isPauseMediaEnabled,
-            isAIEnhancementEnabled: isAIEnhancementEnabled,
-            selectedPromptId: selectedPromptId,
+            isAIEnhancementEnabled: _isAIEnhancementEnabled,
+            selectedPromptId: _selectedPromptId,
             useClipboardContext: useClipboardContext,
             useScreenCaptureContext: useScreenCaptureContext,
             userProfileContext: userProfileContext,
             arePromptTriggersEnabled: arePromptTriggersEnabled,
-            selectedAIProvider: selectedAIProvider,
+            selectedAIProvider: _selectedAIProvider,
             bedrockRegion: bedrockRegion,
             bedrockModelId: bedrockModelId,
             customProviderBaseURL: customProviderBaseURL,
             customProviderModel: customProviderModel,
-            selectedModels: selectedModels
+            selectedModels: _selectedModels
         )
     }
 }

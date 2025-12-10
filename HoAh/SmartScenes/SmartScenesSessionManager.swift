@@ -2,11 +2,7 @@ import Foundation
 import AppKit
 
 struct ApplicationState: Codable {
-    var isEnhancementEnabled: Bool
-    var selectedPromptId: String?
-    var selectedAIProvider: String?
-    var selectedAIModel: String?
-    var selectedLanguage: String?
+    // Only persist state that isn't handled by AppSettingsStore overrides
     var transcriptionModelName: String?
 }
 
@@ -16,12 +12,12 @@ struct SmartSceneSession: Codable {
     var originalState: ApplicationState
 }
 
-// Smart Scene uses session methods to override settings without modifying user preferences
+// Smart Scene Session Manager
+// Manages temporary state overrides for smart scenes
 @MainActor
 class SmartSceneSessionManager {
     static let shared = SmartSceneSessionManager()
     private let sessionKey = "smartSceneActiveSession.v1"
-    private var isApplyingSmartSceneConfig = false
 
     private var whisperState: WhisperState?
     private var enhancementService: AIEnhancementService?
@@ -38,17 +34,13 @@ class SmartSceneSessionManager {
     }
 
     func beginSession(with config: SmartSceneConfig) async {
-        guard let whisperState = whisperState, let enhancementService = enhancementService else {
+        guard let whisperState = whisperState, let appSettings = appSettings else {
             print("SessionManager not configured.")
             return
         }
 
+        // 1. Snapshot state that requires manual restoration (Whisper Model)
         let originalState = ApplicationState(
-            isEnhancementEnabled: enhancementService.isEnhancementEnabled,
-            selectedPromptId: enhancementService.selectedPromptId?.uuidString,
-            selectedAIProvider: enhancementService.getAIService()?.selectedProvider.rawValue,
-            selectedAIModel: enhancementService.getAIService()?.currentModel,
-            selectedLanguage: UserDefaults.standard.string(forKey: "SelectedLanguage"),
             transcriptionModelName: whisperState.currentTranscriptionModel?.name
         )
 
@@ -59,78 +51,33 @@ class SmartSceneSessionManager {
         )
         saveSession(newSession)
         
-        // Notify AppSettingsStore that Smart Scene is active
-        appSettings?.beginSmartSceneSession(sceneId: config.id.uuidString)
+        // 2. Prepare Settings Override (Layer 2) for AppSettings
+        var override = AppSettingsStore.SettingsOverride()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(updateSessionSnapshot), name: .AppSettingsDidChange, object: nil)
-
-        isApplyingSmartSceneConfig = true
-        await applyConfiguration(config)
-        isApplyingSmartSceneConfig = false
-    }
-
-    func endSession() async {
-        guard let session = loadSession() else { return }
-
-        isApplyingSmartSceneConfig = true
-        await restoreState(session.originalState)
-        isApplyingSmartSceneConfig = false
-        
-        // Notify AppSettingsStore that Smart Scene is no longer active
-        appSettings?.endSmartSceneSession()
-        
-        NotificationCenter.default.removeObserver(self, name: .AppSettingsDidChange, object: nil)
-
-        clearSession()
-    }
-    
-    @objc func updateSessionSnapshot() {
-        guard !isApplyingSmartSceneConfig else { return }
-        
-        guard var session = loadSession(), let whisperState = whisperState, let enhancementService = enhancementService else { return }
-
-        let updatedState = ApplicationState(
-            isEnhancementEnabled: enhancementService.isEnhancementEnabled,
-            selectedPromptId: enhancementService.selectedPromptId?.uuidString,
-            selectedAIProvider: enhancementService.getAIService()?.selectedProvider.rawValue,
-            selectedAIModel: enhancementService.getAIService()?.currentModel,
-            selectedLanguage: UserDefaults.standard.string(forKey: "SelectedLanguage"),
-            transcriptionModelName: whisperState.currentTranscriptionModel?.name
-        )
-        
-        session.originalState = updatedState
-        saveSession(session)
-    }
-
-    private func applyConfiguration(_ config: SmartSceneConfig) async {
-        guard let enhancementService = enhancementService else { return }
-
-        await MainActor.run {
-            enhancementService.isEnhancementEnabled = config.isAIEnhancementEnabled
-
-            if config.isAIEnhancementEnabled {
-                if let promptId = config.selectedPrompt, let uuid = UUID(uuidString: promptId) {
-                    enhancementService.selectedPromptId = uuid
-                }
-
-                if let aiService = enhancementService.getAIService() {
-                    if let providerName = config.selectedAIProvider, let provider = AIProvider(rawValue: providerName) {
-                        aiService.selectedProvider = provider
-                    }
-                    if let model = config.selectedAIModel {
-                        aiService.selectModel(model)
-                    }
-                }
-            }
-
-            if let language = config.selectedLanguage {
-                UserDefaults.standard.set(language, forKey: "SelectedLanguage")
-                NotificationCenter.default.post(name: .languageDidChange, object: nil)
-            }
+        // Language
+        if let language = config.selectedLanguage {
+            override.language = language
         }
+        
+        // AI Enhancement
+        override.isAIEnhancementEnabled = config.isAIEnhancementEnabled
+        if config.isAIEnhancementEnabled {
+             if let promptId = config.selectedPrompt {
+                 override.selectedPromptId = promptId
+             }
+             if let provider = config.selectedAIProvider {
+                 override.selectedAIProvider = provider
+                 if let model = config.selectedAIModel {
+                     override.selectedAIModel = model
+                 }
+             }
+        }
+        
+        // Apply Override to AppSettingsStore
+        appSettings.applySmartSceneOverride(override, sceneId: config.id.uuidString)
 
-        if let whisperState = whisperState,
-           let modelName = config.selectedTranscriptionModelName,
+        // 3. Apply Whisper Model Change (Destructive, must restore later)
+        if let modelName = config.selectedTranscriptionModelName,
            let selectedModel = await whisperState.allAvailableModels.first(where: { $0.name == modelName }),
            whisperState.currentTranscriptionModel?.name != modelName {
             await handleModelChange(to: selectedModel)
@@ -141,39 +88,30 @@ class SmartSceneSessionManager {
         }
     }
 
-    private func restoreState(_ state: ApplicationState) async {
-        guard let enhancementService = enhancementService else { return }
+    func endSession() async {
+        guard let session = loadSession() else { return }
+        
+        // 1. Clear AppSettings Override (Layer 2)
+        appSettings?.clearSmartSceneOverride()
 
-        await MainActor.run {
-            enhancementService.isEnhancementEnabled = state.isEnhancementEnabled
-            enhancementService.selectedPromptId = state.selectedPromptId.flatMap(UUID.init)
-
-            if let aiService = enhancementService.getAIService() {
-                if let providerName = state.selectedAIProvider, let provider = AIProvider(rawValue: providerName) {
-                    aiService.selectedProvider = provider
-                }
-                if let model = state.selectedAIModel {
-                    aiService.selectModel(model)
-                }
-            }
-
-            if let language = state.selectedLanguage {
-                UserDefaults.standard.set(language, forKey: "SelectedLanguage")
-                NotificationCenter.default.post(name: .languageDidChange, object: nil)
-            }
-        }
-
+        // 2. Restore Whisper Model (Manual)
         if let whisperState = whisperState,
-           let modelName = state.transcriptionModelName,
+           let modelName = session.originalState.transcriptionModelName,
            let selectedModel = await whisperState.allAvailableModels.first(where: { $0.name == modelName }),
            whisperState.currentTranscriptionModel?.name != modelName {
             await handleModelChange(to: selectedModel)
         }
+
+        clearSession()
     }
+    
+    // Whisper State Handling
     
     private func handleModelChange(to newModel: any TranscriptionModel) async {
         guard let whisperState = whisperState else { return }
 
+        // Note: This modifies persistence in WhisperState. Ideally WhisperState should also support overrides.
+        // For now, we accept this side effect and rely on restoreState to fix it.
         await whisperState.setDefaultTranscriptionModel(newModel)
 
         switch newModel.provider {
@@ -194,6 +132,13 @@ class SmartSceneSessionManager {
     private func recoverSession() {
         guard let session = loadSession() else { return }
         print("Recovering abandoned Power Mode session.")
+        
+        // For AppSettings override, it lives in memory, so if app restarted, the override is ALREADY gone.
+        // We only need to potentially restore Whisper model if it was changed persistently.
+        // BUT, since WhisperState persistence is destructive, the "abandoned" state IS the persistent state now.
+        // Restoring it to "originalState" found in the session file is actually CORRECT behavior!
+        // It undoes the "stuck" change.
+        
         Task {
             await endSession()
         }
