@@ -24,7 +24,8 @@ class GeminiTranscriptionService {
         
         let requestBody = GeminiRequest(
             contents: [
-            parts: [
+                GeminiContent(
+                    parts: [
                         .text(GeminiTextPart(text: self.getPromptText())),
                         .audio(GeminiAudioPart(
                             inlineData: GeminiInlineData(

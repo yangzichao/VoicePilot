@@ -9,13 +9,13 @@
     <key>signingStyle</key>
     <string>manual</string>
     <key>teamID</key>
-    <string>YOUR_TEAM_ID</string>
+    <string>__TEAM_ID__</string>
     <key>signingCertificate</key>
     <string>Mac App Distribution</string>
     <key>provisioningProfiles</key>
     <dict>
         <key>com.yangzichao.hoah</key>
-        <string>YOUR_PROVISIONING_PROFILE_NAME</string>
+        <string>__PROVISIONING_PROFILE__</string>
     </dict>
     <key>uploadSymbols</key>
     <true/>

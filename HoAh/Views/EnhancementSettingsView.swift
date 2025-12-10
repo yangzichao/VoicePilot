@@ -88,6 +88,15 @@ struct EnhancementSettingsView: View {
                                 .font(.caption)
                                 .foregroundColor(appSettings.isAIEnhancementEnabled ? .secondary : .secondary.opacity(0.5))
                         }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Toggle(LocalizedStringKey("Selected Text Context"), isOn: $appSettings.useSelectedTextContext)
+                                .toggleStyle(.switch)
+                                .disabled(!appSettings.isAIEnhancementEnabled)
+                            Text(LocalizedStringKey("Use currently selected text to understand the context"))
+                                .font(.caption)
+                                .foregroundColor(appSettings.isAIEnhancementEnabled ? .secondary : .secondary.opacity(0.5))
+                        }
                     }
                     .padding()
                     .background(CardBackground(isSelected: false))

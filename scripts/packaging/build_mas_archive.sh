@@ -4,7 +4,7 @@ set -e
 # Build Mac App Store Archive
 # This script builds an archive for Mac App Store submission
 
-VERSION=${1:-"1.0.0"}
+VERSION=${1:-"3.1.4"}
 SCHEME="HoAh"
 CONFIGURATION="App Store"
 ARCHIVE_PATH="./build/HoAh-MAS.xcarchive"
@@ -26,10 +26,7 @@ xcodebuild archive \
     -scheme "$SCHEME" \
     -configuration "$CONFIGURATION" \
     -archivePath "$ARCHIVE_PATH" \
-    CODE_SIGN_STYLE=Manual \
-    DEVELOPMENT_TEAM="${TEAM_ID:-}" \
-    CODE_SIGN_IDENTITY="${MAS_SIGN_IDENTITY:-Mac App Distribution}" \
-    PROVISIONING_PROFILE_SPECIFIER="${MAS_PROVISIONING_PROFILE:-}" \
+    -allowProvisioningUpdates \
     MARKETING_VERSION="$VERSION" \
     CURRENT_PROJECT_VERSION="$(echo $VERSION | tr -d '.')"
 

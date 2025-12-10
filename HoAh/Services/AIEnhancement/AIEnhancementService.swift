@@ -47,10 +47,15 @@ class AIEnhancementService: ObservableObject {
         set { appSettings?.useClipboardContext = newValue }
     }
     
-    /// Whether to use screen capture context (computed from AppSettingsStore)
     var useScreenCaptureContext: Bool {
         get { appSettings?.useScreenCaptureContext ?? false }
         set { appSettings?.useScreenCaptureContext = newValue }
+    }
+    
+    /// Whether to use selected text context (computed from AppSettingsStore)
+    var useSelectedTextContext: Bool {
+        get { appSettings?.useSelectedTextContext ?? false }
+        set { appSettings?.useSelectedTextContext = newValue }
     }
     
     /// User profile context (computed from AppSettingsStore)
@@ -191,6 +196,12 @@ class AIEnhancementService: ObservableObject {
             }
             .store(in: &cancellables)
         
+        appSettings.$useSelectedTextContext
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
         appSettings.$userProfileContext
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
@@ -308,7 +319,8 @@ class AIEnhancementService: ObservableObject {
 
     private func getSystemMessage(for mode: EnhancementPrompt) async -> String {
         let selectedTextContext: String
-        if AXIsProcessTrusted() {
+        // Only fetch selected text if enabled and process is trusted
+        if useSelectedTextContext && AXIsProcessTrusted() {
             if let selectedText = await SelectedTextService.fetchSelectedText(), !selectedText.isEmpty {
                 selectedTextContext = "\n\n<CURRENTLY_SELECTED_TEXT>\n\(selectedText)\n</CURRENTLY_SELECTED_TEXT>"
             } else {

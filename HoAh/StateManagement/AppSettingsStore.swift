@@ -153,6 +153,11 @@ class AppSettingsStore: ObservableObject {
         didSet { saveSettings() }
     }
     
+    /// Whether to use selected text context in AI enhancement
+    @Published var useSelectedTextContext: Bool {
+        didSet { saveSettings() }
+    }
+    
     /// User profile context for AI enhancement
     @Published var userProfileContext: String {
         didSet { saveSettings() }
@@ -275,6 +280,7 @@ class AppSettingsStore: ObservableObject {
         self._selectedPromptId = state.selectedPromptId // Initialize storage
         self.useClipboardContext = state.useClipboardContext
         self.useScreenCaptureContext = state.useScreenCaptureContext
+        self.useSelectedTextContext = state.useSelectedTextContext
         self.userProfileContext = state.userProfileContext
         self.arePromptTriggersEnabled = state.arePromptTriggersEnabled
         self._selectedAIProvider = state.selectedAIProvider // Initialize storage
@@ -460,6 +466,7 @@ class AppSettingsStore: ObservableObject {
         _selectedPromptId = state.selectedPromptId // Storage
         useClipboardContext = state.useClipboardContext
         useScreenCaptureContext = state.useScreenCaptureContext
+        useSelectedTextContext = state.useSelectedTextContext
         userProfileContext = state.userProfileContext
         arePromptTriggersEnabled = state.arePromptTriggersEnabled
         _selectedAIProvider = state.selectedAIProvider // Storage
@@ -499,6 +506,7 @@ class AppSettingsStore: ObservableObject {
             selectedPromptId: _selectedPromptId,
             useClipboardContext: useClipboardContext,
             useScreenCaptureContext: useScreenCaptureContext,
+            useSelectedTextContext: useSelectedTextContext,
             userProfileContext: userProfileContext,
             arePromptTriggersEnabled: arePromptTriggersEnabled,
             selectedAIProvider: _selectedAIProvider,

@@ -69,6 +69,9 @@ struct AppSettingsState: Codable {
     
     /// Whether to use screen capture context in AI enhancement
     var useScreenCaptureContext: Bool = false
+    
+    /// Whether to use selected text context in AI enhancement
+    var useSelectedTextContext: Bool = false
 
     
     /// User profile context for AI enhancement
