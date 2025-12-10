@@ -533,3 +533,7 @@
 "Custom…" = "Custom…";
 "AI Enhancement Provider Configuration" = "AI Enhancement Provider Configuration";
 "Region" = "Region";
+
+/* Selected Text Context */
+"Selected Text Context" = "Selected Text Context";
+"Use currently selected text to understand the context" = "Use currently selected text to understand the context";

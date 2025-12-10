@@ -705,3 +705,7 @@
 "AI Enhancement Provider Configuration" = "AI 增强提供商配置";
 "Region" = "区域";
 "Save Changes" = "保存更改";
+
+/* Selected Text Context */
+"Selected Text Context" = "选定文本上下文";
+"Use currently selected text to understand the context" = "使用当前选中的文本辅助理解上下文";
