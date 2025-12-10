@@ -94,7 +94,7 @@ struct PromptEditorView: View {
                 .fontWeight(.bold)
             Spacer()
             HStack(spacing: 12) {
-                Button("Cancel") {
+                Button(NSLocalizedString("Cancel", comment: "")) {
                     dismiss()
                 }
                 .buttonStyle(.plain)
@@ -104,7 +104,7 @@ struct PromptEditorView: View {
                     save()
                     dismiss()
                 } label: {
-                    Text("Save")
+                    Text(NSLocalizedString("Save", comment: ""))
                         .fontWeight(.medium)
                 }
                 .buttonStyle(.borderedProminent)
@@ -138,14 +138,14 @@ struct PromptEditorView: View {
         if isEditingPredefinedPrompt, case .edit(let prompt) = mode {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(LocalizedStringKey("Built-in prompt"))
+                    Text(NSLocalizedString("Built-in prompt", comment: ""))
                         .font(.headline)
-                    Text(LocalizedStringKey("Default and other built-in prompts can be edited but not deleted. Reset anytime to restore the original text and trigger words."))
+                    Text(NSLocalizedString("Default and other built-in prompts can be edited but not deleted. Reset anytime to restore the original text and trigger words.", comment: ""))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
                 Spacer()
-                Button(LocalizedStringKey("Reset to Default")) {
+                Button(NSLocalizedString("Reset to Default", comment: "")) {
                     resetToDefaultTemplate(for: prompt)
                 }
                 .buttonStyle(.bordered)
@@ -158,17 +158,17 @@ struct PromptEditorView: View {
     private var titleAndIcon: some View {
         HStack(spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(LocalizedStringKey("Title"))
+                Text(NSLocalizedString("Title", comment: ""))
                     .font(.headline)
                     .foregroundColor(.secondary)
-                TextField(LocalizedStringKey("Enter a short, descriptive title"), text: $title)
+                TextField(NSLocalizedString("Enter a short, descriptive title", comment: ""), text: $title)
                     .textFieldStyle(.roundedBorder)
                     .font(.body)
             }
             .frame(maxWidth: .infinity)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text(LocalizedStringKey("Icon"))
+                Text(NSLocalizedString("Icon", comment: ""))
                     .font(.headline)
                     .foregroundColor(.secondary)
                 
@@ -198,15 +198,15 @@ struct PromptEditorView: View {
 
     private var descriptionField: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(LocalizedStringKey("Description"))
+            Text(NSLocalizedString("Description", comment: ""))
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Text(LocalizedStringKey("Add a brief description of what this prompt does"))
+            Text(NSLocalizedString("Add a brief description of what this prompt does", comment: ""))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            TextField(LocalizedStringKey("Enter a description"), text: $description)
+            TextField(NSLocalizedString("Enter a description", comment: ""), text: $description)
                 .textFieldStyle(.roundedBorder)
                 .font(.body)
         }
@@ -215,16 +215,16 @@ struct PromptEditorView: View {
 
     private var promptTextSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(LocalizedStringKey("Prompt Instructions"))
+            Text(NSLocalizedString("Prompt Instructions", comment: ""))
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Text(LocalizedStringKey("Define how AI should enhance your transcriptions"))
+            Text(NSLocalizedString("Define how AI should enhance your transcriptions", comment: ""))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
             HStack(spacing: 8) {
-                Toggle(LocalizedStringKey("Use System Instructions"), isOn: $useSystemInstructions)
+                Toggle(NSLocalizedString("Use System Instructions", comment: ""), isOn: $useSystemInstructions)
                 
                 InfoTip(
                     title: NSLocalizedString("System Instructions", comment: "Title for system instructions tip"),
@@ -307,11 +307,11 @@ struct TriggerWordsEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(LocalizedStringKey("Trigger Words"))
+            Text(NSLocalizedString("Trigger Words", comment: ""))
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Text(LocalizedStringKey("Add multiple words that can activate this prompt"))
+            Text(NSLocalizedString("Add multiple words that can activate this prompt", comment: ""))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
@@ -328,14 +328,14 @@ struct TriggerWordsEditor: View {
             
             // Input for new trigger word
             HStack {
-                TextField(LocalizedStringKey("Add trigger word"), text: $newTriggerWord)
+                TextField(NSLocalizedString("Add trigger word", comment: ""), text: $newTriggerWord)
                     .textFieldStyle(.roundedBorder)
                     .font(.body)
                     .onSubmit {
                         addTriggerWord()
                     }
                 
-                Button(LocalizedStringKey("Add")) {
+                Button(NSLocalizedString("Add", comment: "")) {
                     addTriggerWord()
                 }
                 .disabled(newTriggerWord.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

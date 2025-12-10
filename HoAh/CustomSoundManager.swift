@@ -85,21 +85,24 @@ class CustomSoundManager: ObservableObject {
         return directory.appendingPathComponent(filename)
     }
 
-    func setCustomSound(url: URL, for type: SoundType) -> Result<Void, CustomSoundError> {
-        let result = validateAudioFile(url: url)
+    func setCustomSound(url: URL, for type: SoundType) async -> Result<Void, CustomSoundError> {
+        let result = await validateAudioFile(url: url)
         switch result {
         case .success:
             let copyResult = copySoundFile(from: url, standardName: type.standardName)
             switch copyResult {
             case .success(let filename):
-                if type == .start {
-                    customStartSoundFilename = filename
-                    isUsingCustomStartSound = true
-                } else {
-                    customStopSoundFilename = filename
-                    isUsingCustomStopSound = true
+                // UI updates must be on main thread
+                await MainActor.run {
+                    if type == .start {
+                        customStartSoundFilename = filename
+                        isUsingCustomStartSound = true
+                    } else {
+                        customStopSoundFilename = filename
+                        isUsingCustomStopSound = true
+                    }
+                    notifyCustomSoundsChanged()
                 }
-                notifyCustomSoundsChanged()
                 return .success(())
             case .failure(let error):
                 return .failure(error)
@@ -160,7 +163,7 @@ class CustomSoundManager: ObservableObject {
         }
     }
 
-    private func validateAudioFile(url: URL) -> Result<Void, CustomSoundError> {
+    private func validateAudioFile(url: URL) async -> Result<Void, CustomSoundError> {
         guard FileManager.default.fileExists(atPath: url.path) else {
             return .failure(.fileNotFound)
         }

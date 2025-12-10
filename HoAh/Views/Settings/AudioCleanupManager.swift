@@ -210,12 +210,16 @@ class AudioCleanupManager {
                 }
                 
                 if deletedCount > 0 || errorCount > 0 {
-                    modelContext.save()
+                    try modelContext.save()
                     self.logger.info("Cleanup complete. Deleted \(deletedCount) files. Failed: \(errorCount)")
                 }
                 
                 return (deletedCount, errorCount)
             }
+        } catch {
+            logger.error("Error during targeted cleanup: \(error.localizedDescription)")
+            return (0, 0)
+        }
     }
     
     /// Format file size in human-readable form
