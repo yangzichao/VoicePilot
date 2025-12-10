@@ -117,13 +117,10 @@ struct OnboardingLanguageSelectionView: View {
         switch selectedOption {
         case .system:
             appSettings.appInterfaceLanguage = "system"
-            selectedLanguage = "auto"
         case .simplifiedChinese:
             appSettings.appInterfaceLanguage = "zh-Hans"
-            selectedLanguage = "zh"
         case .english:
             appSettings.appInterfaceLanguage = "en"
-            selectedLanguage = "en"
         }
         
         // Apply language immediately so subsequent onboarding steps update

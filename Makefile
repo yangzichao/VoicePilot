@@ -3,9 +3,9 @@ DEPS_DIR := $(HOME)/HoAh-Dependencies
 WHISPER_CPP_DIR := $(DEPS_DIR)/whisper.cpp
 FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 
-.PHONY: all clean whisper setup build check healthcheck help dev run reset-onboarding archive-mas export-mas
+.PHONY: all clean whisper setup build check healthcheck help dev run reset-onboarding archive-mas export-mas check-mas
 DMG_VERSION ?= 3.0.0
-MAS_VERSION ?= 3.1.3
+MAS_VERSION ?= 3.1.4
 
 # Default target
 all: check build
@@ -91,9 +91,15 @@ export-mas:
 	@echo "Exporting Mac App Store package..."
 	@bash scripts/packaging/export_mas.sh
 
+check-mas:
+	@echo "Checking App Store configuration..."
+	@bash scripts/packaging/check_setup.sh
+
 # Help
 help:
 	@echo "Available targets:"
+	@echo ""
+	@echo "Development:"
 	@echo "  check/healthcheck  Check if required CLI tools are installed"
 	@echo "  whisper            Clone and build whisper.cpp XCFramework"
 	@echo "  setup              Copy whisper XCFramework to HoAh project"
@@ -101,8 +107,15 @@ help:
 	@echo "  run                Launch the built HoAh app"
 	@echo "  dev                Build and run the app (for development)"
 	@echo "  reset-onboarding   Clear onboarding flag so next launch shows first-time experience"
-	@echo "  all                Run full build process (default)"
 	@echo "  clean              Remove build artifacts"
+	@echo ""
+	@echo "App Store:"
+	@echo "  check-mas          Check App Store configuration and certificates"
 	@echo "  archive-mas        Build Mac App Store archive"
 	@echo "  export-mas         Export Mac App Store package (.pkg)"
+	@echo ""
+	@echo "Other:"
+	@echo "  all                Run full build process (default)"
 	@echo "  help               Show this help message"
+	@echo ""
+	@echo "For App Store submission guide, see: docs/QUICK_START_APP_STORE.md"

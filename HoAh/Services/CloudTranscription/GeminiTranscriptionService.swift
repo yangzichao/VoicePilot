@@ -24,9 +24,8 @@ class GeminiTranscriptionService {
         
         let requestBody = GeminiRequest(
             contents: [
-                GeminiContent(
-                    parts: [
-                        .text(GeminiTextPart(text: "Please transcribe this audio file. Provide only the transcribed text.")),
+            parts: [
+                        .text(GeminiTextPart(text: self.getPromptText())),
                         .audio(GeminiAudioPart(
                             inlineData: GeminiInlineData(
                                 mimeType: "audio/wav",
@@ -71,6 +70,17 @@ class GeminiTranscriptionService {
         } catch {
             logger.error("Failed to decode Gemini API response: \(error.localizedDescription)")
             throw CloudTranscriptionError.noTranscriptionReturned
+        }
+    }
+    
+    private func getPromptText() -> String {
+        let selectedLanguage = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
+        
+        if selectedLanguage == "auto" {
+            return "Transcribe the audio exactly as spoken in its original language. Do NOT translate. Write the transcription in the same language as the audio."
+        } else {
+            let langName = PredefinedModels.allLanguages[selectedLanguage] ?? selectedLanguage
+            return "Transcribe the audio in \(langName). Do not translate to other languages."
         }
     }
     
