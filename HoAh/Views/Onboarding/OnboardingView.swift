@@ -72,7 +72,9 @@ struct OnboardingView: View {
                                     .buttonStyle(ScaleButtonStyle())
                                     
                                     SkipButton(text: "Skip Tour") {
-                                        hasCompletedOnboarding = true
+                                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                            showLanguageSelection = true
+                                        }
                                     }
                                 }
                                 .padding(.bottom, 35)

@@ -7,12 +7,15 @@ extension WhisperState {
     func loadCurrentTranscriptionModel() {
         if let savedModelName = UserDefaults.standard.string(forKey: "CurrentTranscriptionModel"),
            let savedModel = allAvailableModels.first(where: { $0.name == savedModelName }) {
-            currentTranscriptionModel = savedModel
-            return
+            // Only restore local models if the file is actually present
+            if savedModel.provider != .local ||
+                availableModels.contains(where: { $0.name == savedModelName }) {
+                currentTranscriptionModel = savedModel
+                return
+            }
         }
         
-        // No saved model found – select a sensible default so the app
-        // is usable on first launch without extra configuration.
+        // No saved model found – pick a default based on available downloads.
         selectDefaultTranscriptionModelIfNeeded()
     }
 
@@ -60,52 +63,15 @@ extension WhisperState {
     
     /// Ensures there is a default transcription model selected when none
     /// has been persisted yet. Preference order:
-    /// 1. Native Apple model (when available in this build/OS)
-    /// 2. Preferred local Whisper model (quantized Large v3 Turbo)
-    /// 3. Any other local model
-    /// 4. First model in the list as a last resort
+    /// 1. A downloaded local Whisper model (prioritizing preferred defaults)
     private func selectDefaultTranscriptionModelIfNeeded() {
         guard currentTranscriptionModel == nil else { return }
         
-        let models = allAvailableModels
-        
-        // 1. Prefer Native Apple model when the feature is actually usable
-        if isNativeAppleTranscriptionAvailable(),
-           let appleModel = models.first(where: { $0.provider == .nativeApple }) {
-            setDefaultTranscriptionModel(appleModel)
-            return
+        // Prefer a downloaded local model so we don't default to cloud/Apple Speech.
+        if let downloadedLocal = availableModels.first,
+           let template = allAvailableModels.first(where: { $0.name == downloadedLocal.name }) {
+            setDefaultTranscriptionModel(template)
         }
-        
-        // 2. Prefer a good default local Whisper model
-        if let localModel = preferredLocalDefaultModel(from: models) {
-            setDefaultTranscriptionModel(localModel)
-            return
-        }
-        
-        // 3. Fall back to the first available model, if any
-        if let firstModel = models.first {
-            setDefaultTranscriptionModel(firstModel)
-        }
-    }
-    
-    /// Chooses a preferred local Whisper model to use as default when
-    /// Native Apple transcription is unavailable in this build/OS.
-    private func preferredLocalDefaultModel(from models: [any TranscriptionModel]) -> (any TranscriptionModel)? {
-        let localModels = models.filter { $0.provider == .local }
-        
-        // Prefer quantized Large v3 Turbo for a good balance of
-        // accuracy and download size once the user installs it.
-        if let quantizedTurbo = localModels.first(where: { $0.name == "ggml-large-v3-turbo-q5_0" }) {
-            return quantizedTurbo
-        }
-        
-        // Fallback to base model if available.
-        if let baseModel = localModels.first(where: { $0.name == "ggml-base" }) {
-            return baseModel
-        }
-        
-        // Otherwise, any local model we have metadata for.
-        return localModels.first
     }
     
     /// Determines whether Native Apple transcription is available in this

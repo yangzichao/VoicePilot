@@ -25,7 +25,6 @@ struct PromptEditorView: View {
     @State private var selectedIcon: PromptIcon
     @State private var description: String
     @State private var triggerWords: [String]
-    @State private var showingPredefinedPrompts = false
     @State private var useSystemInstructions: Bool
     @State private var showingIconPicker = false
 
@@ -131,7 +130,6 @@ struct PromptEditorView: View {
                 TriggerWordsEditor(triggerWords: $triggerWords)
                     .padding(.horizontal)
             }
-            templatePicker
         }
     }
 
@@ -253,39 +251,9 @@ struct PromptEditorView: View {
 
     @ViewBuilder
     private var templatePicker: some View {
-        if case .add = mode {
-            Button(LocalizedStringKey("Start with a Predefined Template")) {
-                showingPredefinedPrompts.toggle()
-            }
-            .font(.headline)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
-            .background(
-                Capsule()
-                    .fill(Color(.windowBackgroundColor).opacity(0.9))
-            )
-            .overlay(
-                Capsule()
-                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-            )
-            .buttonStyle(.plain)
-            .padding(.horizontal)
-            .popover(isPresented: $showingPredefinedPrompts, arrowEdge: .bottom) {
-                PredefinedPromptsView { template in
-                    applyTemplate(template)
-                }
-            }
-        }
+        EmptyView() // Removed as requested
     }
-    
-    private func applyTemplate(_ template: TemplatePrompt) {
-        title = template.title
-        promptText = template.promptText
-        selectedIcon = template.icon
-        description = template.description ?? ""
-        triggerWords = []
-        showingPredefinedPrompts = false
-    }
+
     
     private func save() {
         switch mode {
