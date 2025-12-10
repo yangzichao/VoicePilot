@@ -1,4 +1,11 @@
-# What's New in Version 3.1.5
+# What's New in# Release Notes
+
+## [3.1.6]
+### Fixes
+- **Localization**: Added missing Chinese/English localization for the "Selected Text Context" setting.
+- **UI Refresh**: Fixed an issue where the AI Provider status indicator wouldn't update immediately after adding or removing an API key.
+
+## [3.1.5]
 
 ### ✨ New Features
 - **Selected Text Context Toggle**: Added a new toggle in AI Enhancement settings to give you explicit control over whether currently selected text is used as context. Defaults to OFF.
