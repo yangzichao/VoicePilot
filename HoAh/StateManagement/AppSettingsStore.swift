@@ -555,6 +555,14 @@ class AppSettingsStore: ObservableObject {
             activeAIConfigurationId = validAIConfigurations.first?.id
             logger.info("Active config deleted, selected fallback: \(self.activeAIConfigurationId?.uuidString ?? "none")")
         }
+        
+        // If no configurations left, force disable AI Enhancement
+        if aiEnhancementConfigurations.isEmpty {
+            logger.info("All AI configurations deleted, disabling AI Enhancement")
+            _isAIEnhancementEnabled = false
+            arePromptTriggersEnabled = false
+        }
+        
         logger.info("Deleted AI configuration: \(id)")
     }
     
