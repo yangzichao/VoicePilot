@@ -418,16 +418,9 @@ class AppSettingsStore: ObservableObject {
         newState.customProviderBaseURL = self.customProviderBaseURL
         newState.customProviderModel = self.customProviderModel
         
-        // B. AI State (Preserve Enable state & Prompt selection)
-        newState.isAIEnhancementEnabled = self._isAIEnhancementEnabled
+        // B. AI State (Preserve Selected Prompt only, Reset ENABLE switch)
+        // Note: isAIEnhancementEnabled defaults to FALSE in new state, which is desired.
         newState.selectedPromptId = self._selectedPromptId
-        
-        // Keep prompt triggers consistent with AI enablement state
-        if self._isAIEnhancementEnabled {
-            newState.arePromptTriggersEnabled = self.arePromptTriggersEnabled
-        } else {
-            newState.arePromptTriggersEnabled = false
-        }
         
         // C. User Content (Preserve User Profile Context)
         newState.userProfileContext = self.userProfileContext
