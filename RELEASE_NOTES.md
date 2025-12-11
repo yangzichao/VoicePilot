@@ -1,5 +1,15 @@
 # What's New in# Release Notes
 
+## [3.2.0]
+
+### ✨ New Features
+- **Secure AI Configuration**: Refactored AI configuration management to use the system Keychain for secure storage of API keys and credentials.
+- **Smart State Management**: AI enhancement now automatically disables if all configurations are deleted, ensuring a smoother user experience.
+- **Localization**: Added specific localized strings for the new AI configuration screens.
+
+### 🐛 Bug Fixes
+- **Settings Reset**: Fixed an issue where AI enhancement and prompt triggers were unintentionally preserved when creating a new settings state.
+
 ## [3.1.8]
 
 ### ✨ New Features
