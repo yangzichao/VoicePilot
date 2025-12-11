@@ -442,8 +442,7 @@ struct ConfigurationView: View {
                 }
                 
                 let providerName = selectedAIProvider ?? aiService.selectedProvider.rawValue
-                if let provider = AIProvider(rawValue: providerName),
-                   provider != .custom {
+                if let provider = AIProvider(rawValue: providerName) {
                     
                     HStack {
                         Text("AI Model")

@@ -203,16 +203,6 @@ class AppSettingsStore: ObservableObject {
         didSet { saveSettings() }
     }
     
-    /// Custom provider base URL
-    @Published var customProviderBaseURL: String {
-        didSet { saveSettings() }
-    }
-    
-    /// Custom provider model name
-    @Published var customProviderModel: String {
-        didSet { saveSettings() }
-    }
-    
     // Storage for Selected Models
     @Published private var _selectedModels: [String: String]
     
@@ -246,6 +236,38 @@ class AppSettingsStore: ObservableObject {
     var selectedPromptIdPublisher: Published<String?>.Publisher { $_selectedPromptId }
     var selectedAIProviderPublisher: Published<String>.Publisher { $_selectedAIProvider }
     var selectedModelsPublisher: Published<[String: String]>.Publisher { $_selectedModels }
+    
+    // MARK: - AI Enhancement Configuration Profiles
+    
+    /// List of saved AI Enhancement configuration profiles
+    @Published var aiEnhancementConfigurations: [AIEnhancementConfiguration] = [] {
+        didSet { saveSettings() }
+    }
+    
+    /// ID of the currently active AI Enhancement configuration
+    @Published var activeAIConfigurationId: UUID? = nil {
+        didSet { saveSettings() }
+    }
+    
+    /// Whether legacy AI provider settings have been migrated
+    @Published var hasCompletedAIConfigMigration: Bool = false {
+        didSet { saveSettings() }
+    }
+    
+    /// Currently active AI Enhancement configuration (computed)
+    var activeAIConfiguration: AIEnhancementConfiguration? {
+        guard let activeId = activeAIConfigurationId else { return nil }
+        return aiEnhancementConfigurations.first { $0.id == activeId }
+    }
+    
+    /// Valid configurations only (for quick-switch UI)
+    var validAIConfigurations: [AIEnhancementConfiguration] {
+        aiEnhancementConfigurations.filter { $0.isValid }
+    }
+    
+    /// Publishers for configuration changes
+    var aiEnhancementConfigurationsPublisher: Published<[AIEnhancementConfiguration]>.Publisher { $aiEnhancementConfigurations }
+    var activeAIConfigurationIdPublisher: Published<UUID?>.Publisher { $activeAIConfigurationId }
     
     // MARK: - Storage
     
@@ -286,9 +308,13 @@ class AppSettingsStore: ObservableObject {
         self._selectedAIProvider = state.selectedAIProvider // Initialize storage
         self.bedrockRegion = state.bedrockRegion
         self.bedrockModelId = state.bedrockModelId
-        self.customProviderBaseURL = state.customProviderBaseURL
-        self.customProviderModel = state.customProviderModel
         self._selectedModels = state.selectedModels // Initialize storage
+        self.aiEnhancementConfigurations = state.aiEnhancementConfigurations
+        self.activeAIConfigurationId = state.activeAIConfigurationId
+        self.hasCompletedAIConfigMigration = state.hasCompletedAIConfigMigration
+        
+        // Validate AI configurations on load
+        validateAIConfigurations()
         
         logger.info("AppSettingsStore initialized")
     }
@@ -324,6 +350,41 @@ class AppSettingsStore: ObservableObject {
         }
     }
     
+    /// Validates AI Enhancement configurations on load
+    /// Ensures active configuration is valid, selects fallback if needed
+    private func validateAIConfigurations() {
+        // Log validation status for each configuration
+        for config in aiEnhancementConfigurations {
+            if !config.isValid {
+                logger.warning("Invalid AI configuration '\(config.name)': \(config.validationErrors.joined(separator: ", "))")
+            }
+        }
+        
+        // Check if active configuration exists and is valid
+        if let activeId = activeAIConfigurationId {
+            if let activeConfig = aiEnhancementConfigurations.first(where: { $0.id == activeId }) {
+                if !activeConfig.isValid {
+                    logger.warning("Active AI configuration '\(activeConfig.name)' is invalid, selecting fallback")
+                    selectFallbackConfiguration()
+                }
+            } else {
+                logger.warning("Active AI configuration ID not found, selecting fallback")
+                selectFallbackConfiguration()
+            }
+        }
+    }
+    
+    /// Selects a fallback configuration when the active one is invalid or missing
+    private func selectFallbackConfiguration() {
+        if let firstValid = validAIConfigurations.first {
+            activeAIConfigurationId = firstValid.id
+            logger.info("Selected fallback AI configuration: \(firstValid.name)")
+        } else {
+            activeAIConfigurationId = nil
+            logger.info("No valid AI configurations available")
+        }
+    }
+    
     /// Validates delay and corrects if out of range (0-5000ms)
     private func validateDelay() {
         if middleClickActivationDelay < 0 {
@@ -336,26 +397,47 @@ class AppSettingsStore: ObservableObject {
     }
     
     /// Validates AI provider and corrects if invalid
+    /// Note: Custom and ElevenLabs have been removed from AIProvider enum
     private func validateProvider() {
         let validProviders = ["AWS Bedrock", "Cerebras", "GROQ", "Gemini", "Anthropic", 
-                             "OpenAI", "OpenRouter", "ElevenLabs", "Custom"]
+                             "OpenAI", "OpenRouter"]
         if !validProviders.contains(selectedAIProvider) {
-            logger.warning("Invalid provider '\(self.selectedAIProvider)', resetting to 'gemini'")
-            selectedAIProvider = "gemini"
+            // Migrate legacy providers to Gemini
+            if selectedAIProvider == "Custom" || selectedAIProvider == "ElevenLabs" {
+                logger.warning("Legacy provider '\(self.selectedAIProvider)' no longer supported, migrating to 'Gemini'")
+            } else {
+                logger.warning("Invalid provider '\(self.selectedAIProvider)', resetting to 'Gemini'")
+            }
+            selectedAIProvider = "Gemini"
         }
     }
     
     /// Handles AI enhancement state change
     /// Ensures consistent state (e.g., disables triggers when AI is disabled)
     private func handleAIEnhancementChange() {
+        // Cannot enable AI Enhancement without a valid configuration
+        if _isAIEnhancementEnabled && validAIConfigurations.isEmpty {
+            logger.warning("Cannot enable AI Enhancement: no valid configurations available")
+            _isAIEnhancementEnabled = false
+            return
+        }
+        
+        // If enabling AI but no active configuration, select the first valid one
+        if _isAIEnhancementEnabled && activeAIConfigurationId == nil {
+            if let firstValid = validAIConfigurations.first {
+                activeAIConfigurationId = firstValid.id
+                logger.info("Auto-selected AI configuration: \(firstValid.name)")
+            }
+        }
+        
         // If enabling AI but no prompt selected, log warning
         // Coordinator will handle selecting default prompt
-        if isAIEnhancementEnabled && selectedPromptId == nil {
+        if _isAIEnhancementEnabled && selectedPromptId == nil {
             logger.info("AI enabled without prompt, coordinator will select default")
         }
         
         // If disabling AI, also disable prompt triggers
-        if !isAIEnhancementEnabled && arePromptTriggersEnabled {
+        if !_isAIEnhancementEnabled && arePromptTriggersEnabled {
             logger.info("Disabling prompt triggers with AI enhancement")
             arePromptTriggersEnabled = false
         }
@@ -415,8 +497,6 @@ class AppSettingsStore: ObservableObject {
         newState.selectedModels = self._selectedModels
         newState.bedrockRegion = self.bedrockRegion
         newState.bedrockModelId = self.bedrockModelId
-        newState.customProviderBaseURL = self.customProviderBaseURL
-        newState.customProviderModel = self.customProviderModel
         
         // B. AI State (Preserve Selected Prompt only, Reset ENABLE switch)
         // Note: isAIEnhancementEnabled defaults to FALSE in new state, which is desired.
@@ -448,6 +528,44 @@ class AppSettingsStore: ObservableObject {
         
         // 4. Post notification for UI updates
         NotificationCenter.default.post(name: .languageDidChange, object: nil)
+    }
+    
+    // MARK: - AI Configuration Management
+    
+    /// Adds a new AI Enhancement configuration
+    func addConfiguration(_ config: AIEnhancementConfiguration) {
+        aiEnhancementConfigurations.append(config)
+        logger.info("Added AI configuration: \(config.name)")
+    }
+    
+    /// Updates an existing AI Enhancement configuration
+    func updateConfiguration(_ config: AIEnhancementConfiguration) {
+        if let index = aiEnhancementConfigurations.firstIndex(where: { $0.id == config.id }) {
+            aiEnhancementConfigurations[index] = config
+            logger.info("Updated AI configuration: \(config.name)")
+        }
+    }
+    
+    /// Deletes an AI Enhancement configuration
+    func deleteConfiguration(id: UUID) {
+        aiEnhancementConfigurations.removeAll { $0.id == id }
+        
+        // If deleted config was active, select another valid one
+        if activeAIConfigurationId == id {
+            activeAIConfigurationId = validAIConfigurations.first?.id
+            logger.info("Active config deleted, selected fallback: \(self.activeAIConfigurationId?.uuidString ?? "none")")
+        }
+        logger.info("Deleted AI configuration: \(id)")
+    }
+    
+    /// Sets the active AI Enhancement configuration
+    func setActiveConfiguration(id: UUID) {
+        guard aiEnhancementConfigurations.contains(where: { $0.id == id }) else {
+            logger.warning("Cannot set active config: ID not found")
+            return
+        }
+        activeAIConfigurationId = id
+        logger.info("Set active AI configuration: \(id)")
     }
     
     // MARK: - Smart Scene Management
@@ -520,9 +638,10 @@ class AppSettingsStore: ObservableObject {
         _selectedAIProvider = state.selectedAIProvider // Storage
         bedrockRegion = state.bedrockRegion
         bedrockModelId = state.bedrockModelId
-        customProviderBaseURL = state.customProviderBaseURL
-        customProviderModel = state.customProviderModel
         _selectedModels = state.selectedModels // Storage
+        aiEnhancementConfigurations = state.aiEnhancementConfigurations
+        activeAIConfigurationId = state.activeAIConfigurationId
+        hasCompletedAIConfigMigration = state.hasCompletedAIConfigMigration
     }
     
     // MARK: - Persistence
@@ -560,9 +679,10 @@ class AppSettingsStore: ObservableObject {
             selectedAIProvider: _selectedAIProvider,
             bedrockRegion: bedrockRegion,
             bedrockModelId: bedrockModelId,
-            customProviderBaseURL: customProviderBaseURL,
-            customProviderModel: customProviderModel,
-            selectedModels: _selectedModels
+            selectedModels: _selectedModels,
+            aiEnhancementConfigurations: aiEnhancementConfigurations,
+            activeAIConfigurationId: activeAIConfigurationId,
+            hasCompletedAIConfigMigration: hasCompletedAIConfigMigration
         )
     }
 }

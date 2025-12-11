@@ -391,8 +391,7 @@ class AIEnhancementService: ObservableObject {
         let providerKey = aiService.selectedProvider.rawValue
         let keyManager = CloudAPIKeyManager.shared
         let usesManagedKeys = aiService.selectedProvider.requiresAPIKey &&
-            aiService.selectedProvider != .awsBedrock &&
-            aiService.selectedProvider != .custom
+            aiService.selectedProvider != .awsBedrock
         var triedKeyIds = Set<UUID>()
 
         while true {

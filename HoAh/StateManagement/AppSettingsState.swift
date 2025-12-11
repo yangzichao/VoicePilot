@@ -91,14 +91,19 @@ struct AppSettingsState: Codable {
     /// AWS Bedrock model ID
     var bedrockModelId: String = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
     
-    /// Custom provider base URL
-    var customProviderBaseURL: String = ""
-    
-    /// Custom provider model name
-    var customProviderModel: String = ""
-    
     /// Selected models per provider (provider name -> model name)
     var selectedModels: [String: String] = [:]
+    
+    // MARK: - AI Enhancement Configuration Profiles (New)
+    
+    /// List of saved AI Enhancement configuration profiles
+    var aiEnhancementConfigurations: [AIEnhancementConfiguration] = []
+    
+    /// ID of the currently active AI Enhancement configuration
+    var activeAIConfigurationId: UUID? = nil
+    
+    /// Whether legacy AI provider settings have been migrated to configuration profiles
+    var hasCompletedAIConfigMigration: Bool = false
     
     // MARK: - Validation
     

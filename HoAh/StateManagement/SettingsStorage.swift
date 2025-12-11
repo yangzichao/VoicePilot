@@ -23,8 +23,15 @@ class UserDefaultsStorage: SettingsStorage {
     func load() -> AppSettingsState? {
         // Try to load from new key first
         if let data = userDefaults.data(forKey: key),
-           let state = try? JSONDecoder().decode(AppSettingsState.self, from: data) {
+           var state = try? JSONDecoder().decode(AppSettingsState.self, from: data) {
             logger.info("Loaded settings from storage (version \(state.version))")
+            
+            // Check if AI config migration is needed
+            if !state.hasCompletedAIConfigMigration {
+                migrateAIProviderToConfiguration(&state)
+                save(state)
+            }
+            
             return state
         }
         
@@ -168,20 +175,10 @@ class UserDefaultsStorage: SettingsStorage {
             foundAnyLegacySettings = true
         }
         
-        if let baseURL = userDefaults.string(forKey: "customProviderBaseURL") {
-            state.customProviderBaseURL = baseURL
-            foundAnyLegacySettings = true
-        }
-        
-        if let model = userDefaults.string(forKey: "customProviderModel") {
-            state.customProviderModel = model
-            foundAnyLegacySettings = true
-        }
-        
         // Migrate selected models per provider
         // Note: We need to check all possible providers
         let providerNames = ["AWS Bedrock", "Cerebras", "GROQ", "Gemini", "Anthropic", 
-                            "OpenAI", "OpenRouter", "ElevenLabs", "Custom"]
+                            "OpenAI", "OpenRouter"]
         for providerName in providerNames {
             let key = "\(providerName)SelectedModel"
             if let model = userDefaults.string(forKey: key) {
@@ -198,9 +195,83 @@ class UserDefaultsStorage: SettingsStorage {
         
         logger.info("Legacy settings migration completed")
         
+        // Migrate AI provider settings to configuration profiles
+        migrateAIProviderToConfiguration(&state)
+        
         // Save migrated settings to new format
         save(state)
         
         return state
+    }
+    
+    /// Migrates legacy AI provider settings to the new AIEnhancementConfiguration profile system
+    /// Creates a configuration profile from existing provider/model/API key settings
+    /// - Parameter state: The state to migrate (modified in place)
+    private func migrateAIProviderToConfiguration(_ state: inout AppSettingsState) {
+        // Skip if already migrated
+        guard !state.hasCompletedAIConfigMigration else {
+            logger.info("AI config migration already completed")
+            return
+        }
+        
+        // Skip if configurations already exist
+        guard state.aiEnhancementConfigurations.isEmpty else {
+            logger.info("AI configurations already exist, marking migration complete")
+            state.hasCompletedAIConfigMigration = true
+            return
+        }
+        
+        logger.info("Migrating legacy AI provider settings to configuration profiles...")
+        
+        var provider = state.selectedAIProvider
+        let keyManager = CloudAPIKeyManager.shared
+        
+        // Handle legacy providers that are no longer supported
+        let validProviders = ["AWS Bedrock", "Cerebras", "GROQ", "Gemini", "Anthropic", "OpenAI", "OpenRouter"]
+        if !validProviders.contains(provider) {
+            logger.warning("Legacy provider '\(provider)' no longer supported, migrating to 'Gemini'")
+            provider = "Gemini"
+            state.selectedAIProvider = "Gemini"
+        }
+        
+        // Get the active API key value for the current provider
+        let apiKey = keyManager.activeKey(for: provider)?.value
+        
+        // Determine model based on provider
+        let model: String
+        if let selectedModel = state.selectedModels[provider], !selectedModel.isEmpty {
+            model = selectedModel
+        } else if provider == "AWS Bedrock" && !state.bedrockModelId.isEmpty {
+            model = state.bedrockModelId
+        } else {
+            // Use default model for the provider
+            model = AIProvider(rawValue: provider)?.defaultModel ?? ""
+        }
+        
+        // Create configuration name
+        let configName = "\(provider) Configuration"
+        
+        // Create the configuration
+        let config = AIEnhancementConfiguration(
+            name: configName,
+            provider: provider,
+            model: model,
+            apiKey: apiKey,
+            awsProfileName: nil,
+            region: provider == "AWS Bedrock" ? state.bedrockRegion : nil,
+            enableCrossRegion: false
+        )
+        
+        // Add configuration and set as active
+        state.aiEnhancementConfigurations.append(config)
+        state.activeAIConfigurationId = config.id
+        state.hasCompletedAIConfigMigration = true
+        
+        if config.isValid {
+            logger.info("Created valid AI configuration: \(configName)")
+        } else {
+            logger.warning("Created invalid AI configuration (missing fields): \(configName)")
+            logger.warning("Validation errors: \(config.validationErrors.joined(separator: ", "))")
+        }
     }
 }

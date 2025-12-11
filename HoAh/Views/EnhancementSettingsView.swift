@@ -9,7 +9,6 @@ struct EnhancementSettingsView: View {
     @EnvironmentObject private var appSettings: AppSettingsStore
     @State private var isEditingPrompt = false
     @State private var isSettingsExpanded = true
-    @State private var isProviderExpanded = false
     @State private var selectedPromptForEdit: CustomPrompt?
     @State private var pendingPromptKind: PromptKind = .active
     @State private var showProviderAlert = false
@@ -56,11 +55,11 @@ struct EnhancementSettingsView: View {
                                 get: { appSettings.isAIEnhancementEnabled },
                                 set: { newValue in
                                     if newValue {
-                                        if aiService.isAPIKeyValid {
+                                        // Check if there's a valid configuration
+                                        if !appSettings.validAIConfigurations.isEmpty {
                                             appSettings.isAIEnhancementEnabled = true
                                         } else {
-                                            // User tries to enable but no provider configured
-                                            isProviderExpanded = true
+                                            // No valid configuration - show alert
                                             showProviderAlert = true
                                         }
                                     } else {
@@ -74,7 +73,7 @@ struct EnhancementSettingsView: View {
                             .labelsHidden()
                             .scaleEffect(1.2)
                             .popover(isPresented: $showProviderAlert) {
-                                Text(NSLocalizedString("ai_provider_configure_prompt", comment: ""))
+                                Text(NSLocalizedString("Please add an AI configuration first.", comment: ""))
                                     .padding()
                                     .foregroundColor(.red)
                             }
@@ -101,45 +100,31 @@ struct EnhancementSettingsView: View {
                     .padding()
                     .background(CardBackground(isSelected: false))
                     
-                    // 1. AI Provider Integration Section (Collapsible)
-                    DisclosureGroup(isExpanded: $isProviderExpanded) {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Divider()
-                            APIKeyManagementView()
-                        }
-                    } label: {
-                        HStack {
-                            Text(LocalizedStringKey("AI Enhancement Provider Integration"))
-                                .font(.headline)
-                            
-                            Spacer()
-                            
-                            // Status Badge
+                    // AI Configuration Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        ConfigurationListView()
+                        
+                        // Status indicator
+                        if let activeConfig = appSettings.activeAIConfiguration {
                             HStack(spacing: 6) {
                                 Circle()
-                                    .fill(aiService.isAPIKeyValid ? Color.green : Color.orange)
+                                    .fill(Color.green)
                                     .frame(width: 8, height: 8)
-                                
-                                if aiService.isAPIKeyValid {
-                                    Text(
-                                        String(
-                                            format: NSLocalizedString("provider_status_with_name", comment: "Provider name with status"),
-                                            aiService.selectedProvider.rawValue,
-                                            NSLocalizedString("provider_status_ready", comment: "")
-                                        )
-                                    )
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                } else {
-                                    Text(NSLocalizedString("provider_status_not_configured", comment: ""))
-                                        .font(.caption)
-                                        .foregroundColor(.orange)
-                                }
+                                Text(String(format: NSLocalizedString("Active: %@", comment: ""), activeConfig.name))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.secondary.opacity(0.1))
-                            .cornerRadius(8)
+                            .padding(.top, 4)
+                        } else if appSettings.aiEnhancementConfigurations.isEmpty {
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(Color.orange)
+                                    .frame(width: 8, height: 8)
+                                Text(NSLocalizedString("No AI configuration. Add one to enable enhancement.", comment: ""))
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                            }
+                            .padding(.top, 4)
                         }
                     }
                     .padding()

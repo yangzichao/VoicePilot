@@ -133,6 +133,20 @@ class SettingsCoordinator: ObservableObject {
             }
             .store(in: &cancellables)
         
+        // AI Enhancement Configurations - affects notifications
+        store.aiEnhancementConfigurationsPublisher
+            .sink { [weak self] configurations in
+                self?.handleAIConfigurationsChange(configurations)
+            }
+            .store(in: &cancellables)
+        
+        // Active AI Configuration ID - affects notifications
+        store.activeAIConfigurationIdPublisher
+            .sink { [weak self] configId in
+                self?.handleActiveAIConfigurationChange(configId)
+            }
+            .store(in: &cancellables)
+        
         logger.debug("Observers set up for settings changes")
     }
     
@@ -228,5 +242,25 @@ class SettingsCoordinator: ObservableObject {
         logger.info("AI provider changed to: \(provider)")
         
         NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+    }
+    
+    /// Handles AI Enhancement configurations change
+    /// Posts notifications for UI updates
+    /// - Parameter configurations: Updated list of configurations
+    private func handleAIConfigurationsChange(_ configurations: [AIEnhancementConfiguration]) {
+        logger.info("AI configurations changed, count: \(configurations.count)")
+        
+        NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+        NotificationCenter.default.post(name: .aiConfigurationsChanged, object: nil)
+    }
+    
+    /// Handles active AI configuration change
+    /// Posts notifications for UI updates
+    /// - Parameter configId: New active configuration ID
+    private func handleActiveAIConfigurationChange(_ configId: UUID?) {
+        logger.info("Active AI configuration changed to: \(configId?.uuidString ?? "nil")")
+        
+        NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+        NotificationCenter.default.post(name: .activeAIConfigurationChanged, object: nil)
     }
 }

@@ -107,53 +107,36 @@ struct MenuBarView: View {
                 }
             }
             
+            // AI Configuration Quick Switch
             Menu {
-                ForEach(aiService.connectedProviders, id: \.self) { provider in
+                ForEach(appSettings.validAIConfigurations) { config in
                     Button {
-                        aiService.selectedProvider = provider
+                        appSettings.setActiveConfiguration(id: config.id)
                     } label: {
                         HStack {
-                            Text(provider.rawValue)
-                            if aiService.selectedProvider == provider {
+                            Image(systemName: config.providerIcon)
+                            Text(config.name)
+                            if appSettings.activeAIConfigurationId == config.id {
+                                Spacer()
                                 Image(systemName: "checkmark")
                             }
                         }
                     }
                 }
-
-                if aiService.connectedProviders.isEmpty {
-                    Text("No providers connected")
+                
+                if appSettings.validAIConfigurations.isEmpty {
+                    Text(NSLocalizedString("No configurations available", comment: ""))
                         .foregroundColor(.secondary)
+                }
+                
+                Divider()
+                
+                Button(NSLocalizedString("Manage Configurations...", comment: "")) {
+                    menuBarManager.openMainWindowAndNavigate(to: "Enhancement")
                 }
             } label: {
                 HStack {
-                    Text(String(format: NSLocalizedString("AI Provider: %@", comment: ""), aiService.selectedProvider.rawValue))
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 10))
-                }
-            }
-            
-            Menu {
-                ForEach(aiService.availableModels, id: \.self) { model in
-                    Button {
-                        aiService.selectModel(model)
-                    } label: {
-                        HStack {
-                            Text(model)
-                            if aiService.currentModel == model {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-
-                if aiService.availableModels.isEmpty {
-                    Text("No models available")
-                        .foregroundColor(.secondary)
-                }
-            } label: {
-                HStack {
-                    Text(String(format: NSLocalizedString("AI Model: %@", comment: ""), aiService.currentModel))
+                    Text(String(format: NSLocalizedString("AI Config: %@", comment: ""), appSettings.activeAIConfiguration?.name ?? NSLocalizedString("None", comment: "")))
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10))
                 }

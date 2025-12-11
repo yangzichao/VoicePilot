@@ -11,7 +11,6 @@ enum AIProvider: String, CaseIterable {
     case anthropic = "Anthropic"
     case openAI = "OpenAI"
     case openRouter = "OpenRouter"
-    case custom = "Custom"
     
     
     var baseURL: String {
@@ -28,8 +27,6 @@ enum AIProvider: String, CaseIterable {
             return "https://api.openai.com/v1/chat/completions"
         case .openRouter:
             return "https://openrouter.ai/api/v1/chat/completions"
-        case .custom:
-            return UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? ""
         case .awsBedrock:
             let region = UserDefaults.standard.string(forKey: "AWSBedrockRegion") ?? "us-east-1"
             return "https://bedrock-runtime.\(region).amazonaws.com"
@@ -48,8 +45,6 @@ enum AIProvider: String, CaseIterable {
             return "claude-sonnet-4-5"
         case .openAI:
             return "gpt-5.1"
-        case .custom:
-            return UserDefaults.standard.string(forKey: "customProviderModel") ?? ""
         case .openRouter:
             return "openai/gpt-oss-120b"
         case .awsBedrock:
@@ -99,12 +94,18 @@ enum AIProvider: String, CaseIterable {
                 "gpt-4.1",
                 "gpt-4.1-mini"
             ]
-        case .custom:
-            return []
         case .openRouter:
             return []
         case .awsBedrock:
-            return []
+            return [
+                "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+                "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+                "us.anthropic.claude-opus-4-20250514-v1:0",
+                "us.anthropic.claude-haiku-4-20250514-v1:0",
+                "us.amazon.nova-pro-v1:0",
+                "us.amazon.nova-lite-v1:0"
+            ]
         }
     }
     
@@ -114,6 +115,26 @@ enum AIProvider: String, CaseIterable {
             return true
         default:
             return true
+        }
+    }
+    
+    /// URL to get API key for this provider
+    var apiKeyURL: URL? {
+        switch self {
+        case .awsBedrock:
+            return URL(string: "https://console.aws.amazon.com/bedrock/")
+        case .cerebras:
+            return URL(string: "https://cloud.cerebras.ai/")
+        case .groq:
+            return URL(string: "https://console.groq.com/keys")
+        case .gemini:
+            return URL(string: "https://aistudio.google.com/apikey")
+        case .anthropic:
+            return URL(string: "https://console.anthropic.com/settings/keys")
+        case .openAI:
+            return URL(string: "https://platform.openai.com/api-keys")
+        case .openRouter:
+            return URL(string: "https://openrouter.ai/keys")
         }
     }
 }
@@ -128,6 +149,19 @@ class AIService: ObservableObject {
     // Reference to centralized settings store
     private weak var appSettings: AppSettingsStore?
     private var cancellables = Set<AnyCancellable>()
+    
+    // MARK: - Active Configuration Support
+    
+    /// The currently active AI Enhancement configuration from AppSettingsStore
+    var activeConfiguration: AIEnhancementConfiguration? {
+        appSettings?.activeAIConfiguration
+    }
+    
+    /// Whether to use the new configuration profile system
+    /// Returns true if there's an active configuration, false to use legacy settings
+    var useConfigurationProfiles: Bool {
+        activeConfiguration != nil
+    }
     
     // AWS Bedrock credentials/config - runtime state
     @Published var bedrockApiKey: String = ""
@@ -147,24 +181,6 @@ class AIService: ObservableObject {
         set {
             objectWillChange.send()
             appSettings?.bedrockModelId = newValue
-        }
-    }
-    
-    /// Custom provider base URL - reads from AppSettingsStore
-    var customBaseURL: String {
-        get { appSettings?.customProviderBaseURL ?? "" }
-        set {
-            objectWillChange.send()
-            appSettings?.customProviderBaseURL = newValue
-        }
-    }
-    
-    /// Custom provider model - reads from AppSettingsStore
-    var customModel: String {
-        get { appSettings?.customProviderModel ?? "" }
-        set {
-            objectWillChange.send()
-            appSettings?.customProviderModel = newValue
         }
     }
     
@@ -340,21 +356,24 @@ class AIService: ObservableObject {
             }
             .store(in: &cancellables)
         
-        appSettings.$customProviderBaseURL
-            .sink { [weak self] _ in
-                self?.objectWillChange.send()
-            }
-            .store(in: &cancellables)
-        
-        appSettings.$customProviderModel
-            .sink { [weak self] _ in
-                self?.objectWillChange.send()
-            }
-            .store(in: &cancellables)
-        
         appSettings.selectedModelsPublisher
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        // Subscribe to configuration profile changes
+        appSettings.aiEnhancementConfigurationsPublisher
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                self?.refreshAPIKeyState()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.activeAIConfigurationIdPublisher
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                self?.refreshAPIKeyState()
             }
             .store(in: &cancellables)
         
@@ -369,6 +388,13 @@ class AIService: ObservableObject {
     }
     
     private func refreshAPIKeyState() {
+        // If using configuration profiles, check the active configuration
+        if let config = activeConfiguration {
+            refreshAPIKeyStateFromConfiguration(config)
+            return
+        }
+        
+        // Legacy behavior: use selectedProvider
         if selectedProvider.requiresAPIKey {
             if let active = keyManager.activeKey(for: selectedProvider.rawValue) {
                 self.apiKey = active.value
@@ -394,6 +420,76 @@ class AIService: ObservableObject {
         } else {
             self.apiKey = ""
             self.isAPIKeyValid = true
+        }
+    }
+    
+    /// Flag to prevent recursive refresh calls
+    private var isRefreshingFromConfiguration = false
+    
+    /// Refreshes API key state from a configuration profile
+    /// Also syncs provider, model, region, and other settings from the configuration
+    /// Uses equality checks to prevent unnecessary updates and potential infinite loops
+    private func refreshAPIKeyStateFromConfiguration(_ config: AIEnhancementConfiguration) {
+        // Prevent recursive calls
+        guard !isRefreshingFromConfiguration else { return }
+        isRefreshingFromConfiguration = true
+        defer { isRefreshingFromConfiguration = false }
+        
+        // Check if configuration is valid
+        guard config.isValid else {
+            self.apiKey = ""
+            self.isAPIKeyValid = false
+            return
+        }
+        
+        // Sync provider settings from configuration (with equality checks to prevent loops)
+        if let provider = AIProvider(rawValue: config.provider) {
+            // Update provider only if different
+            if appSettings?.selectedAIProvider != provider.rawValue {
+                appSettings?.selectedAIProvider = provider.rawValue
+            }
+            
+            // Update model only if different
+            if let appSettings = appSettings {
+                let currentModel = appSettings.selectedModels[provider.rawValue]
+                if currentModel != config.model {
+                    var models = appSettings.selectedModels
+                    models[provider.rawValue] = config.model
+                    appSettings.selectedModels = models
+                }
+            }
+            
+            // Update provider-specific settings only if different
+            if provider == .awsBedrock {
+                let newRegion = config.region ?? "us-east-1"
+                if appSettings?.bedrockRegion != newRegion {
+                    appSettings?.bedrockRegion = newRegion
+                }
+                if appSettings?.bedrockModelId != config.model {
+                    appSettings?.bedrockModelId = config.model
+                }
+            }
+        }
+        
+        // Handle authentication
+        // AWS Profile authentication - assume valid if profile name is set
+        // Full validation happens at save time in ConfigurationEditSheet
+        // This avoids filesystem I/O on every refresh
+        if let profileName = config.awsProfileName, !profileName.isEmpty {
+            self.apiKey = ""
+            // Trust that the profile was validated when saved
+            // If it becomes invalid later (user deletes profile), the actual API call will fail
+            self.isAPIKeyValid = true
+            return
+        }
+        
+        // API Key authentication - read from Keychain (use hasActualApiKey for reliability)
+        if let key = config.getApiKey(), !key.isEmpty {
+            self.apiKey = key
+            self.isAPIKeyValid = true
+        } else {
+            self.apiKey = ""
+            self.isAPIKeyValid = false
         }
     }
     
