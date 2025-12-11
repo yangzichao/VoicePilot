@@ -207,28 +207,41 @@ class AWSProfileService {
             throw AWSProfileError.parseError("Failed to read AWS CLI output")
         }
         
-        // Parse environment variable format output
+        // Parse either JSON or env output
         var accessKeyId: String?
         var secretAccessKey: String?
         var sessionToken: String?
+        var resolvedRegion: String?
         
-        for line in output.components(separatedBy: .newlines) {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.hasPrefix("export ") {
-                let parts = String(trimmed.dropFirst("export ".count)).components(separatedBy: "=")
-                if parts.count >= 2 {
-                    let key = parts[0]
-                    let value = parts.dropFirst().joined(separator: "=").trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
-                    
-                    switch key {
-                    case "AWS_ACCESS_KEY_ID":
-                        accessKeyId = value
-                    case "AWS_SECRET_ACCESS_KEY":
-                        secretAccessKey = value
-                    case "AWS_SESSION_TOKEN":
-                        sessionToken = value
-                    default:
-                        break
+        let data = Data(output.utf8)
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            accessKeyId = json["AccessKeyId"] as? String
+            secretAccessKey = json["SecretAccessKey"] as? String
+            sessionToken = json["SessionToken"] as? String
+            resolvedRegion = json["Region"] as? String
+        }
+        
+        if accessKeyId == nil || secretAccessKey == nil {
+            for line in output.components(separatedBy: .newlines) {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("export ") {
+                    let parts = String(trimmed.dropFirst("export ".count)).components(separatedBy: "=")
+                    if parts.count >= 2 {
+                        let key = parts[0]
+                        let value = parts.dropFirst().joined(separator: "=").trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
+                        
+                        switch key {
+                        case "AWS_ACCESS_KEY_ID":
+                            accessKeyId = value
+                        case "AWS_SECRET_ACCESS_KEY":
+                            secretAccessKey = value
+                        case "AWS_SESSION_TOKEN":
+                            sessionToken = value
+                        case "AWS_REGION", "AWS_DEFAULT_REGION":
+                            resolvedRegion = value
+                        default:
+                            break
+                        }
                     }
                 }
             }
@@ -238,7 +251,7 @@ class AWSProfileService {
             throw AWSProfileError.invalidCredentials(profile)
         }
         
-        let region = getRegionForProfile(profile)
+        let region = resolvedRegion ?? getRegionForProfile(profile)
         
         return AWSCredentials(
             accessKeyId: accessKey,
