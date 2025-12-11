@@ -122,6 +122,7 @@
 "onboarding_permissions_keyboard_description" = "Pick a shortcut (we recommend the right Option key) so you can start and stop dictation from anywhere.";
 "onboarding_permissions_open_settings" = "Open System Settings";
 "onboarding_permissions_accessibility_confirm_or_skip" = "I've set it up / Skip for now";
+"onboarding_permissions_accessibility_restart_hint" = "After enabling Accessibility for HoAh, restart the app so the permission takes effect.";
 "onboarding_permissions_button_enable" = "Enable Access";
 "onboarding_permissions_button_continue" = "Looks good, continue";
 "onboarding_permissions_button_keyboard_setup" = "Set Shortcut";

@@ -152,6 +152,7 @@
 "onboarding_permissions_keyboard_description" = "为 HoAh 选择一个快捷键（推荐右侧 Option 键），这样你可以随时一键开始和结束说话。";
 "onboarding_permissions_open_settings" = "打开系统设置";
 "onboarding_permissions_accessibility_confirm_or_skip" = "我已完成设置 / 暂时跳过";
+"onboarding_permissions_accessibility_restart_hint" = "授予「辅助功能」后，需要重启 HoAh 权限才会生效。";
 "onboarding_permissions_button_enable" = "去设置";
 "onboarding_permissions_button_continue" = "已设置好，继续";
 "onboarding_permissions_button_keyboard_setup" = "设置快捷键";

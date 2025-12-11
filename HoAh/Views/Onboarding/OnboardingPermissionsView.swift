@@ -39,6 +39,7 @@ struct OnboardingPermissionsView: View {
     @State private var scale: CGFloat = 0.8
     @State private var opacity: CGFloat = 0
     @State private var showModelDownload = false
+    @State private var showAccessibilityAlert = false
     
     private let permissions: [OnboardingPermission] = [
         OnboardingPermission(
@@ -212,29 +213,57 @@ struct OnboardingPermissionsView: View {
                             }
                         }
                         .frame(maxWidth: 400)
-                        .padding(.vertical, 40)
+                            .padding(.vertical, 40)
                         
                         // Action buttons
                         VStack(spacing: 16) {
                             if permissions[currentPermissionIndex].type == .accessibility {
-                                // Primary button: open System Settings for Accessibility
-                                Button(action: openAccessibilitySettings) {
-                                    Text(LocalizedStringKey("onboarding_permissions_open_settings"))
-                                        .font(.headline)
-                                        .foregroundColor(.white)
-                                        .frame(width: 220, height: 50)
-                                        .background(Color.accentColor)
-                                        .cornerRadius(25)
+                                if permissionStates[2] {
+                                    Button(action: moveToNext) {
+                                        Text(LocalizedStringKey("onboarding_permissions_button_continue"))
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                            .frame(width: 200, height: 50)
+                                            .background(Color.accentColor)
+                                            .cornerRadius(25)
+                                    }
+                                    .buttonStyle(ScaleButtonStyle())
+                                } else {
+                                    // Primary button: open System Settings for Accessibility
+                                    Button(action: openAccessibilitySettings) {
+                                        Text(LocalizedStringKey("onboarding_permissions_open_settings"))
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                            .frame(width: 220, height: 50)
+                                            .background(Color.accentColor)
+                                            .cornerRadius(25)
+                                    }
+                                    .buttonStyle(ScaleButtonStyle())
+                                    
+                                    // Secondary option: user confirms they are done, or chooses to skip
+                                    Button(action: confirmAccessibilityAndRestart) {
+                                        Text(LocalizedStringKey("onboarding_permissions_accessibility_authorized_restart"))
+                                            .font(.system(size: 13, weight: .regular))
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    
+                                    Text(LocalizedStringKey("onboarding_permissions_accessibility_restart_hint"))
+                                        .font(.caption)
+                                        .foregroundColor(.white.opacity(0.7))
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal)
+                                    
+                                    Button(action: moveToNext) {
+                                        Text(LocalizedStringKey("onboarding_permissions_skip_for_now"))
+                                            .font(.headline)
+                                            .foregroundColor(.accentColor)
+                                            .frame(width: 200, height: 44)
+                                            .background(Color.white.opacity(0.1))
+                                            .cornerRadius(12)
+                                    }
+                                    .buttonStyle(ScaleButtonStyle())
                                 }
-                                .buttonStyle(ScaleButtonStyle())
-                                
-                                // Secondary option: user confirms they are done, or chooses to skip
-                                Button(action: confirmAccessibilityAndContinue) {
-                                    Text(LocalizedStringKey("onboarding_permissions_accessibility_confirm_or_skip"))
-                                        .font(.system(size: 13, weight: .regular))
-                                        .foregroundColor(.white.opacity(0.8))
-                                }
-                                .buttonStyle(PlainButtonStyle())
                             } else {
                                 Button(action: requestPermission) {
                                     Text(getButtonTitle())
@@ -279,6 +308,13 @@ struct OnboardingPermissionsView: View {
         .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
             // Polling backup to ensure we catch changes even if didBecomeActive doesn't fire or is delayed
             checkExistingPermissions()
+        }
+        .alert(isPresented: $showAccessibilityAlert) {
+            Alert(
+                title: Text(LocalizedStringKey("onboarding_permissions_accessibility_title")),
+                message: Text(LocalizedStringKey("onboarding_permissions_accessibility_confirm_or_skip")),
+                dismissButton: .default(Text("OK"))
+            )
         }
     }
     
@@ -411,15 +447,33 @@ struct OnboardingPermissionsView: View {
         AXIsProcessTrustedWithOptions(options)
     }
 
-    private func confirmAccessibilityAndContinue() {
+    private func confirmAccessibilityAndRestart() {
         let trusted = AXIsProcessTrusted()
         permissionStates[currentPermissionIndex] = trusted
-        if trusted {
-            withAnimation {
-                showAnimation = true
+        withAnimation {
+            showAnimation = true
+        }
+        if !trusted {
+            showAccessibilityAlert = true
+        }
+        restartApp()
+    }
+    
+    private func restartApp() {
+        let appURL = Bundle.main.bundleURL
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+        configuration.createsNewApplicationInstance = true
+        
+        NSWorkspace.shared.openApplication(at: appURL, configuration: configuration) { _, error in
+            if let error = error {
+                print("⚠️ Failed to relaunch app: \(error.localizedDescription)")
+            }
+            // Give the new instance a brief head start before terminating this one
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                NSApp.terminate(nil)
             }
         }
-        moveToNext()
     }
 
     @ViewBuilder
