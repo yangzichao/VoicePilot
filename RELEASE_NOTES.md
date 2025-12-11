@@ -1,5 +1,11 @@
 # What's New in# Release Notes
 
+## [3.2.3]
+
+### 🚀 Improvements
+- **Concurrency**: Modernized async operations by replacing legacy `Thread.sleep` with `Task.sleep` for better performance and battery life.
+- **Code Quality**: Refactored variable naming for better clarity and maintainability.
+
 ## [3.2.2]
 
 ### ✨ New Features
