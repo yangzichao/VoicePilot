@@ -176,7 +176,7 @@ class AWSProfileService {
         let deadline = Date().addingTimeInterval(timeoutSeconds)
         
         while process.isRunning && Date() < deadline {
-            Thread.sleep(forTimeInterval: 0.1)
+            try await Task.sleep(nanoseconds: 100_000_000) // 0.1s
         }
         
         if process.isRunning {
@@ -202,8 +202,8 @@ class AWSProfileService {
             throw AWSProfileError.invalidCredentials(profile)
         }
         
-        let data = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        guard let output = String(data: data, encoding: .utf8) else {
+        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+        guard let output = String(data: stdoutData, encoding: .utf8) else {
             throw AWSProfileError.parseError("Failed to read AWS CLI output")
         }
         
@@ -213,8 +213,8 @@ class AWSProfileService {
         var sessionToken: String?
         var resolvedRegion: String?
         
-        let data = Data(output.utf8)
-        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+        let outputData = Data(output.utf8)
+        if let json = try? JSONSerialization.jsonObject(with: outputData) as? [String: Any] {
             accessKeyId = json["AccessKeyId"] as? String
             secretAccessKey = json["SecretAccessKey"] as? String
             sessionToken = json["SessionToken"] as? String
