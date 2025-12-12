@@ -137,28 +137,22 @@ class AWSProfileService {
     
     /// Uses AWS CLI to resolve credentials (supports SSO, assume-role, etc.)
     private func resolveCredentialsViaCLI(for profile: String) async throws -> AWSCredentials {
-        // Check if AWS CLI is available
-        let whichProcess = Process()
-        whichProcess.executableURL = URL(fileURLWithPath: "/usr/bin/which")
-        whichProcess.arguments = ["aws"]
-        whichProcess.standardOutput = Pipe()
-        whichProcess.standardError = Pipe()
-        
-        do {
-            try whichProcess.run()
-            whichProcess.waitUntilExit()
-        } catch {
-            throw AWSProfileError.parseError("AWS CLI not found. Please install AWS CLI to use AWS Profile authentication.")
-        }
-        
-        guard whichProcess.terminationStatus == 0 else {
-            throw AWSProfileError.parseError("AWS CLI not found. Please install AWS CLI to use AWS Profile authentication.")
+        // Resolve aws binary (GUI apps may not have Homebrew path in $PATH)
+        let awsPaths = [
+            "/usr/local/bin/aws",
+            "/opt/homebrew/bin/aws",
+            "/usr/bin/aws",
+            "/bin/aws"
+        ]
+        let awsExecutable = awsPaths.first { FileManager.default.isExecutableFile(atPath: $0) }
+        guard let awsPath = awsExecutable else {
+            throw AWSProfileError.parseError("AWS CLI not found. Please install AWS CLI (Homebrew path not in GUI PATH).")
         }
         
         // Run aws configure export-credentials with timeout
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = ["aws", "configure", "export-credentials", "--profile", profile, "--format", "env"]
+        process.arguments = [awsPath, "configure", "export-credentials", "--profile", profile, "--format", "env"]
         
         let stdoutPipe = Pipe()
         let stderrPipe = Pipe()
@@ -172,7 +166,8 @@ class AWSProfileService {
         }
         
         // Wait with 10 second timeout
-        let timeoutSeconds: TimeInterval = 10
+        // Some credential_process/SSO flows can be slow; allow up to 20s before timing out
+        let timeoutSeconds: TimeInterval = 20
         let deadline = Date().addingTimeInterval(timeoutSeconds)
         
         while process.isRunning && Date() < deadline {
