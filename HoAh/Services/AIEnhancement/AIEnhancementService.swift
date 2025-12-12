@@ -18,8 +18,8 @@ enum PromptKind {
 // Prompts (activePrompts, triggerPrompts) are managed locally as they are complex objects.
 @MainActor
 class AIEnhancementService: ObservableObject {
-    private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "AIEnhancementService")
-    private let awsProfileService = AWSProfileService()
+    let logger = Logger(subsystem: "com.yangzichao.hoah", category: "AIEnhancementService")
+    let awsProfileService = AWSProfileService()
     
     private let activePromptsKey = "activePrompts"
     private let triggerPromptsKey = "triggerPrompts"
@@ -28,8 +28,8 @@ class AIEnhancementService: ObservableObject {
     // MARK: - Settings (read from AppSettingsStore)
     
     /// Reference to centralized settings store
-    private weak var appSettings: AppSettingsStore?
-    private var cancellables = Set<AnyCancellable>()
+    weak var appSettings: AppSettingsStore?
+    var cancellables = Set<AnyCancellable>()
     
     /// Whether AI enhancement is enabled (computed from AppSettingsStore)
     var isEnhancementEnabled: Bool {
@@ -104,14 +104,31 @@ class AIEnhancementService: ObservableObject {
 
     var allPrompts: [CustomPrompt] { activePrompts + triggerPrompts }
 
-    private let aiService: AIService
-    private let screenCaptureService: ScreenCaptureService
-    private let baseTimeout: TimeInterval = 30
-    private let rateLimitInterval: TimeInterval = 1.0
-    private var lastRequestTime: Date?
+    let aiService: AIService
+    let screenCaptureService: ScreenCaptureService
+    let baseTimeout: TimeInterval = 30
+    let rateLimitInterval: TimeInterval = 1.0
+    var lastRequestTime: Date?
     private let modelContext: ModelContext
     
-    private func persistPrompts() {
+    /// Immutable runtime snapshot derived from the active configuration
+    var activeSession: ActiveSession?
+    
+    struct ActiveSession {
+        let provider: AIProvider
+        let model: String
+        let region: String?
+        let auth: Auth
+        
+        enum Auth {
+            case bearer(String)          // OpenAI-compatible
+            case anthropic(String)       // Anthropic x-api-key
+            case bedrockSigV4(AWSCredentials, region: String)
+            case bedrockBearer(String, region: String)
+        }
+    }
+    
+    func persistPrompts() {
         if let encoded = try? JSONEncoder().encode(activePrompts) {
             UserDefaults.standard.set(encoded, forKey: activePromptsKey)
         }
@@ -124,6 +141,7 @@ class AIEnhancementService: ObservableObject {
         self.aiService = aiService
         self.modelContext = modelContext
         self.screenCaptureService = ScreenCaptureService()
+        self.activeSession = nil
 
         // Load prompts from UserDefaults (complex objects not in AppSettingsStore)
         let decodedActive = UserDefaults.standard.data(forKey: activePromptsKey).flatMap { try? JSONDecoder().decode([CustomPrompt].self, from: $0) }
@@ -162,6 +180,8 @@ class AIEnhancementService: ObservableObject {
             name: .languageDidChange,
             object: nil
         )
+
+        rebuildActiveSession()
     }
     
     /// Configure with AppSettingsStore for centralized settings management
@@ -228,6 +248,9 @@ class AIEnhancementService: ObservableObject {
         }
         
         logger.info("AIEnhancementService configured with AppSettingsStore")
+        
+        // Build runtime session from current active configuration (if any)
+        rebuildActiveSession()
     }
 
     deinit {
@@ -251,7 +274,7 @@ class AIEnhancementService: ObservableObject {
     }
 
     /// Ensure predefined prompts pick up localized titles/descriptions each launch (language-dependent UI).
-    private func relocalizePredefinedPromptTitles() {
+    func relocalizePredefinedPromptTitles() {
         let templates = PredefinedPrompts.createDefaultPrompts()
         let templateMap = Dictionary(uniqueKeysWithValues: templates.map { ($0.id, $0) })
 
@@ -278,7 +301,7 @@ class AIEnhancementService: ObservableObject {
     }
 
     /// Ensure trigger-word prompts default to enabled only on first launch (no prior state).
-    private func normalizeTriggerActivityDefaults(shouldForceEnableDefaults: Bool) {
+    func normalizeTriggerActivityDefaults(shouldForceEnableDefaults: Bool) {
         guard shouldForceEnableDefaults else { return }
         
         triggerPrompts = triggerPrompts.map { prompt in
@@ -305,794 +328,8 @@ class AIEnhancementService: ObservableObject {
     }
 
     var isConfigured: Bool {
-        if let config = aiService.activeConfiguration {
-            return isConfigurationReady(config)
-        }
-        return aiService.isAPIKeyValid
-    }
-
-    /// Checks whether the active configuration has enough runtime auth/material to send requests.
-    /// Avoids relying solely on aiService.isAPIKeyValid to prevent transient "not configured" states.
-    private func isConfigurationReady(_ config: AIEnhancementConfiguration) -> Bool {
-        guard let provider = AIProvider(rawValue: config.provider) else { return false }
-        
-        switch provider {
-        case .awsBedrock:
-            let region = (config.region ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            let model = config.model.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !region.isEmpty, !model.isEmpty else { return false }
-            
-            // Any of the supported auth methods is sufficient
-            if let profile = config.awsProfileName, !profile.isEmpty {
-                return true
-            }
-            if let accessKeyId = config.awsAccessKeyId, !accessKeyId.isEmpty, config.hasActualAwsSecretKey {
-                return true
-            }
-            if let key = config.getApiKey(), !key.isEmpty {
-                return true
-            }
-            return false
-            
-        default:
-            if let key = config.getApiKey(), !key.isEmpty {
-                return true
-            }
-            return false
-        }
-    }
-
-    private func waitForRateLimit() async throws {
-        if let lastRequest = lastRequestTime {
-            let timeSinceLastRequest = Date().timeIntervalSince(lastRequest)
-            if timeSinceLastRequest < rateLimitInterval {
-                try await Task.sleep(nanoseconds: UInt64((rateLimitInterval - timeSinceLastRequest) * 1_000_000_000))
-            }
-        }
-        lastRequestTime = Date()
-    }
-
-    private func getSystemMessage(for mode: EnhancementPrompt) async -> String {
-        let selectedTextContext: String
-        // Only fetch selected text if enabled and process is trusted
-        if useSelectedTextContext && AXIsProcessTrusted() {
-            if let selectedText = await SelectedTextService.fetchSelectedText(), !selectedText.isEmpty {
-                selectedTextContext = "\n\n<CURRENTLY_SELECTED_TEXT>\n\(selectedText)\n</CURRENTLY_SELECTED_TEXT>"
-            } else {
-                selectedTextContext = ""
-            }
-        } else {
-            selectedTextContext = ""
-        }
-
-        let clipboardContext = if useClipboardContext,
-                              let clipboardText = lastCapturedClipboard,
-                              !clipboardText.isEmpty {
-            "\n\n<CLIPBOARD_CONTEXT>\n\(clipboardText)\n</CLIPBOARD_CONTEXT>"
-        } else {
-            ""
-        }
-
-        let screenCaptureContext = if useScreenCaptureContext,
-                                   let capturedText = screenCaptureService.lastCapturedText,
-                                   !capturedText.isEmpty {
-            "\n\n<CURRENT_WINDOW_CONTEXT>\n\(capturedText)\n</CURRENT_WINDOW_CONTEXT>"
-        } else {
-            ""
-        }
-
-        let userProfileSection = if !userProfileContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            "\n\n<USER_PROFILE>\n\(userProfileContext.trimmingCharacters(in: .whitespacesAndNewlines))\n</USER_PROFILE>"
-        } else {
-            ""
-        }
-
-        let allContextSections = userProfileSection + selectedTextContext + clipboardContext + screenCaptureContext
-
-        if let activePrompt = activePrompt {
-            return activePrompt.finalPromptText + allContextSections
-        } else {
-            guard let fallback = activePrompts.first(where: { $0.id == PredefinedPrompts.defaultPromptId }) ?? activePrompts.first else {
-                return allContextSections
-            }
-            return fallback.finalPromptText + allContextSections
-        }
-    }
-
-    private func makeRequest(text: String, mode: EnhancementPrompt) async throws -> String {
-        if !isConfigured {
-            // Attempt a last-minute rehydration from the active configuration to avoid transient false negatives
-            if aiService.activeConfiguration != nil {
-                await aiService.hydrateActiveConfiguration()
-            }
-            guard isConfigured else {
-                throw EnhancementError.notConfigured
-            }
-        }
-
-        guard !text.isEmpty else {
-            return "" // Silently return empty string instead of throwing error
-        }
-
-        let formattedText = "\n<TRANSCRIPT>\n\(text)\n</TRANSCRIPT>"
-        let systemMessage = await getSystemMessage(for: mode)
-        
-        // Persist the exact payload being sent (also used for UI)
-        await MainActor.run {
-            self.lastSystemMessageSent = systemMessage
-            self.lastUserMessageSent = formattedText
-        }
-
-        // Log the message being sent to AI enhancement
-        logger.notice("AI Enhancement - System Message: \(systemMessage, privacy: .public)")
-        logger.notice("AI Enhancement - User Message: \(formattedText, privacy: .public)")
-
-        try await waitForRateLimit()
-
-        let providerKey = aiService.selectedProvider.rawValue
-        let keyManager = CloudAPIKeyManager.shared
-        let usesManagedKeys = aiService.selectedProvider.requiresAPIKey &&
-            aiService.selectedProvider != .awsBedrock
-        var triedKeyIds = Set<UUID>()
-
-        while true {
-            if usesManagedKeys {
-                guard let active = keyManager.activeKey(for: providerKey) else {
-                    throw EnhancementError.notConfigured
-                }
-                if triedKeyIds.contains(active.id) {
-                    throw EnhancementError.apiKeyInvalid
-                }
-                triedKeyIds.insert(active.id)
-                aiService.selectAPIKey(id: active.id)
-            }
-
-            do {
-                let result = try await performRequest(systemMessage: systemMessage, formattedText: formattedText)
-                if usesManagedKeys {
-                    keyManager.markCurrentKeyUsed(for: providerKey)
-                }
-                return result
-            } catch let error as EnhancementError {
-                switch error {
-                case .apiKeyInvalid, .rateLimitExceeded:
-                    if usesManagedKeys, keyManager.rotateKey(for: providerKey) {
-                        continue
-                    }
-                    throw error
-                default:
-                    throw error
-                }
-            }
-        }
-    }
-
-    private func performRequest(systemMessage: String, formattedText: String) async throws -> String {
-        switch aiService.selectedProvider {
-        case .anthropic:
-            // Ensure API key is hydrated from active configuration if needed
-            var apiKey = aiService.apiKey
-            if apiKey.isEmpty,
-               let cfg = aiService.activeConfiguration,
-               let key = cfg.getApiKey(),
-               !key.isEmpty {
-                apiKey = key
-            }
-            guard !apiKey.isEmpty else {
-                throw EnhancementError.notConfigured
-            }
-            let requestBody: [String: Any] = [
-                "model": aiService.currentModel,
-                "max_tokens": 8192,
-                "system": systemMessage,
-                "messages": [
-                    ["role": "user", "content": formattedText]
-                ]
-            ]
-
-            var request = URLRequest(url: URL(string: aiService.selectedProvider.baseURL)!)
-            request.httpMethod = "POST"
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
-            request.addValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-            request.timeoutInterval = baseTimeout
-            request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
-
-            do {
-                let (data, response) = try await URLSession.shared.data(for: request)
-
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw EnhancementError.invalidResponse
-                }
-
-                if httpResponse.statusCode == 200 {
-                    guard let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                          let content = jsonResponse["content"] as? [[String: Any]],
-                          let firstContent = content.first,
-                          let enhancedText = firstContent["text"] as? String else {
-                        throw EnhancementError.enhancementFailed
-                    }
-
-                    let filteredText = AIEnhancementOutputFilter.filter(enhancedText.trimmingCharacters(in: .whitespacesAndNewlines))
-                    return filteredText
-                } else if httpResponse.statusCode == 429 {
-                    throw EnhancementError.rateLimitExceeded
-                } else if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                    throw EnhancementError.apiKeyInvalid
-                } else if (500...599).contains(httpResponse.statusCode) {
-                    throw EnhancementError.serverError
-                } else {
-                    let errorString = String(data: data, encoding: .utf8) ?? "Could not decode error response."
-                    throw EnhancementError.customError("HTTP \(httpResponse.statusCode): \(errorString)")
-                }
-
-            } catch let error as EnhancementError {
-                throw error
-            } catch let error as URLError {
-                throw error
-            } catch {
-                throw EnhancementError.customError(error.localizedDescription)
-            }
-
-        default:
-            if aiService.selectedProvider == .awsBedrock {
-                return try await makeBedrockRequest(systemMessage: systemMessage, userMessage: formattedText)
-            }
-            
-            // Ensure API key is hydrated from active configuration if needed
-            var apiKey = aiService.apiKey
-            if apiKey.isEmpty,
-               let cfg = aiService.activeConfiguration,
-               let key = cfg.getApiKey(),
-               !key.isEmpty {
-                apiKey = key
-            }
-            guard !apiKey.isEmpty else {
-                throw EnhancementError.notConfigured
-            }
-            let url = URL(string: aiService.selectedProvider.baseURL)!
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-            request.timeoutInterval = baseTimeout
-
-            let messages: [[String: Any]] = [
-                ["role": "system", "content": systemMessage],
-                ["role": "user", "content": formattedText]
-            ]
-
-            var requestBody: [String: Any] = [
-                "model": aiService.currentModel,
-                "messages": messages,
-                "stream": false
-            ]
-            
-            // gpt-5-mini 和 gpt-5-nano 不支持 temperature 参数
-            let noTemperatureModels = ["gpt-5-mini", "gpt-5-nano"]
-            if !noTemperatureModels.contains(aiService.currentModel) {
-                requestBody["temperature"] = 0.3
-            }
-
-            // Add reasoning_effort parameter if the model supports it
-            if let reasoningEffort = ReasoningConfig.getReasoningParameter(for: aiService.currentModel) {
-                requestBody["reasoning_effort"] = reasoningEffort
-            }
-
-            request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
-
-            do {
-                let (data, response) = try await URLSession.shared.data(for: request)
-
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw EnhancementError.invalidResponse
-                }
-
-                if httpResponse.statusCode == 200 {
-                    guard let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                          let choices = jsonResponse["choices"] as? [[String: Any]],
-                          let firstChoice = choices.first,
-                          let message = firstChoice["message"] as? [String: Any],
-                          let enhancedText = message["content"] as? String else {
-                        throw EnhancementError.enhancementFailed
-                    }
-
-                    let filteredText = AIEnhancementOutputFilter.filter(enhancedText.trimmingCharacters(in: .whitespacesAndNewlines))
-                    return filteredText
-                } else if httpResponse.statusCode == 429 {
-                    throw EnhancementError.rateLimitExceeded
-                } else if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                    throw EnhancementError.apiKeyInvalid
-                } else if (500...599).contains(httpResponse.statusCode) {
-                    throw EnhancementError.serverError
-                } else {
-                    let errorString = String(data: data, encoding: .utf8) ?? "Could not decode error response."
-                    throw EnhancementError.customError("HTTP \(httpResponse.statusCode): \(errorString)")
-                }
-
-            } catch let error as EnhancementError {
-                throw error
-            } catch let error as URLError {
-                throw error
-            } catch {
-                throw EnhancementError.customError(error.localizedDescription)
-            }
-        }
-    }
-
-    private func makeRequestWithRetry(text: String, mode: EnhancementPrompt, maxRetries: Int = 3, initialDelay: TimeInterval = 1.0) async throws -> String {
-        var retries = 0
-        var currentDelay = initialDelay
-
-        while retries < maxRetries {
-            do {
-                return try await makeRequest(text: text, mode: mode)
-            } catch let error as EnhancementError {
-                switch error {
-                case .networkError, .serverError, .rateLimitExceeded:
-                    retries += 1
-                    if retries < maxRetries {
-                        logger.warning("Request failed, retrying in \(currentDelay)s... (Attempt \(retries)/\(maxRetries))")
-                        try await Task.sleep(nanoseconds: UInt64(currentDelay * 1_000_000_000))
-                        currentDelay *= 2 // Exponential backoff
-                    } else {
-                        logger.error("Request failed after \(maxRetries) retries.")
-                        throw error
-                    }
-                default:
-                    throw error
-                }
-            } catch {
-                // For other errors, check if it's a network-related URLError
-                let nsError = error as NSError
-                if nsError.domain == NSURLErrorDomain && [NSURLErrorNotConnectedToInternet, NSURLErrorTimedOut, NSURLErrorNetworkConnectionLost].contains(nsError.code) {
-                    retries += 1
-                    if retries < maxRetries {
-                        logger.warning("Request failed with network error, retrying in \(currentDelay)s... (Attempt \(retries)/\(maxRetries))")
-                        try await Task.sleep(nanoseconds: UInt64(currentDelay * 1_000_000_000))
-                        currentDelay *= 2 // Exponential backoff
-                    } else {
-                        logger.error("Request failed after \(maxRetries) retries with network error.")
-                        throw EnhancementError.networkError
-                    }
-                } else {
-                    throw error
-                }
-            }
-        }
-
-        // This part should ideally not be reached, but as a fallback:
-        throw EnhancementError.enhancementFailed
-    }
-    
-    private func makeBedrockRequest(systemMessage: String, userMessage: String) async throws -> String {
-        let config = aiService.activeConfiguration
-        let apiKey = aiService.apiKey
-        var region = config?.region ?? aiService.bedrockRegion
-        let modelId = config?.model ?? aiService.currentModel
-        
-        // Combine system message and user message into a single prompt
-        let prompt = "\(systemMessage)\n\(userMessage)"
-        
-        // Build messages array according to Bedrock Converse API format
-        let messages: [[String: Any]] = [
-            [
-                "role": "user",
-                "content": [
-                    ["text": prompt]
-                ]
-            ]
-        ]
-        
-        // Build payload - note: modelId is NOT included in the payload body
-        let payload: [String: Any] = [
-            "messages": messages,
-            "inferenceConfig": [
-                "maxTokens": 1024,
-                "temperature": 0.3
-            ]
-        ]
-        
-        let payloadData = try JSONSerialization.data(withJSONObject: payload)
-        guard !modelId.isEmpty else {
-            throw EnhancementError.notConfigured
-        }
-        
-        // Determine authentication method and build request
-        var request: URLRequest
-        guard !region.isEmpty else { throw EnhancementError.notConfigured }
-        let host = "bedrock-runtime.\(region).amazonaws.com"
-        guard let url = URL(string: "https://\(host)/model/\(modelId)/converse") else {
-            throw EnhancementError.invalidResponse
-        }
-        request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = payloadData
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = baseTimeout
-        
-        // Check authentication method in order: AWS Profile > Access Key > API Key (Bearer Token)
-        if let profileName = config?.awsProfileName, !profileName.isEmpty {
-            // Use AWS Profile (SigV4)
-            let credentials = try await awsProfileService.resolveCredentials(for: profileName)
-            if let resolved = credentials.region, !resolved.isEmpty {
-                region = resolved
-            }
-            let signerCredentials = AWSCredentials(
-                accessKeyId: credentials.accessKeyId,
-                secretAccessKey: credentials.secretAccessKey,
-                sessionToken: credentials.sessionToken,
-                region: region
-            )
-            request = try AWSSigV4Signer.sign(
-                request: request,
-                credentials: signerCredentials,
-                region: region,
-                service: "bedrock-runtime"
-            )
-        } else if let accessKeyId = config?.awsAccessKeyId, !accessKeyId.isEmpty,
-                  let secretAccessKey = config?.getAwsSecretAccessKey(), !secretAccessKey.isEmpty {
-            // Use Access Key (SigV4)
-            let signerCredentials = AWSCredentials(
-                accessKeyId: accessKeyId,
-                secretAccessKey: secretAccessKey,
-                sessionToken: nil,
-                region: region
-            )
-            request = try AWSSigV4Signer.sign(
-                request: request,
-                credentials: signerCredentials,
-                region: region,
-                service: "bedrock-runtime"
-            )
-        } else {
-            // Use API Key (Bearer Token)
-            guard !apiKey.isEmpty else {
-                throw EnhancementError.notConfigured
-            }
-            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        }
-        
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw EnhancementError.invalidResponse
-            }
-            
-            if httpResponse.statusCode == 200 {
-                if let result = Self.parseBedrockResponse(data: data) {
-                    return AIEnhancementOutputFilter.filter(result.trimmingCharacters(in: .whitespacesAndNewlines))
-                } else {
-                    throw EnhancementError.enhancementFailed
-                }
-            } else if httpResponse.statusCode == 429 {
-                throw EnhancementError.rateLimitExceeded
-            } else if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                throw EnhancementError.apiKeyInvalid
-            } else if (500...599).contains(httpResponse.statusCode) {
-                throw EnhancementError.serverError
-            } else {
-                let errorString = String(data: data, encoding: .utf8) ?? "Could not decode error response."
-                throw EnhancementError.customError("HTTP \(httpResponse.statusCode): \(errorString)")
-            }
-        } catch let error as EnhancementError {
-            throw error
-        } catch {
-            throw EnhancementError.customError(error.localizedDescription)
-        }
-    }
-    
-    private static func parseBedrockResponse(data: Data) -> String? {
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            // If JSON parsing fails, try returning as string
-            return String(data: data, encoding: .utf8)
-        }
-        
-        // Parse Bedrock Converse API response format:
-        // {"output": {"message": {"content": [{"text": "..."}], "role": "assistant"}}, ...}
-        // GPT-OSS format: {"content": [{"reasoningContent": {...}}, {"text": "final answer"}]}
-        if let output = json["output"] as? [String: Any],
-           let message = output["message"] as? [String: Any],
-           let content = message["content"] as? [[String: Any]] {
-            
-            // First pass: look for direct "text" field (final answer, not reasoning)
-            for contentItem in content {
-                if let text = contentItem["text"] as? String {
-                    return text
-                }
-            }
-            
-            // Second pass: if no direct text found, check for reasoning content
-            // (fallback for models that only return reasoning)
-            for contentItem in content {
-                if let reasoningContent = contentItem["reasoningContent"] as? [String: Any],
-                   let reasoningText = reasoningContent["reasoningText"] as? [String: Any],
-                   let text = reasoningText["text"] as? String {
-                    return text
-                }
-            }
-        }
-        
-        // Fallback: try other possible response formats
-        if let text = json["output_text"] as? String { return text }
-        if let text = json["outputText"] as? String { return text }
-        if let text = json["completion"] as? String { return text }
-        if let text = json["generated_text"] as? String { return text }
-        
-        if let outputs = json["outputs"] as? [[String: Any]] {
-            if let first = outputs.first {
-                if let text = first["text"] as? String { return text }
-                if let text = first["output_text"] as? String { return text }
-            }
-        }
-        
-        return nil
-    }
-
-    func enhance(_ text: String) async throws -> (String, TimeInterval, String?) {
-        let startTime = Date()
-        let enhancementPrompt: EnhancementPrompt = .transcriptionEnhancement
-        let promptName = activePrompt?.title
-
-        do {
-            let result = try await makeRequestWithRetry(text: text, mode: enhancementPrompt)
-            let endTime = Date()
-            let duration = endTime.timeIntervalSince(startTime)
-            return (result, duration, promptName)
-        } catch {
-            throw error
-        }
-    }
-
-    func captureScreenContext() async {
-        // Screen context capture is disabled in this fork.
-    }
-
-    func captureClipboardContext() {
-        lastCapturedClipboard = NSPasteboard.general.string(forType: .string)
-    }
-    
-    func clearCapturedContexts() {
-        lastCapturedClipboard = nil
-        screenCaptureService.lastCapturedText = nil
-    }
-
-    func addPrompt(title: String, promptText: String, icon: PromptIcon = "doc.text.fill", description: String? = nil, triggerWords: [String] = [], useSystemInstructions: Bool = true, kind: PromptKind) {
-        let newPrompt = CustomPrompt(title: title, promptText: promptText, isActive: true, icon: icon, description: description, isPredefined: false, triggerWords: triggerWords, useSystemInstructions: useSystemInstructions)
-        switch kind {
-        case .active:
-            activePrompts.append(newPrompt)
-            if selectedPromptId == nil {
-                selectedPromptId = newPrompt.id
-            }
-        case .trigger:
-            triggerPrompts.append(newPrompt)
-        }
-    }
-
-    func updatePrompt(_ prompt: CustomPrompt) {
-        if let index = activePrompts.firstIndex(where: { $0.id == prompt.id }) {
-            activePrompts[index] = prompt
-            return
-        }
-        if let index = triggerPrompts.firstIndex(where: { $0.id == prompt.id }) {
-            triggerPrompts[index] = prompt
-        }
-    }
-
-    func deletePrompt(_ prompt: CustomPrompt) {
-        guard !prompt.isPredefined else { return }
-        if activePrompts.contains(where: { $0.id == prompt.id }) {
-            activePrompts.removeAll { $0.id == prompt.id }
-            if selectedPromptId == prompt.id {
-                selectedPromptId = activePrompts.first?.id
-            }
-        } else if triggerPrompts.contains(where: { $0.id == prompt.id }) {
-            triggerPrompts.removeAll { $0.id == prompt.id }
-        }
-    }
-
-    func setActivePrompt(_ prompt: CustomPrompt) {
-        guard activePrompts.contains(where: { $0.id == prompt.id }) else { return }
-        selectedPromptId = prompt.id
-    }
-
-    func resetPromptToDefault(_ prompt: CustomPrompt) {
-        guard prompt.isPredefined,
-              let template = PredefinedPrompts.createDefaultPrompts().first(where: { $0.id == prompt.id }) else { return }
-        
-        if let index = activePrompts.firstIndex(where: { $0.id == prompt.id }) {
-            let restoredPrompt = CustomPrompt(
-                id: template.id,
-                title: template.title,
-                promptText: template.promptText,
-                isActive: activePrompts[index].isActive,
-                icon: template.icon,
-                description: template.description,
-                isPredefined: true,
-                triggerWords: template.triggerWords,
-                useSystemInstructions: template.useSystemInstructions
-            )
-            activePrompts[index] = restoredPrompt
-            if selectedPromptId == nil {
-                selectedPromptId = restoredPrompt.id
-            }
-            return
-        }
-        
-        if let index = triggerPrompts.firstIndex(where: { $0.id == prompt.id }) {
-            let restoredPrompt = CustomPrompt(
-                id: template.id,
-                title: template.title,
-                promptText: template.promptText,
-                isActive: triggerPrompts[index].isActive,
-                icon: template.icon,
-                description: template.description,
-                isPredefined: true,
-                triggerWords: template.triggerWords,
-                useSystemInstructions: template.useSystemInstructions
-            )
-            triggerPrompts[index] = restoredPrompt
-        }
-    }
-
-    func resetPredefinedPrompts() {
-        let templates = PredefinedPrompts.createDefaultPrompts()
-        let (defaultActive, defaultTrigger) = templates.partitionedByTriggerWords()
-
-        var updatedActive = activePrompts
-        var updatedTrigger = triggerPrompts
-
-        for template in defaultActive {
-            if let index = updatedActive.firstIndex(where: { $0.id == template.id }) {
-                let existing = updatedActive[index]
-                updatedActive[index] = CustomPrompt(
-                    id: template.id,
-                    title: template.title,
-                    promptText: template.promptText,
-                    isActive: existing.isActive,
-                    icon: template.icon,
-                    description: template.description,
-                    isPredefined: true,
-                    triggerWords: template.triggerWords,
-                    useSystemInstructions: template.useSystemInstructions
-                )
-            } else {
-                updatedActive.append(template)
-            }
-        }
-
-        for template in defaultTrigger {
-            if let index = updatedTrigger.firstIndex(where: { $0.id == template.id }) {
-                let existing = updatedTrigger[index]
-                updatedTrigger[index] = CustomPrompt(
-                    id: template.id,
-                    title: template.title,
-                    promptText: template.promptText,
-                    isActive: existing.isActive,
-                    icon: template.icon,
-                    description: template.description,
-                    isPredefined: true,
-                    triggerWords: template.triggerWords,
-                    useSystemInstructions: template.useSystemInstructions
-                )
-            } else {
-                updatedTrigger.append(template)
-            }
-        }
-
-        activePrompts = updatedActive
-        triggerPrompts = updatedTrigger
-
-        if selectedPromptId == nil || !activePrompts.contains(where: { $0.id == selectedPromptId }) {
-            selectedPromptId = activePrompts.first?.id
-        }
-    }
-
-    private func initializePredefinedPrompts() {
-        let predefinedTemplates = PredefinedPrompts.createDefaultPrompts()
-        let templateIDs = Set(predefinedTemplates.map { $0.id })
-        let (defaultActive, defaultTrigger) = predefinedTemplates.partitionedByTriggerWords()
-
-        // Force migration: If a prompt is currently in activePrompts but its template is now in defaultTrigger, move it.
-        // This handles cases like the "Terminal" prompt moving from manual to trigger-only.
-        let defaultTriggerIDs = Set(defaultTrigger.map { $0.id })
-        let migratingPrompts = activePrompts.filter { $0.isPredefined && defaultTriggerIDs.contains($0.id) }
-        activePrompts.removeAll { $0.isPredefined && defaultTriggerIDs.contains($0.id) }
-        triggerPrompts.append(contentsOf: migratingPrompts)
-
-        // Remove predefined prompts that are no longer part of the shipped set
-        activePrompts.removeAll { prompt in
-            prompt.isPredefined && !templateIDs.contains(prompt.id)
-        }
-        triggerPrompts.removeAll { prompt in
-            prompt.isPredefined && !templateIDs.contains(prompt.id)
-        }
-        
-        // Normalize any misplaced prompts (move trigger-word prompts into trigger collection)
-        let (normalizedActive, migratedToTrigger) = activePrompts.partitionedByTriggerWords()
-        activePrompts = normalizedActive
-        if !migratedToTrigger.isEmpty {
-            triggerPrompts.append(contentsOf: migratedToTrigger)
-        }
-
-        for template in defaultActive {
-            if let existingIndex = activePrompts.firstIndex(where: { $0.id == template.id }) {
-                let existingPrompt = activePrompts[existingIndex]
-                let mergedPrompt = CustomPrompt(
-                    id: existingPrompt.id,
-                    title: template.title,
-                    promptText: template.promptText,
-                    isActive: existingPrompt.isActive,
-                    icon: template.icon,
-                    description: template.description,
-                    isPredefined: true,
-                    triggerWords: existingPrompt.triggerWords,
-                    useSystemInstructions: template.useSystemInstructions
-                )
-                activePrompts[existingIndex] = mergedPrompt
-            } else {
-                activePrompts.append(template)
-            }
-        }
-
-        for template in defaultTrigger {
-            if let existingIndex = triggerPrompts.firstIndex(where: { $0.id == template.id }) {
-                let existingPrompt = triggerPrompts[existingIndex]
-                let mergedPrompt = CustomPrompt(
-                    id: existingPrompt.id,
-                    title: template.title,
-                    promptText: template.promptText,
-                    isActive: existingPrompt.isActive,
-                    icon: template.icon,
-                    description: template.description,
-                    isPredefined: true,
-                    triggerWords: existingPrompt.triggerWords,
-                    useSystemInstructions: template.useSystemInstructions
-                )
-                triggerPrompts[existingIndex] = mergedPrompt
-            } else {
-                triggerPrompts.append(template)
-            }
-        }
-
-        // Migrate TODO preset to trigger collection and ensure it has trigger words
-        if let todoTemplate = predefinedTemplates.first(where: { $0.id == PredefinedPrompts.todoPromptId }) {
-            if let idx = activePrompts.firstIndex(where: { $0.id == todoTemplate.id }) {
-                let prompt = activePrompts.remove(at: idx)
-                let migrated = CustomPrompt(
-                    id: prompt.id,
-                    title: todoTemplate.title,
-                    promptText: prompt.promptText,
-                    isActive: prompt.isActive,
-                    icon: prompt.icon,
-                    description: prompt.description,
-                    isPredefined: prompt.isPredefined,
-                    triggerWords: todoTemplate.triggerWords,
-                    useSystemInstructions: prompt.useSystemInstructions
-                )
-                if !triggerPrompts.contains(where: { $0.id == prompt.id }) {
-                    triggerPrompts.append(migrated)
-                }
-            }
-            if let idx = triggerPrompts.firstIndex(where: { $0.id == todoTemplate.id }) {
-                let prompt = triggerPrompts[idx]
-                if prompt.triggerWords.isEmpty {
-                    let updated = CustomPrompt(
-                        id: prompt.id,
-                        title: todoTemplate.title,
-                        promptText: prompt.promptText,
-                        isActive: prompt.isActive,
-                        icon: prompt.icon,
-                        description: prompt.description,
-                        isPredefined: prompt.isPredefined,
-                        triggerWords: todoTemplate.triggerWords,
-                        useSystemInstructions: prompt.useSystemInstructions
-                    )
-                    triggerPrompts[idx] = updated
-                }
-            }
-        }
+        // During migration, keep legacy fallback to avoid false negatives
+        return activeSession != nil || aiService.isAPIKeyValid
     }
 }
 
