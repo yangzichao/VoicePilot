@@ -480,12 +480,23 @@ class AIService: ObservableObject {
         
         // Handle authentication
         if let profileName = config.awsProfileName, !profileName.isEmpty {
+            // Profile-based Bedrock configs should be treated as configured immediately;
+            // we'll still resolve credentials to pick up region overrides, but avoid
+            // transient "not configured" states while the async resolve runs.
             self.apiKey = ""
-            self.isAPIKeyValid = false
+            self.isAPIKeyValid = true
             let regionToUse = config.region ?? appSettings?.bedrockRegion ?? "us-east-1"
             Task { [weak self] in
                 await self?.validateAWSProfileConfiguration(profileName: profileName, region: regionToUse)
             }
+            return
+        }
+
+        // Access Key authentication for Bedrock (SigV4)
+        if let accessKeyId = config.awsAccessKeyId, !accessKeyId.isEmpty,
+           let _ = config.getAwsSecretAccessKey() {
+            self.apiKey = ""
+            self.isAPIKeyValid = true
             return
         }
         
@@ -496,6 +507,17 @@ class AIService: ObservableObject {
         } else {
             self.apiKey = ""
             self.isAPIKeyValid = false
+        }
+    }
+
+    /// Public helper to rehydrate runtime auth state from the active configuration or legacy provider selection.
+    /// Useful as a last-resort when downstream logic sees a transient "not configured" state.
+    @MainActor
+    func hydrateActiveConfiguration() {
+        if let config = activeConfiguration {
+            refreshAPIKeyStateFromConfiguration(config)
+        } else {
+            refreshAPIKeyState()
         }
     }
     

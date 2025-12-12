@@ -305,7 +305,41 @@ class AIEnhancementService: ObservableObject {
     }
 
     var isConfigured: Bool {
-        aiService.isAPIKeyValid
+        if let config = aiService.activeConfiguration {
+            return isConfigurationReady(config)
+        }
+        return aiService.isAPIKeyValid
+    }
+
+    /// Checks whether the active configuration has enough runtime auth/material to send requests.
+    /// Avoids relying solely on aiService.isAPIKeyValid to prevent transient "not configured" states.
+    private func isConfigurationReady(_ config: AIEnhancementConfiguration) -> Bool {
+        guard let provider = AIProvider(rawValue: config.provider) else { return false }
+        
+        switch provider {
+        case .awsBedrock:
+            let region = (config.region ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let model = config.model.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !region.isEmpty, !model.isEmpty else { return false }
+            
+            // Any of the supported auth methods is sufficient
+            if let profile = config.awsProfileName, !profile.isEmpty {
+                return true
+            }
+            if let accessKeyId = config.awsAccessKeyId, !accessKeyId.isEmpty, config.hasActualAwsSecretKey {
+                return true
+            }
+            if let key = config.getApiKey(), !key.isEmpty {
+                return true
+            }
+            return false
+            
+        default:
+            if let key = config.getApiKey(), !key.isEmpty {
+                return true
+            }
+            return false
+        }
     }
 
     private func waitForRateLimit() async throws {
@@ -366,8 +400,14 @@ class AIEnhancementService: ObservableObject {
     }
 
     private func makeRequest(text: String, mode: EnhancementPrompt) async throws -> String {
-        guard isConfigured else {
-            throw EnhancementError.notConfigured
+        if !isConfigured {
+            // Attempt a last-minute rehydration from the active configuration to avoid transient false negatives
+            if aiService.activeConfiguration != nil {
+                await aiService.hydrateActiveConfiguration()
+            }
+            guard isConfigured else {
+                throw EnhancementError.notConfigured
+            }
         }
 
         guard !text.isEmpty else {
@@ -430,6 +470,17 @@ class AIEnhancementService: ObservableObject {
     private func performRequest(systemMessage: String, formattedText: String) async throws -> String {
         switch aiService.selectedProvider {
         case .anthropic:
+            // Ensure API key is hydrated from active configuration if needed
+            var apiKey = aiService.apiKey
+            if apiKey.isEmpty,
+               let cfg = aiService.activeConfiguration,
+               let key = cfg.getApiKey(),
+               !key.isEmpty {
+                apiKey = key
+            }
+            guard !apiKey.isEmpty else {
+                throw EnhancementError.notConfigured
+            }
             let requestBody: [String: Any] = [
                 "model": aiService.currentModel,
                 "max_tokens": 8192,
@@ -442,7 +493,7 @@ class AIEnhancementService: ObservableObject {
             var request = URLRequest(url: URL(string: aiService.selectedProvider.baseURL)!)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.addValue(aiService.apiKey, forHTTPHeaderField: "x-api-key")
+            request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
             request.addValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
             request.timeoutInterval = baseTimeout
             request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
@@ -487,11 +538,23 @@ class AIEnhancementService: ObservableObject {
             if aiService.selectedProvider == .awsBedrock {
                 return try await makeBedrockRequest(systemMessage: systemMessage, userMessage: formattedText)
             }
+            
+            // Ensure API key is hydrated from active configuration if needed
+            var apiKey = aiService.apiKey
+            if apiKey.isEmpty,
+               let cfg = aiService.activeConfiguration,
+               let key = cfg.getApiKey(),
+               !key.isEmpty {
+                apiKey = key
+            }
+            guard !apiKey.isEmpty else {
+                throw EnhancementError.notConfigured
+            }
             let url = URL(string: aiService.selectedProvider.baseURL)!
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.addValue("Bearer \(aiService.apiKey)", forHTTPHeaderField: "Authorization")
+            request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
             request.timeoutInterval = baseTimeout
 
             let messages: [[String: Any]] = [

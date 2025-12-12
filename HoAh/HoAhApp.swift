@@ -340,6 +340,7 @@ struct HoAhApp: App {
                 .environmentObject(menuBarManager)
                 .environmentObject(aiService)
                 .environmentObject(enhancementService)
+                .environmentObject(configValidationService)
                 .environment(\.locale, localizationManager.locale)
         } label: {
             let image: NSImage = {

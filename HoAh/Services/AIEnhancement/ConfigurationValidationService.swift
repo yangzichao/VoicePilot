@@ -100,6 +100,9 @@ class ConfigurationValidationService: ObservableObject {
     /// Current validation task (for cancellation)
     private var currentValidationTask: Task<Void, Never>?
     
+    /// Tracks the config/signature we are validating to avoid applying stale results
+    private var currentContext: ValidationContext?
+    
     /// Timer for clearing success indicator
     private var successClearTimer: Timer?
     
@@ -135,12 +138,16 @@ class ConfigurationValidationService: ObservableObject {
             return
         }
         
+        // Capture validation context snapshot to detect stale results
+        let context = ValidationContext(config: config, signature: makeSignature(for: config))
+        currentContext = context
+        
         // Set validating state
         validatingConfigId = configId
         
         // Start validation task
         currentValidationTask = Task { [weak self] in
-            await self?.performValidation(config: config)
+            await self?.performValidation(config: config, context: context)
         }
     }
     
@@ -149,6 +156,7 @@ class ConfigurationValidationService: ObservableObject {
         currentValidationTask?.cancel()
         currentValidationTask = nil
         validatingConfigId = nil
+        currentContext = nil
     }
     
     /// Clears the current error state
@@ -158,7 +166,7 @@ class ConfigurationValidationService: ObservableObject {
     
     // MARK: - Private Methods
     
-    private func performValidation(config: AIEnhancementConfiguration) async {
+    private func performValidation(config: AIEnhancementConfiguration, context: ValidationContext) async {
         let configId = config.id
         let provider = AIProvider(rawValue: config.provider) ?? .gemini
         
@@ -187,11 +195,14 @@ class ConfigurationValidationService: ObservableObject {
         guard !Task.isCancelled else { return }
         
         // Handle result
-        await MainActor.run {
+        await MainActor.run { [weak self] in
+            guard let self = self else { return }
             // Ensure we're still validating this config
-            guard self.validatingConfigId == configId else { return }
+            guard self.validatingConfigId == configId,
+                  self.currentContext?.matches(context) == true else { return }
             
             self.validatingConfigId = nil
+            self.currentContext = nil
             
             if let result = result {
                 if result.success {
@@ -304,5 +315,35 @@ class ConfigurationValidationService: ObservableObject {
                 self?.lastSuccessConfigId = nil
             }
         }
+    }
+}
+
+// MARK: - Validation Context Helpers
+
+private extension ConfigurationValidationService {
+    struct ValidationContext: Equatable {
+        let configId: UUID
+        let signature: String
+        
+        init(config: AIEnhancementConfiguration, signature: String) {
+            self.configId = config.id
+            self.signature = signature
+        }
+        
+        func matches(_ other: ValidationContext) -> Bool {
+            return configId == other.configId && signature == other.signature
+        }
+    }
+    
+    /// Lightweight signature to detect stale validation results
+    func makeSignature(for config: AIEnhancementConfiguration) -> String {
+        let provider = config.provider
+        let model = config.model
+        let region = config.region ?? ""
+        let profile = config.awsProfileName ?? ""
+        let accessKey = config.awsAccessKeyId ?? ""
+        let hasSecret = config.hasActualAwsSecretKey
+        let hasAPI = config.hasActualApiKey
+        return [provider, model, region, profile, accessKey, "\(hasSecret)", "\(hasAPI)"].joined(separator: "|")
     }
 }

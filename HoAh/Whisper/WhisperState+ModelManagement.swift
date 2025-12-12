@@ -40,15 +40,7 @@ extension WhisperState {
     
     func refreshAllAvailableModels() {
         let currentModelName = currentTranscriptionModel?.name
-        var models = PredefinedModels.models
-
-        // Append dynamically discovered local models (imported .bin files) with minimal metadata
-        for whisperModel in availableModels {
-            if !models.contains(where: { $0.name == whisperModel.name }) {
-                let importedModel = ImportedLocalModel(fileBaseName: whisperModel.name)
-                models.append(importedModel)
-            }
-        }
+        let models = PredefinedModels.models
 
         allAvailableModels = models
 

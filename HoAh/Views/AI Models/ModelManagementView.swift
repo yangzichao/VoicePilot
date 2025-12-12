@@ -212,30 +212,7 @@ struct ModelManagementView: View {
                         )
                     }
                     
-                    // Import button as a card at the end of the Local list
-                    if selectedFilter == .local {
-                        HStack(spacing: 8) {
-                            Button(action: { presentImportPanel() }) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "square.and.arrow.down")
-                                    Text("Import Local Model…")
-                                        .font(.system(size: 12, weight: .semibold))
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(16)
-                                .background(CardBackground(isSelected: false))
-                                .cornerRadius(10)
-                            }
-                            .buttonStyle(.plain)
 
-                            InfoTip(
-                                title: "Import local Whisper models",
-                                message: "Add a custom fine-tuned whisper model to use with HoAh. Select the downloaded .bin file.",
-                                learnMoreURL: "https://tryvoiceink.com/docs/custom-local-whisper-models"
-                            )
-                            .help("Read more about custom local models")
-                        }
-                    }
                 }
             }
         }
@@ -262,18 +239,4 @@ struct ModelManagementView: View {
         }
     }
 
-    // MARK: - Import Panel
-    private func presentImportPanel() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.init(filenameExtension: "bin")!]
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
-        panel.resolvesAliases = true
-        panel.title = "Select a Whisper ggml .bin model"
-        if panel.runModal() == .OK, let url = panel.url {
-            Task { @MainActor in
-                await whisperState.importLocalModel(from: url)
-            }
-        }
-    }
 }
