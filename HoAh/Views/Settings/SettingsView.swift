@@ -10,8 +10,7 @@ struct SettingsView: View {
     @EnvironmentObject private var whisperState: WhisperState
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @EnvironmentObject private var appSettings: AppSettingsStore
-    // DEPRECATED: Use AppSettingsStore instead of @AppStorage
-    @StateObject private var deviceManager = AudioDeviceManager.shared
+
     @ObservedObject private var soundManager = SoundManager.shared
     @ObservedObject private var mediaController = MediaController.shared
     @ObservedObject private var playbackController = PlaybackController.shared

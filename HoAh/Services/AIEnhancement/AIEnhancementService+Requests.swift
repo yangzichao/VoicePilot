@@ -61,7 +61,16 @@ extension AIEnhancementService {
     }
 
     func makeRequest(text: String, mode: EnhancementPrompt) async throws -> String {
-        guard let session = activeSession else {
+        var session = activeSession
+
+        // If we somehow lost the runtime session (e.g. after a config switch), try to rehydrate once before failing.
+        if session == nil {
+            aiService.hydrateActiveConfiguration()
+            rebuildActiveSession()
+            session = activeSession
+        }
+
+        guard let session else {
             throw EnhancementError.notConfigured
         }
 

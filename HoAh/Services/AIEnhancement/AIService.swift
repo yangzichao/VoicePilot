@@ -171,8 +171,14 @@ class AIService: ObservableObject {
     
     /// AWS Bedrock region - reads from AppSettingsStore
     var bedrockRegion: String {
-        get { appSettings?.bedrockRegion ?? "us-east-1" }
+        get {
+            if let config = activeConfiguration {
+                return config.region ?? "us-east-1"
+            }
+            return appSettings?.bedrockRegion ?? "us-east-1"
+        }
         set {
+            guard activeConfiguration == nil else { return }
             objectWillChange.send()
             appSettings?.bedrockRegion = newValue
         }
@@ -180,8 +186,14 @@ class AIService: ObservableObject {
     
     /// AWS Bedrock model ID - reads from AppSettingsStore
     var bedrockModelId: String {
-        get { appSettings?.bedrockModelId ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0" }
+        get {
+            if let config = activeConfiguration {
+                return config.model
+            }
+            return appSettings?.bedrockModelId ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+        }
         set {
+            guard activeConfiguration == nil else { return }
             objectWillChange.send()
             appSettings?.bedrockModelId = newValue
         }
@@ -201,6 +213,7 @@ class AIService: ObservableObject {
             return .gemini
         }
         set {
+            guard activeConfiguration == nil else { return }
             objectWillChange.send()
             appSettings?.selectedAIProvider = newValue.rawValue
             refreshAPIKeyState()
@@ -505,11 +518,9 @@ class AIService: ObservableObject {
     private func validateAWSProfileConfiguration(profileName: String, region: String?) async {
         do {
             let credentials = try await awsProfileService.resolveCredentials(for: profileName)
-            let resolvedRegion = region ?? credentials.region ?? "us-east-1"
+            // Note: We intentionally do NOT update the global appSettings.bedrockRegion here.
+            // When using a profile, the region is derived from the profile/config at runtime.
             await MainActor.run {
-                if let appSettings = appSettings, appSettings.bedrockRegion != resolvedRegion {
-                    appSettings.bedrockRegion = resolvedRegion
-                }
                 self.apiKey = ""
                 self.isAPIKeyValid = true
             }
