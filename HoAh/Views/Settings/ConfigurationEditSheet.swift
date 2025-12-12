@@ -460,108 +460,28 @@ struct ConfigurationEditSheet: View {
     }
     
     private func verifyOpenAICompatibleKey(_ key: String, model: String) {
-        guard let url = URL(string: selectedProvider.baseURL) else {
-            handleVerificationResult(success: false, errorMessage: "Invalid API URL")
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
-        request.timeoutInterval = 30
-        
-        // OpenAI 新模型 (gpt-5.x) 需要用 max_completion_tokens 而不是 max_tokens
-        let useMaxCompletionTokens = selectedProvider == .openAI && model.hasPrefix("gpt-5")
-        var body: [String: Any] = [
-            "model": model,
-            "messages": [["role": "user", "content": "test"]]
-        ]
-        if useMaxCompletionTokens {
-            body["max_completion_tokens"] = 5
-        } else {
-            body["max_tokens"] = 5
-        }
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    handleVerificationResult(success: false, errorMessage: error.localizedDescription)
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    handleVerificationResult(success: false, errorMessage: "Invalid response")
-                    return
-                }
-                
-                if httpResponse.statusCode == 200 {
-                    handleVerificationResult(success: true, errorMessage: nil)
-                } else {
-                    var errorMsg = "HTTP \(httpResponse.statusCode)"
-                    if let data = data, let responseStr = String(data: data, encoding: .utf8) {
-                        // Try to extract error message from JSON
-                        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                           let errorObj = json["error"] as? [String: Any],
-                           let message = errorObj["message"] as? String {
-                            errorMsg = message
-                        } else {
-                            errorMsg += ": \(responseStr.prefix(200))"
-                        }
-                    }
-                    handleVerificationResult(success: false, errorMessage: errorMsg)
-                }
+        Task {
+            let result = await AIConfigurationValidator.verifyOpenAICompatibleKey(
+                apiKey: key,
+                provider: selectedProvider,
+                model: model
+            )
+            await MainActor.run {
+                handleVerificationResult(success: result.success, errorMessage: result.errorMessage)
             }
-        }.resume()
+        }
     }
     
     private func verifyAnthropicKey(_ key: String, model: String) {
-        guard let url = URL(string: selectedProvider.baseURL) else {
-            handleVerificationResult(success: false, errorMessage: "Invalid API URL")
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(key, forHTTPHeaderField: "x-api-key")
-        request.addValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-        request.timeoutInterval = 30
-        
-        let body: [String: Any] = [
-            "model": model,
-            "max_tokens": 5,
-            "messages": [["role": "user", "content": "test"]]
-        ]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    handleVerificationResult(success: false, errorMessage: error.localizedDescription)
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    handleVerificationResult(success: false, errorMessage: "Invalid response")
-                    return
-                }
-                
-                if httpResponse.statusCode == 200 {
-                    handleVerificationResult(success: true, errorMessage: nil)
-                } else {
-                    var errorMsg = "HTTP \(httpResponse.statusCode)"
-                    if let data = data,
-                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let errorObj = json["error"] as? [String: Any],
-                       let message = errorObj["message"] as? String {
-                        errorMsg = message
-                    }
-                    handleVerificationResult(success: false, errorMessage: errorMsg)
-                }
+        Task {
+            let result = await AIConfigurationValidator.verifyAnthropicKey(
+                apiKey: key,
+                model: model
+            )
+            await MainActor.run {
+                handleVerificationResult(success: result.success, errorMessage: result.errorMessage)
             }
-        }.resume()
+        }
     }
     
     private func handleVerificationResult(success: Bool, errorMessage: String?) {
@@ -587,11 +507,24 @@ struct ConfigurationEditSheet: View {
             region: region
         )
         
-        await verifyAWSCredentialsWithSigV4(credentials: credentials, region: region, model: model)
+        let result = await AIConfigurationValidator.verifyAWSCredentials(
+            credentials: credentials,
+            region: region
+        )
+        
+        await MainActor.run {
+            guard isVerifying else { return }
+            if result.success {
+                isVerifying = false
+                saveConfiguration()
+                dismiss()
+            } else {
+                handleVerificationResult(success: false, errorMessage: result.errorMessage)
+            }
+        }
     }
     
     /// Verifies AWS Profile credentials by calling ListFoundationModels API
-    /// This is a lightweight GET request that validates credentials without invoking a model
     private func verifyAWSProfileWithSigV4(profile: String, region: String, model: String) async {
         guard isVerifying else { return }
         
@@ -609,111 +542,19 @@ struct ConfigurationEditSheet: View {
             return
         }
         
-        await verifyAWSCredentialsWithSigV4(credentials: credentials, region: region, model: model)
-    }
-    
-    /// Common SigV4 verification for both Profile and Access Key auth
-    private func verifyAWSCredentialsWithSigV4(credentials: AWSCredentials, region: String, model: String) async {
-        guard isVerifying else { return }
+        let result = await AIConfigurationValidator.verifyAWSCredentials(
+            credentials: credentials,
+            region: region
+        )
         
-        // Use ListFoundationModels API as a lightweight probe
-        let host = "bedrock.\(region).amazonaws.com"
-        guard let url = URL(string: "https://\(host)/foundation-models?byOutputModality=TEXT&maxResults=1") else {
-            await MainActor.run {
-                guard isVerifying else { return }
-                isVerifying = false
-                verificationError = NSLocalizedString("Invalid Bedrock URL", comment: "")
-                showError = true
-            }
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.timeoutInterval = 15
-        
-        // Sign the request with SigV4
-        do {
-            request = try AWSSigV4Signer.sign(
-                request: request,
-                credentials: credentials,
-                region: region,
-                service: "bedrock"
-            )
-        } catch {
-            await MainActor.run {
-                guard isVerifying else { return }
-                isVerifying = false
-                verificationError = String(format: NSLocalizedString("Failed to sign request: %@", comment: ""), error.localizedDescription)
-                showError = true
-            }
-            return
-        }
-        
-        // Make the request
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
+        await MainActor.run {
             guard isVerifying else { return }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                await MainActor.run {
-                    isVerifying = false
-                    verificationError = NSLocalizedString("Invalid response from Bedrock", comment: "")
-                    showError = true
-                }
-                return
-            }
-            
-            switch httpResponse.statusCode {
-            case 200:
-                await MainActor.run {
-                    isVerifying = false
-                    saveConfiguration()
-                    dismiss()
-                }
-                
-            case 403:
-                let errorMsg: String
-                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let message = json["message"] as? String {
-                    errorMsg = message
-                } else {
-                    errorMsg = NSLocalizedString("Access denied. Ensure your IAM policy includes bedrock:ListFoundationModels permission.", comment: "")
-                }
-                await MainActor.run {
-                    isVerifying = false
-                    verificationError = errorMsg
-                    showError = true
-                }
-                
-            case 401:
-                await MainActor.run {
-                    isVerifying = false
-                    verificationError = NSLocalizedString("Invalid AWS credentials. Please check your Access Key and Secret Key.", comment: "")
-                    showError = true
-                }
-                
-            default:
-                var errorMsg = "HTTP \(httpResponse.statusCode)"
-                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let message = json["message"] as? String {
-                    errorMsg = message
-                }
-                await MainActor.run {
-                    isVerifying = false
-                    verificationError = errorMsg
-                    showError = true
-                }
-            }
-        } catch let error as URLError where error.code == .cancelled {
-            return
-        } catch {
-            await MainActor.run {
-                guard isVerifying else { return }
+            if result.success {
                 isVerifying = false
-                verificationError = error.localizedDescription
-                showError = true
+                saveConfiguration()
+                dismiss()
+            } else {
+                handleVerificationResult(success: false, errorMessage: result.errorMessage)
             }
         }
     }

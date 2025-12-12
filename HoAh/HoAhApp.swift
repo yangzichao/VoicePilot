@@ -28,6 +28,7 @@ struct HoAhApp: App {
     @StateObject private var menuBarManager: MenuBarManager
     @StateObject private var aiService = AIService()
     @StateObject private var enhancementService: AIEnhancementService
+    @StateObject private var configValidationService = ConfigurationValidationService()
     @StateObject private var localizationManager = LocalizationManager()
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @State private var showMenuBarIcon = true
@@ -242,6 +243,7 @@ struct HoAhApp: App {
             .environmentObject(menuBarManager)
             .environmentObject(aiService)
             .environmentObject(enhancementService)
+            .environmentObject(configValidationService)
             .environmentObject(localizationManager)
             .environment(\.locale, localizationManager.locale)
             .modelContainer(container)
@@ -254,6 +256,7 @@ struct HoAhApp: App {
                 // Configure AI services with centralized settings
                 aiService.configure(with: appSettings)
                 enhancementService.configure(with: appSettings)
+                configValidationService.configure(with: appSettings)
                 
                 // Configure coordinator with service references
                 settingsCoordinator.configure(

@@ -4,6 +4,7 @@ import SwiftUI
 /// Allows selecting, editing, and deleting configurations
 struct ConfigurationListView: View {
     @EnvironmentObject private var appSettings: AppSettingsStore
+    @EnvironmentObject private var validationService: ConfigurationValidationService
     @State private var showingAddSheet = false
     @State private var configToEdit: AIEnhancementConfiguration?
     @State private var configToDelete: AIEnhancementConfiguration?
@@ -39,8 +40,11 @@ struct ConfigurationListView: View {
                         AIConfigurationRow(
                             configuration: config,
                             isActive: appSettings.activeAIConfigurationId == config.id,
+                            isValidating: validationService.validatingConfigId == config.id,
+                            showSuccess: validationService.lastSuccessConfigId == config.id,
+                            validationError: validationService.validatingConfigId == nil && validationService.validationError != nil ? validationService.validationError : nil,
                             onSelect: {
-                                appSettings.setActiveConfiguration(id: config.id)
+                                validationService.switchToConfiguration(id: config.id)
                             },
                             onEdit: {
                                 configToEdit = config
@@ -48,6 +52,12 @@ struct ConfigurationListView: View {
                             onDelete: {
                                 configToDelete = config
                                 showDeleteConfirmation = true
+                            },
+                            onDismissError: {
+                                validationService.clearError()
+                            },
+                            onRetry: {
+                                validationService.switchToConfiguration(id: config.id)
                             }
                         )
 
@@ -85,22 +95,44 @@ struct ConfigurationListView: View {
     }
 }
 
-/// Simple row for an AI configuration
+/// Simple row for an AI configuration with validation state
 private struct AIConfigurationRow: View {
     let configuration: AIEnhancementConfiguration
     let isActive: Bool
+    let isValidating: Bool
+    let showSuccess: Bool
+    let validationError: ConfigurationValidationError?
     let onSelect: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
+    let onDismissError: () -> Void
+    let onRetry: () -> Void
 
     @State private var isHovered = false
+    @State private var showErrorPopover = false
 
     var body: some View {
         HStack(spacing: 12) {
-            // Selection indicator
-            Image(systemName: isActive ? "checkmark.circle.fill" : "circle")
-                .foregroundColor(isActive ? .accentColor : .secondary)
-                .font(.system(size: 16))
+            // Selection/validation indicator
+            Group {
+                if isValidating {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                        .frame(width: 16, height: 16)
+                } else if showSuccess {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                        .font(.system(size: 16))
+                } else if isActive {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.accentColor)
+                        .font(.system(size: 16))
+                } else {
+                    Image(systemName: "circle")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 16))
+                }
+            }
 
             // Provider icon
             Image(systemName: configuration.providerIcon)
@@ -119,6 +151,31 @@ private struct AIConfigurationRow: View {
                             .foregroundColor(.orange)
                             .font(.caption)
                     }
+                    
+                    // Validation error indicator
+                    if validationError != nil {
+                        Button {
+                            showErrorPopover = true
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        .buttonStyle(.borderless)
+                        .popover(isPresented: $showErrorPopover) {
+                            ValidationErrorPopover(
+                                error: validationError!,
+                                onDismiss: {
+                                    showErrorPopover = false
+                                    onDismissError()
+                                },
+                                onRetry: {
+                                    showErrorPopover = false
+                                    onRetry()
+                                }
+                            )
+                        }
+                    }
                 }
 
                 Text(configuration.summary)
@@ -130,7 +187,7 @@ private struct AIConfigurationRow: View {
             Spacer()
 
             // Action buttons (visible on hover)
-            if isHovered {
+            if isHovered && !isValidating {
                 HStack(spacing: 8) {
                     Button {
                         onEdit()
@@ -156,7 +213,7 @@ private struct AIConfigurationRow: View {
         .contentShape(Rectangle())
         .background(isHovered ? Color.accentColor.opacity(0.1) : Color.clear)
         .onTapGesture {
-            if configuration.isValid {
+            if configuration.isValid && !isValidating {
                 onSelect()
             }
         }
@@ -171,7 +228,7 @@ private struct AIConfigurationRow: View {
             } label: {
                 Label(NSLocalizedString("Set as Active", comment: ""), systemImage: "checkmark.circle")
             }
-            .disabled(!configuration.isValid || isActive)
+            .disabled(!configuration.isValid || isActive || isValidating)
 
             Button {
                 onEdit()
@@ -187,5 +244,47 @@ private struct AIConfigurationRow: View {
                 Label(NSLocalizedString("Delete", comment: ""), systemImage: "trash")
             }
         }
+    }
+}
+
+/// Popover showing validation error with recovery options
+private struct ValidationErrorPopover: View {
+    let error: ConfigurationValidationError
+    let onDismiss: () -> Void
+    let onRetry: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.red)
+                Text(NSLocalizedString("Validation Failed", comment: ""))
+                    .font(.headline)
+            }
+            
+            Text(error.errorDescription ?? "")
+                .font(.body)
+            
+            if let suggestion = error.recoverySuggestion {
+                Text(suggestion)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            HStack {
+                Button(NSLocalizedString("Dismiss", comment: "")) {
+                    onDismiss()
+                }
+                .buttonStyle(.borderless)
+                
+                Button(NSLocalizedString("Retry", comment: "")) {
+                    onRetry()
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .padding(.top, 4)
+        }
+        .padding()
+        .frame(width: 280)
     }
 }
