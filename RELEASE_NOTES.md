@@ -1,5 +1,11 @@
 # What's New in# Release Notes
 
+## [3.2.7]
+
+### 🏗 Refactoring
+- **AI Service**: Refactored `AIEnhancementService` for better state management and stability.
+- **Cleanup**: Removed unused files (`CustomSoundManager`, etc.) and deprecated code.
+
 ## [3.2.6]
 
 ### 🚀 Improvements
