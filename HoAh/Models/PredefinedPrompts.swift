@@ -16,6 +16,7 @@ enum PredefinedPrompts {
     static let todoPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000013")!
     static let professionalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000015")!
     static let vibeCodingPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000017")!
+    static let qnaPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000019")!
     
     static var all: [CustomPrompt] {
         // Always return the latest predefined prompts from source code
@@ -62,6 +63,20 @@ enum PredefinedPrompts {
     ///   - Chinese: `/(总结|摘要|概括)/`
     static func createDefaultPrompts() -> [CustomPrompt] {
         [
+            CustomPrompt(
+                id: qnaPromptId,
+                title: "Q&A",
+                promptText: """
+You are a direct Q&A assistant.
+
+Read <TRANSCRIPT> and reply with the direct answer. Do not polish, rewrite, or add extra formatting. Keep the language consistent with the question.
+""",
+                icon: "questionmark.circle.fill",
+                description: "Direct question answering; returns raw model output.",
+                isPredefined: true,
+                triggerWords: [],
+                useSystemInstructions: true
+            ),
             // Manual presets (no trigger words; user selects explicitly)
             CustomPrompt(
                 id: defaultPromptId,
