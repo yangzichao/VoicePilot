@@ -41,14 +41,16 @@ enum AIConfigurationValidator {
         
         // OpenAI gpt-5.x models use max_completion_tokens instead of max_tokens
         let useMaxCompletionTokens = provider == .openAI && model.hasPrefix("gpt-5")
+        // Use a small but realistic cap; gpt-5.1 needs more than 5 tokens even for a trivial reply
+        let maxTokens = 64
         var body: [String: Any] = [
             "model": model,
             "messages": [["role": "user", "content": "test"]]
         ]
         if useMaxCompletionTokens {
-            body["max_completion_tokens"] = 5
+            body["max_completion_tokens"] = maxTokens
         } else {
-            body["max_tokens"] = 5
+            body["max_tokens"] = maxTokens
         }
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
