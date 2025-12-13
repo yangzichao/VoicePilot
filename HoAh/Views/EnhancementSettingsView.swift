@@ -104,25 +104,32 @@ struct EnhancementSettingsView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         ConfigurationListView()
                         
-                        // Status indicator
-                        if let activeConfig = appSettings.activeAIConfiguration {
+                        // Status indicator (explicit ON/OFF wording)
+                        if let activeConfig = appSettings.activeAIConfiguration, appSettings.isAIEnhancementEnabled {
                             HStack(spacing: 6) {
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 8, height: 8)
-                                Text(String(format: NSLocalizedString("Active: %@", comment: ""), activeConfig.name))
+                                Text(NSLocalizedString("AI Enhancement: On", comment: ""))
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                Text(String(format: NSLocalizedString("Using %@", comment: "active AI config"), activeConfig.name))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                             .padding(.top, 4)
-                        } else if appSettings.aiEnhancementConfigurations.isEmpty {
+                        } else {
                             HStack(spacing: 6) {
-                                Circle()
-                                    .fill(Color.orange)
-                                    .frame(width: 8, height: 8)
-                                Text(NSLocalizedString("No AI configuration. Add one to enable enhancement.", comment: ""))
+                                Text(NSLocalizedString("AI Enhancement: Off", comment: ""))
                                     .font(.caption)
+                                    .fontWeight(.semibold)
                                     .foregroundColor(.orange)
+                                if appSettings.aiEnhancementConfigurations.isEmpty {
+                                    Text(NSLocalizedString("Add a configuration to enable.", comment: ""))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                } else {
+                                    Text(NSLocalizedString("Turn it on to apply your configuration.", comment: ""))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
                             }
                             .padding(.top, 4)
                         }

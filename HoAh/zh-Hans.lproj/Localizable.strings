@@ -323,6 +323,11 @@
 "prompt_terminal_description" = "从语音生成安全、简洁的英文终端命令。";
 "prompt_todo_title" = "待办清单";
 "prompt_todo_description" = "把语音转成可执行的任务要点；取消的内容不要列出。";
+"AI Enhancement: On" = "AI 增强：已开启";
+"AI Enhancement: Off" = "AI 增强：已关闭";
+"Using %@" = "使用 %@";
+"Add a configuration to enable." = "添加配置以启用。";
+"Turn it on to apply your configuration." = "开启后应用当前配置。";
 "ai_enhancement_auto_prompt_hint" = "同一时间仅有一个模式生效；开启 AI 增强后会自动应用到每次转录。当前：";
 "user_profile_placeholder" = "姓名：张三\n职位：软件工程师\n行业：科技\n技术栈：Swift、Python、JavaScript\n沟通风格：简洁直接\n语言：中文、英语";
 "User Profile" = "用户画像";

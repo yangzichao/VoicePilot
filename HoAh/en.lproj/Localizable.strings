@@ -284,6 +284,11 @@
 "prompt_terminal_description" = "Generate safe, concise English shell commands from user speech.";
 "prompt_todo_title" = "TODO List";
 "prompt_todo_description" = "Turn speech into actionable bullet-point tasks; skip cancelled items.";
+"AI Enhancement: On" = "AI Enhancement: On";
+"AI Enhancement: Off" = "AI Enhancement: Off";
+"Using %@" = "Using %@";
+"Add a configuration to enable." = "Add a configuration to enable.";
+"Turn it on to apply your configuration." = "Turn it on to apply your configuration.";
 "ai_enhancement_auto_prompt_hint" = "Only one mode is active at a time. It auto-applies after each transcription while AI enhancement is on. Current:";
 "ai_provider_configure_prompt" = "Cannot enable: Please configure a valid API Key in the AI Provider section below.";
 "user_profile_placeholder" = "Name: John Doe\nRole: Software Engineer\nIndustry: Technology\nTech Stack: Swift, Python, JavaScript\nCommunication Style: Direct and concise\nLanguages: English, Chinese";
