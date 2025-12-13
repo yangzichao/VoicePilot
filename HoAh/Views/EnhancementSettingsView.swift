@@ -13,6 +13,8 @@ struct EnhancementSettingsView: View {
     @State private var pendingPromptKind: PromptKind = .active
     @State private var showProviderAlert = false
     @State private var isUserProfileExpanded = false
+    @State private var isAIConfigExpanded = true
+    @State private var isPromptTriggersExpanded = true
 
     private var autoPrompts: [CustomPrompt] { enhancementService.activePrompts }
     private var triggerPrompts: [CustomPrompt] { enhancementService.triggerPrompts }
@@ -132,7 +134,7 @@ struct EnhancementSettingsView: View {
                     // AI Configuration Section
                     VStack(alignment: .leading, spacing: 16) {
                         ConfigurationListView()
-                        
+
                         // Status indicator (explicit ON/OFF wording)
                         if let activeConfig = appSettings.activeAIConfiguration, appSettings.isAIEnhancementEnabled {
                             HStack(spacing: 6) {
@@ -220,76 +222,77 @@ struct EnhancementSettingsView: View {
                     .background(CardBackground(isSelected: false))
                     
                     // 4. Smart Triggers Card
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Header with Master Toggle
-                        HStack(alignment: .center) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(LocalizedStringKey("Prompt Triggers"))
-                                    .font(.headline)
-                                Text(LocalizedStringKey("Automatically switch prompts when specific words are detected."))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text(LocalizedStringKey("Tap any card below to enable or disable it."))
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary.opacity(0.7))
-                                    .padding(.top, 1)
-                            }
-                            
-                            Spacer()
-                            
-                            Toggle(
-                                "",
-                                isOn: Binding(
-                                    get: { appSettings.arePromptTriggersEnabled },
-                                    set: { newValue in
-                                        if newValue {
-                                            appSettings.arePromptTriggersEnabled = true
-                                            if !appSettings.isAIEnhancementEnabled {
-                                                appSettings.isAIEnhancementEnabled = true
+                    DisclosureGroup(isExpanded: $isPromptTriggersExpanded) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack(alignment: .center) {
+                                Spacer()
+                                Toggle(
+                                    "",
+                                    isOn: Binding(
+                                        get: { appSettings.arePromptTriggersEnabled },
+                                        set: { newValue in
+                                            if newValue {
+                                                appSettings.arePromptTriggersEnabled = true
+                                                if !appSettings.isAIEnhancementEnabled {
+                                                    appSettings.isAIEnhancementEnabled = true
+                                                }
+                                            } else {
+                                                appSettings.arePromptTriggersEnabled = false
+                                                enhancementService.disableAllTriggerPrompts()
                                             }
-                                        } else {
-                                            appSettings.arePromptTriggersEnabled = false
-                                            enhancementService.disableAllTriggerPrompts()
                                         }
-                                    }
+                                    )
                                 )
-                            )
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .scaleEffect(0.9) // Match typical header toggle size
-                        }
-                        
-                        Divider()
-
-                        if !appSettings.isAIEnhancementEnabled {
-                            Text(LocalizedStringKey("Auto enhancement is off, so triggers are inactive until you turn it on."))
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                                .padding(.vertical, 4)
-                        }
-                        
-                        ReorderablePromptGrid(
-                            boundPrompts: $enhancementService.triggerPrompts,
-                            selectedPromptId: nil,
-                            onPromptSelected: { _ in },
-                            onEditPrompt: { prompt in
-                                selectedPromptForEdit = prompt
-                            },
-                            onDeletePrompt: { prompt in
-                                enhancementService.deletePrompt(prompt)
-                            },
-                            onAddNewPrompt: {
-                                pendingPromptKind = .trigger
-                                isEditingPrompt = true
-                            },
-                            isEnabled: appSettings.isAIEnhancementEnabled && appSettings.arePromptTriggersEnabled,
-                            isPromptEnabled: { $0.isActive },
-                            onTogglePromptEnabled: { prompt, isOn in
-                                if let idx = enhancementService.triggerPrompts.firstIndex(where: { $0.id == prompt.id }) {
-                                    enhancementService.triggerPrompts[idx].isActive = isOn
-                                }
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .scaleEffect(0.9) // Match typical header toggle size
                             }
-                        )
+
+                            Text(LocalizedStringKey("Automatically switch prompts when specific words are detected."))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(LocalizedStringKey("Tap any card below to enable or disable it."))
+                                .font(.caption2)
+                                .foregroundColor(.secondary.opacity(0.7))
+                            
+                            Divider()
+
+                            if !appSettings.isAIEnhancementEnabled {
+                                Text(LocalizedStringKey("Auto enhancement is off, so triggers are inactive until you turn it on."))
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                    .padding(.vertical, 4)
+                            }
+                            
+                            ReorderablePromptGrid(
+                                boundPrompts: $enhancementService.triggerPrompts,
+                                selectedPromptId: nil,
+                                onPromptSelected: { _ in },
+                                onEditPrompt: { prompt in
+                                    selectedPromptForEdit = prompt
+                                },
+                                onDeletePrompt: { prompt in
+                                    enhancementService.deletePrompt(prompt)
+                                },
+                                onAddNewPrompt: {
+                                    pendingPromptKind = .trigger
+                                    isEditingPrompt = true
+                                },
+                                isEnabled: appSettings.isAIEnhancementEnabled && appSettings.arePromptTriggersEnabled,
+                                isPromptEnabled: { $0.isActive },
+                                onTogglePromptEnabled: { prompt, isOn in
+                                    if let idx = enhancementService.triggerPrompts.firstIndex(where: { $0.id == prompt.id }) {
+                                        enhancementService.triggerPrompts[idx].isActive = isOn
+                                    }
+                                }
+                            )
+                        }
+                    } label: {
+                        HStack {
+                            Text(LocalizedStringKey("Prompt Triggers"))
+                                .font(.headline)
+                            Spacer()
+                        }
                     }
                     .padding()
                     .background(CardBackground(isSelected: false))
