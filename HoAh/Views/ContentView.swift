@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import KeyboardShortcuts
+import AVFoundation
 
 // ViewType enum with all cases
 enum ViewType: String, CaseIterable, Identifiable {
@@ -55,6 +56,7 @@ struct ContentView: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @EnvironmentObject private var appSettings: AppSettingsStore
     @State private var selectedView: ViewType? = .metrics
+    @StateObject private var permissionManager = PermissionManager()
     // DEPRECATED: Use AppSettingsStore instead of @AppStorage
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
 
@@ -106,7 +108,15 @@ struct ContentView: View {
                                 Text(LocalizedStringKey(viewType.rawValue))
                                     .font(.system(size: 14, weight: .medium))
 
-                                Spacer()
+                                if viewType == .permissions && hasPermissionIssues {
+                                    Spacer()
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(.orange)
+                                } else {
+                                    Spacer()
+                                }
+
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 2)
@@ -170,6 +180,12 @@ struct ContentView: View {
                 selectedView = .metrics
             }
         }
+    }
+    
+    private var hasPermissionIssues: Bool {
+        permissionManager.audioPermissionStatus != .authorized ||
+        !permissionManager.isAccessibilityEnabled ||
+        !permissionManager.isKeyboardShortcutSet
     }
     
     @ViewBuilder

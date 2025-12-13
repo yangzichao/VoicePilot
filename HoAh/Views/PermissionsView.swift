@@ -144,7 +144,7 @@ struct PermissionCard: View {
                             .foregroundColor(.green)
                             .symbolRenderingMode(.hierarchical)
                     } else {
-                        Image(systemName: "xmark.seal.fill")
+                        Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 20))
                             .foregroundColor(.orange)
                             .symbolRenderingMode(.hierarchical)
