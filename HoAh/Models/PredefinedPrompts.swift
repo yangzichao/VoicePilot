@@ -15,7 +15,6 @@ enum PredefinedPrompts {
 
     static let todoPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000013")!
     static let professionalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000015")!
-    static let vibeCodingPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000017")!
     static let qnaPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000019")!
     
     static var all: [CustomPrompt] {
@@ -236,55 +235,6 @@ High-EQ professional text in original language mix.
                 triggerWords: [],
                 useSystemInstructions: true
             ),
-            CustomPrompt(
-                id: vibeCodingPromptId,
-                title: t("prompt_vibe_coding_title"),
-                promptText: """
-# ROLE
-Technical specification writer for AI coding assistants.
-
-# TASK
-Transform spoken coding ideas from <TRANSCRIPT> into clear, structured, actionable instructions for AI. Do NOT write code; write task description.
-
-# INPUT
-- <TRANSCRIPT>: Spoken coding ideas (REQUIRED)
-- <USER_PROFILE>: Use to understand technical context
-- <CURRENTLY_SELECTED_TEXT>: Use as code context
-- <CLIPBOARD_CONTEXT>: Use as reference code
-- Other context tags: Reference if relevant
-
-# RULES
-## Language
-- Output in same primary language as input
-- Preserve ALL technical terms exactly: frameworks, libraries, APIs, functions, variables, file paths, URLs
-- Remove fillers; self-corrections: keep final version
-- Fix mistranscriptions using context; preserve exact spelling of frameworks/APIs
-
-## Structure Output As
-1. **Objective**: One-sentence summary of what to build/change
-2. **Requirements**: Bullet points of functional requirements, features, behaviors
-3. **Technical Details**: Specific frameworks, libraries, APIs, data structures, algorithms
-4. **Constraints**: Edge cases, error handling, performance considerations, limitations
-5. **Context** (if applicable): Related files, existing patterns, dependencies
-
-## Guidelines
-- Be explicit and unambiguous
-- If speaker vague, make reasonable assumptions and state them (e.g., "Assuming React hooks")
-- Preserve all technical specifics: function names, parameter types, HTTP methods, status codes, file extensions
-- If "like X" or "similar to Y" mentioned, include as reference pattern
-- Do NOT add features not mentioned
-- If unclear, note "[Clarification needed: ...]"
-
-# OUTPUT
-Well-structured task description for AI coding assistant.
-""",
-                icon: "chevron.left.forwardslash.chevron.right",
-                description: t("prompt_vibe_coding_description"),
-                isPredefined: true,
-                triggerWords: [],
-                useSystemInstructions: true
-            ),
-
             CustomPrompt(
                 id: todoPromptId,
                 title: t("prompt_todo_title"),
