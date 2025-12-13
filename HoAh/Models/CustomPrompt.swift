@@ -146,6 +146,7 @@ struct CustomPrompt: Identifiable, Codable, Equatable {
         case "Summarize": return NSLocalizedString("prompt_summarize_title", comment: "")
         case "Email Draft": return NSLocalizedString("prompt_email_title", comment: "")
         case "Terminal": return NSLocalizedString("prompt_terminal_title", comment: "")
+        case "Translate": return NSLocalizedString("prompt_translate_title", comment: "")
         default: return title
         }
     }
@@ -159,6 +160,7 @@ struct CustomPrompt: Identifiable, Codable, Equatable {
         case "Summarize": return NSLocalizedString("prompt_summarize_description", comment: "")
         case "Email Draft": return NSLocalizedString("prompt_email_description", comment: "")
         case "Terminal": return NSLocalizedString("prompt_terminal_description", comment: "")
+        case "Translate": return NSLocalizedString("prompt_translate_description", comment: "")
         default: return description
         }
     }

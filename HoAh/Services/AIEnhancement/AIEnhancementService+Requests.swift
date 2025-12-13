@@ -51,7 +51,13 @@ extension AIEnhancementService {
         let allContextSections = userProfileSection + selectedTextContext + clipboardContext + screenCaptureContext
 
         if let activePrompt = activePrompt {
-            return activePrompt.finalPromptText + allContextSections
+            var promptText = activePrompt.finalPromptText
+            if activePrompt.id == PredefinedPrompts.translatePromptId {
+                let storedTarget = appSettings?.translationTargetLanguage ?? TranslationLanguage.default.rawValue
+                let targetReplacement = TranslationLanguage.matchingLanguage(for: storedTarget)?.gptName ?? storedTarget
+                promptText = promptText.replacingOccurrences(of: "{{TARGET_LANGUAGE}}", with: targetReplacement)
+            }
+            return promptText + allContextSections
         } else {
             guard let fallback = activePrompts.first(where: { $0.id == PredefinedPrompts.defaultPromptId }) ?? activePrompts.first else {
                 return allContextSections

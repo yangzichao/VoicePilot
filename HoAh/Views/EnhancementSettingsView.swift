@@ -23,6 +23,35 @@ struct EnhancementSettingsView: View {
         }
         return NSLocalizedString("None", comment: "")
     }
+
+    private var translationPickerSelection: Binding<TranslationLanguage?> {
+        Binding(
+            get: { TranslationLanguage.matchingLanguage(for: appSettings.translationTargetLanguage) },
+            set: { newValue in
+                if let language = newValue {
+                    appSettings.translationTargetLanguage = language.rawValue
+                } else if TranslationLanguage.matchingLanguage(for: appSettings.translationTargetLanguage) != nil {
+                    appSettings.translationTargetLanguage = ""
+                }
+            }
+        )
+    }
+
+    private var customLanguageBinding: Binding<String> {
+        Binding(
+            get: {
+                if TranslationLanguage.matchingLanguage(for: appSettings.translationTargetLanguage) != nil {
+                    return ""
+                }
+                return appSettings.translationTargetLanguage
+            },
+            set: { appSettings.translationTargetLanguage = $0 }
+        )
+    }
+
+    private var isTranslateModeSelected: Bool {
+        enhancementService.activePrompt?.id == PredefinedPrompts.translatePromptId
+    }
     
     var body: some View {
         ScrollView {
@@ -178,6 +207,14 @@ struct EnhancementSettingsView: View {
                                 isEditingPrompt = true
                             }
                         )
+                        if isTranslateModeSelected {
+                            Divider()
+                            TranslationTargetSelector(
+                                selectedLanguage: translationPickerSelection,
+                                customLanguage: customLanguageBinding,
+                                showsCustomField: TranslationLanguage.matchingLanguage(for: appSettings.translationTargetLanguage) == nil
+                            )
+                        }
                     }
                     .padding()
                     .background(CardBackground(isSelected: false))
@@ -349,6 +386,48 @@ struct EnhancementSettingsView: View {
         .sheet(item: $selectedPromptForEdit) { prompt in
             PromptEditorView(mode: .edit(prompt))
         }
+    }
+}
+
+private struct TranslationTargetSelector: View {
+    @Binding var selectedLanguage: TranslationLanguage?
+    @Binding var customLanguage: String
+    let showsCustomField: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(LocalizedStringKey("translation_target_title"))
+                .font(.subheadline)
+                .fontWeight(.semibold)
+
+            Text(LocalizedStringKey("translation_target_description"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+            Picker(LocalizedStringKey("translation_target_picker_label"), selection: $selectedLanguage) {
+                ForEach(TranslationLanguage.allCases) { language in
+                    Text(language.localizedName).tag(Optional(language))
+                }
+                Text(LocalizedStringKey("translation_language_custom"))
+                    .tag(Optional<TranslationLanguage>.none)
+            }
+            .pickerStyle(.menu)
+
+            if showsCustomField {
+                VStack(alignment: .leading, spacing: 4) {
+                    TextField(
+                        LocalizedStringKey("translation_target_custom_placeholder"),
+                        text: $customLanguage
+                    )
+                    .textFieldStyle(.roundedBorder)
+
+                    Text(LocalizedStringKey("translation_target_custom_hint"))
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.top, 12)
     }
 }
 

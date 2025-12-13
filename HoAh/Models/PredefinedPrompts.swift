@@ -15,6 +15,7 @@ enum PredefinedPrompts {
 
     static let todoPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000013")!
     static let professionalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000015")!
+    static let translatePromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000021")!
     static let qnaPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000019")!
     
     static var all: [CustomPrompt] {
@@ -234,6 +235,34 @@ High-EQ professional text in original language mix.
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true
+            ),
+            CustomPrompt(
+                id: translatePromptId,
+                title: t("prompt_translate_title"),
+                promptText: """
+# ROLE
+Translator.
+
+# TASK
+Lightly clean <TRANSCRIPT> by removing fillers and redundant phrasing, then translate the polished text into {{TARGET_LANGUAGE}}. Output only the translation in the selected language and do not add explanations or the original text.
+
+# INPUT
+- <TRANSCRIPT>: Spoken text (REQUIRED)
+
+# RULES
+1. Preserve intent and technical terms while removing noise.
+2. Translate solely into the language chosen in settings.
+3. Keep the response concise and natural.
+4. The spoken input may mix multiple languages; treat it as one request and translate the overall meaning.
+
+# OUTPUT
+Translated text only.
+""",
+                icon: "globe",
+                description: t("prompt_translate_description"),
+                isPredefined: true,
+                triggerWords: [],
+                useSystemInstructions: false
             ),
             CustomPrompt(
                 id: todoPromptId,

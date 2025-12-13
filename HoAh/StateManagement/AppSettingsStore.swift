@@ -157,7 +157,7 @@ class AppSettingsStore: ObservableObject {
     @Published var useSelectedTextContext: Bool {
         didSet { saveSettings() }
     }
-    
+
     /// User profile context for AI enhancement
     @Published var userProfileContext: String {
         didSet { saveSettings() }
@@ -166,6 +166,17 @@ class AppSettingsStore: ObservableObject {
     /// Whether prompt triggers are enabled
     @Published var arePromptTriggersEnabled: Bool {
         didSet { saveSettings() }
+    }
+
+    /// Preferred translation target language (raw value from TranslationLanguage)
+    @Published var translationTargetLanguage: String {
+        didSet { saveSettings() }
+    }
+
+    /// Helper to read/write the preferred translation language as a typed enum.
+    var translationLanguage: TranslationLanguage {
+        get { TranslationLanguage.from(translationTargetLanguage) }
+        set { translationTargetLanguage = newValue.rawValue }
     }
     
     // Smart Scene State (runtime, not persisted directly)
@@ -305,6 +316,7 @@ class AppSettingsStore: ObservableObject {
         self.useSelectedTextContext = state.useSelectedTextContext
         self.userProfileContext = state.userProfileContext
         self.arePromptTriggersEnabled = state.arePromptTriggersEnabled
+        self.translationTargetLanguage = state.translationTargetLanguage ?? TranslationLanguage.default.rawValue
         self._selectedAIProvider = state.selectedAIProvider // Initialize storage
         self.bedrockRegion = state.bedrockRegion
         self.bedrockModelId = state.bedrockModelId
@@ -643,6 +655,7 @@ class AppSettingsStore: ObservableObject {
         useSelectedTextContext = state.useSelectedTextContext
         userProfileContext = state.userProfileContext
         arePromptTriggersEnabled = state.arePromptTriggersEnabled
+        translationTargetLanguage = state.translationTargetLanguage ?? TranslationLanguage.default.rawValue
         _selectedAIProvider = state.selectedAIProvider // Storage
         bedrockRegion = state.bedrockRegion
         bedrockModelId = state.bedrockModelId
@@ -684,6 +697,7 @@ class AppSettingsStore: ObservableObject {
             useSelectedTextContext: useSelectedTextContext,
             userProfileContext: userProfileContext,
             arePromptTriggersEnabled: arePromptTriggersEnabled,
+            translationTargetLanguage: translationTargetLanguage,
             selectedAIProvider: _selectedAIProvider,
             bedrockRegion: bedrockRegion,
             bedrockModelId: bedrockModelId,

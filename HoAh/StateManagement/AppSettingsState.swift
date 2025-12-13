@@ -79,6 +79,9 @@ struct AppSettingsState: Codable {
     
     /// Whether prompt triggers are enabled
     var arePromptTriggersEnabled: Bool = true
+
+    /// Preferred translation target language (raw value matching `TranslationLanguage`)
+    var translationTargetLanguage: String? = nil
     
     // MARK: - AI Provider Settings
     
@@ -142,6 +145,10 @@ struct AppSettingsState: Codable {
         if middleClickActivationDelay < 0 || middleClickActivationDelay > 5000 {
             errors.append("Invalid middleClickActivationDelay: \(middleClickActivationDelay). Must be between 0 and 5000.")
         }
+
+        if let target = translationTargetLanguage, TranslationLanguage(rawValue: target) == nil {
+            errors.append("Invalid translationTargetLanguage: \(target).")
+        }
         
         return ValidationResult(isValid: errors.isEmpty, errors: errors)
     }
@@ -183,6 +190,14 @@ struct AppSettingsState: Codable {
             safe.middleClickActivationDelay = 0
         } else if middleClickActivationDelay > 5000 {
             safe.middleClickActivationDelay = 5000
+        }
+
+        if let target = translationTargetLanguage {
+            if TranslationLanguage(rawValue: target) == nil {
+                safe.translationTargetLanguage = TranslationLanguage.default.rawValue
+            }
+        } else {
+            safe.translationTargetLanguage = TranslationLanguage.default.rawValue
         }
         
         return safe
