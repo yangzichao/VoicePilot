@@ -312,7 +312,7 @@ extension CustomPrompt {
                     }
                 }
                 
-                if let onDelete = onDelete, !isPredefined {
+                if let onDelete = onDelete {
                     Button(role: .destructive) {
                         let alert = NSAlert()
                         alert.messageText = "Delete Prompt?"

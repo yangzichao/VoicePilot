@@ -26,7 +26,6 @@ extension AIEnhancementService {
     }
 
     func deletePrompt(_ prompt: CustomPrompt) {
-        guard !prompt.isPredefined else { return }
         if activePrompts.contains(where: { $0.id == prompt.id }) {
             activePrompts.removeAll { $0.id == prompt.id }
             if selectedPromptId == prompt.id {
