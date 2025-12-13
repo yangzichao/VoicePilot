@@ -57,6 +57,7 @@ struct ContentView: View {
     @EnvironmentObject private var appSettings: AppSettingsStore
     @State private var selectedView: ViewType? = .metrics
     @StateObject private var permissionManager = PermissionManager()
+    @State private var hasModelIssues: Bool = false
     // DEPRECATED: Use AppSettingsStore instead of @AppStorage
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
 
@@ -108,7 +109,8 @@ struct ContentView: View {
                                 Text(LocalizedStringKey(viewType.rawValue))
                                     .font(.system(size: 14, weight: .medium))
 
-                                if viewType == .permissions && hasPermissionIssues {
+                                let showWarning = (viewType == .permissions && hasPermissionIssues) || (viewType == .models && hasModelIssues)
+                                if showWarning {
                                     Spacer()
                                     Image(systemName: "exclamationmark.triangle.fill")
                                         .font(.system(size: 12, weight: .semibold))
@@ -179,6 +181,12 @@ struct ContentView: View {
             if !isEnabled, selectedView == .transcribeAudio {
                 selectedView = .metrics
             }
+        }
+        .onAppear {
+            hasModelIssues = whisperState.currentTranscriptionModel == nil
+        }
+        .onChange(of: whisperState.currentTranscriptionModel) { _, newValue in
+            hasModelIssues = newValue == nil
         }
     }
     
