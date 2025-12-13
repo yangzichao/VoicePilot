@@ -328,6 +328,9 @@
 "Using %@" = "使用 %@";
 "Add a configuration to enable." = "添加配置以启用。";
 "Turn it on to apply your configuration." = "开启后应用当前配置。";
+"Enable AI Enhancement?" = "开启 AI 增强？";
+"AI Enhancement is off. Turn it on and use this configuration?" = "AI 增强已关闭，是否开启并使用此配置？";
+"Enable" = "开启";
 "ai_enhancement_auto_prompt_hint" = "同一时间仅有一个模式生效；开启 AI 增强后会自动应用到每次转录。当前：";
 "user_profile_placeholder" = "姓名：张三\n职位：软件工程师\n行业：科技\n技术栈：Swift、Python、JavaScript\n沟通风格：简洁直接\n语言：中文、英语";
 "User Profile" = "用户画像";

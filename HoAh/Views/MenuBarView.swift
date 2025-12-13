@@ -1,5 +1,6 @@
 import SwiftUI
 import LaunchAtLogin
+import AppKit
 
 struct MenuBarView: View {
     @EnvironmentObject var whisperState: WhisperState
@@ -112,7 +113,7 @@ struct MenuBarView: View {
             Menu {
                 ForEach(appSettings.validAIConfigurations) { config in
                     Button {
-                        validationService.switchToConfiguration(id: config.id)
+                        handleConfigSelection(config)
                     } label: {
                         HStack {
                             Image(systemName: config.providerIcon)
@@ -229,6 +230,26 @@ struct MenuBarView: View {
             Button(NSLocalizedString("Quit HoAh", comment: "")) {
                 NSApplication.shared.terminate(nil)
             }
+        }
+    }
+    
+    private func handleConfigSelection(_ config: AIEnhancementConfiguration) {
+        if appSettings.isAIEnhancementEnabled {
+            validationService.switchToConfiguration(id: config.id)
+            return
+        }
+        
+        let alert = NSAlert()
+        alert.messageText = NSLocalizedString("Enable AI Enhancement?", comment: "")
+        alert.informativeText = NSLocalizedString("AI Enhancement is off. Turn it on and use this configuration?", comment: "")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: NSLocalizedString("Enable", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+        
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            appSettings.isAIEnhancementEnabled = true
+            validationService.switchToConfiguration(id: config.id)
         }
     }
 }

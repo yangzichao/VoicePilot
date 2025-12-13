@@ -57,7 +57,6 @@ struct ContentView: View {
     @EnvironmentObject private var appSettings: AppSettingsStore
     @State private var selectedView: ViewType? = .metrics
     @StateObject private var permissionManager = PermissionManager()
-    @State private var hasModelIssues: Bool = false
     // DEPRECATED: Use AppSettingsStore instead of @AppStorage
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
 
@@ -182,18 +181,16 @@ struct ContentView: View {
                 selectedView = .metrics
             }
         }
-        .onAppear {
-            hasModelIssues = whisperState.currentTranscriptionModel == nil
-        }
-        .onChange(of: whisperState.currentTranscriptionModel) { _, newValue in
-            hasModelIssues = newValue == nil
-        }
     }
     
     private var hasPermissionIssues: Bool {
         permissionManager.audioPermissionStatus != .authorized ||
         !permissionManager.isAccessibilityEnabled ||
         !permissionManager.isKeyboardShortcutSet
+    }
+    
+    private var hasModelIssues: Bool {
+        whisperState.currentTranscriptionModel == nil
     }
     
     @ViewBuilder

@@ -9,6 +9,8 @@ struct ConfigurationListView: View {
     @State private var configToEdit: AIEnhancementConfiguration?
     @State private var configToDelete: AIEnhancementConfiguration?
     @State private var showDeleteConfirmation = false
+    @State private var pendingConfigToEnable: AIEnhancementConfiguration?
+    @State private var showEnablePrompt = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -44,7 +46,12 @@ struct ConfigurationListView: View {
                             showSuccess: validationService.lastSuccessConfigId == config.id,
                             validationError: validationService.validatingConfigId == nil && validationService.validationError != nil ? validationService.validationError : nil,
                             onSelect: {
-                                validationService.switchToConfiguration(id: config.id)
+                                if appSettings.isAIEnhancementEnabled {
+                                    validationService.switchToConfiguration(id: config.id)
+                                } else {
+                                    pendingConfigToEnable = config
+                                    showEnablePrompt = true
+                                }
                             },
                             onEdit: {
                                 configToEdit = config
@@ -91,6 +98,20 @@ struct ConfigurationListView: View {
             if let config = configToDelete {
                 Text(String(format: NSLocalizedString("Are you sure you want to delete \"%@\"?", comment: ""), config.name))
             }
+        }
+        .alert(NSLocalizedString("Enable AI Enhancement?", comment: ""), isPresented: $showEnablePrompt) {
+            Button(NSLocalizedString("Cancel", comment: ""), role: .cancel) {
+                pendingConfigToEnable = nil
+            }
+            Button(NSLocalizedString("Enable", comment: "")) {
+                if let config = pendingConfigToEnable {
+                    appSettings.isAIEnhancementEnabled = true
+                    validationService.switchToConfiguration(id: config.id)
+                }
+                pendingConfigToEnable = nil
+            }
+        } message: {
+            Text(NSLocalizedString("AI Enhancement is off. Turn it on and use this configuration?", comment: ""))
         }
     }
 }

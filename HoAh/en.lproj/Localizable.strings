@@ -289,6 +289,9 @@
 "Using %@" = "Using %@";
 "Add a configuration to enable." = "Add a configuration to enable.";
 "Turn it on to apply your configuration." = "Turn it on to apply your configuration.";
+"Enable AI Enhancement?" = "Enable AI Enhancement?";
+"AI Enhancement is off. Turn it on and use this configuration?" = "AI Enhancement is off. Turn it on and use this configuration?";
+"Enable" = "Enable";
 "ai_enhancement_auto_prompt_hint" = "Only one mode is active at a time. It auto-applies after each transcription while AI enhancement is on. Current:";
 "ai_provider_configure_prompt" = "Cannot enable: Please configure a valid API Key in the AI Provider section below.";
 "user_profile_placeholder" = "Name: John Doe\nRole: Software Engineer\nIndustry: Technology\nTech Stack: Swift, Python, JavaScript\nCommunication Style: Direct and concise\nLanguages: English, Chinese";
