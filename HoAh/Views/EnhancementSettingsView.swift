@@ -170,7 +170,7 @@ struct EnhancementSettingsView: View {
                     
                     // 3. Default Enhancement Mode Card
                     VStack(alignment: .leading, spacing: 16) {
-                        HStack {
+                        HStack(spacing: 8) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(LocalizedStringKey("Default Auto-Enhancement"))
                                     .font(.headline)
@@ -180,6 +180,18 @@ struct EnhancementSettingsView: View {
                             }
                             
                             Spacer()
+
+                            Button {
+                                pendingPromptKind = .active
+                                isEditingPrompt = true
+                            } label: {
+                                Label(
+                                    NSLocalizedString("add_prompt_button_title", comment: ""),
+                                    systemImage: "plus"
+                                )
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
                             
                             Button(LocalizedStringKey("Reset Built-in Prompts")) {
                                 enhancementService.resetPredefinedPrompts()
@@ -204,10 +216,6 @@ struct EnhancementSettingsView: View {
                             onDeletePrompt: { prompt in
                                 enhancementService.deletePrompt(prompt)
                             },
-                            onAddNewPrompt: {
-                                pendingPromptKind = .active
-                                isEditingPrompt = true
-                            }
                         )
                         if isTranslateModeSelected {
                             Divider()
@@ -273,10 +281,6 @@ struct EnhancementSettingsView: View {
                                 },
                                 onDeletePrompt: { prompt in
                                     enhancementService.deletePrompt(prompt)
-                                },
-                                onAddNewPrompt: {
-                                    pendingPromptKind = .trigger
-                                    isEditingPrompt = true
                                 },
                                 isEnabled: appSettings.isAIEnhancementEnabled && appSettings.arePromptTriggersEnabled,
                                 isPromptEnabled: { $0.isActive },
@@ -443,7 +447,6 @@ private struct ReorderablePromptGrid: View {
     let onPromptSelected: (CustomPrompt) -> Void
     let onEditPrompt: ((CustomPrompt) -> Void)?
     let onDeletePrompt: ((CustomPrompt) -> Void)?
-    let onAddNewPrompt: (() -> Void)?
     var isEnabled: Bool = true
     var isPromptEnabled: ((CustomPrompt) -> Bool)? = nil
     var onTogglePromptEnabled: ((CustomPrompt, Bool) -> Void)? = nil
@@ -514,19 +517,6 @@ private struct ReorderablePromptGrid: View {
                         )
                     }
                     
-                    if let onAddNewPrompt = onAddNewPrompt {
-                        CustomPrompt.addNewButton {
-                            onAddNewPrompt()
-                        }
-                        .help(NSLocalizedString("Add new prompt", comment: ""))
-                        .onDrop(
-                            of: [UTType.text],
-                            delegate: PromptEndDropDelegate(
-                                prompts: $boundPrompts,
-                                draggingItem: $draggingItem
-                            )
-                        )
-                    }
                 }
                 .padding(.vertical, 12)
                 .padding(.horizontal, 16)
