@@ -185,8 +185,7 @@ struct ContentView: View {
     
     private var hasPermissionIssues: Bool {
         permissionManager.audioPermissionStatus != .authorized ||
-        !permissionManager.isAccessibilityEnabled ||
-        !permissionManager.isKeyboardShortcutSet
+        !permissionManager.isAccessibilityEnabled
     }
     
     private var hasModelIssues: Bool {
