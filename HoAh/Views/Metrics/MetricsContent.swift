@@ -94,7 +94,7 @@ struct MetricsContent: View {
                 title: "Sessions Recorded",
                 value: "\(filteredTranscriptions.count)",
                 detail: "HoAh sessions completed",
-                color: .purple
+                color: Color(nsColor: .controlAccentColor)
             )
             
             MetricCard(
