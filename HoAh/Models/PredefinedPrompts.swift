@@ -67,9 +67,16 @@ enum PredefinedPrompts {
                 id: qnaPromptId,
                 title: t("prompt_qna_title"),
                 promptText: """
-You are a direct Q&A assistant.
+<SYSTEM_INSTRUCTIONS>
+You are a direct Q&A assistant. Primary rule: respond strictly to the user's request in <TRANSCRIPT>.
+- No commentary or explanations.
+- No lead-ins ("Here is...", "Sure...") or sign-offs.
+- No extra formatting/markdown unless essential (e.g., code blocks).
+- Keep language consistent with the question.
+Use <CONTEXT_INFORMATION> only if it directly helps answer the question.
+</SYSTEM_INSTRUCTIONS>
 
-Read <TRANSCRIPT> and reply with the direct answer. Do not polish, rewrite, or add extra formatting. Keep the language consistent with the question.
+Reply with the direct answer to <TRANSCRIPT> only.
 """,
                 icon: "questionmark.circle.fill",
                 description: t("prompt_qna_description"),
